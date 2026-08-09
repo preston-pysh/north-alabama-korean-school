@@ -1,0 +1,3292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Korean Lab</title>
+<style>
+:root{
+  --bg:#ffffff; --bg-alt:#fbfbfd;
+  --ink:#1d1d1f; --ink-soft:#6e6e73; --ink-faint:#86868b; --line:#e3e3e6;
+  /* BRAND PIVOT (Preston, Aug 2026): red is retired from UI text and buttons.
+     The logo's blue leads, its green supports; red now lives only in artwork —
+     the mugunghwa petals and the medal art. --accent IS the brand blue. */
+  --accent:#1f4788; --accent-dk:#16345c; --accent-bg:#e9edf6;
+  --accent-blue:#1f4788; --accent-blue-bg:#e9edf6;
+  --accent-green:#9bc23a; --accent-green-dk:#6e8f1f; --accent-green-bg:#f0f6e2;
+  --warn:#a8781f;
+  --radius:18px; --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+/* iOS paints a blue wash over tap targets and double-tap selections; the card
+   is one giant target, so a tap mid-audio tinted the whole picture. Kill the
+   highlight everywhere, the selection overlay on the interactive surfaces,
+   and double-tap-to-zoom on the things people tap rapidly. */
+.stage, .stage *, .grid, .grid *{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+.card, .opt, .btn, .arrow{touch-action:manipulation}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; align-items:center;
+  min-height:100vh; padding:44px 24px 60px;
+}
+.wrap{width:100%; max-width:720px; display:flex; flex-direction:column; align-items:center}
+
+.cov{text-align:center; margin-bottom:40px}
+.cov-num{font-size:64px; font-weight:300; letter-spacing:-.03em; line-height:1; font-variant-numeric:tabular-nums}
+.cov-lbl{font-size:13.5px; color:var(--ink-faint); margin-top:10px}
+
+.stage{display:flex; align-items:center; gap:20px; width:100%; justify-content:center}
+.arrow{flex:0 0 auto; width:44px; height:44px; border:0; background:none; cursor:pointer;
+  color:var(--ink-faint); border-radius:50%; display:grid; place-items:center; transition:.22s var(--ease)}
+.arrow:hover{color:var(--ink); background:var(--bg-alt)}
+.arrow:disabled{opacity:.18; cursor:default}
+.arrow:disabled:hover{background:none; color:var(--ink-faint)}
+.arrow svg{width:22px;height:22px}
+
+.card{flex:0 1 440px; aspect-ratio:1/1; border-radius:var(--radius);
+  background:var(--bg-alt); border:1px solid var(--line);
+  overflow:hidden; cursor:pointer; position:relative;
+  transition:transform .22s var(--ease), box-shadow .22s var(--ease);
+  -webkit-tap-highlight-color:transparent; user-select:none}
+.card:hover{box-shadow:0 14px 44px rgba(0,0,0,.07)}
+.card:active{transform:scale(.985)}
+.card.speaking{box-shadow:0 0 0 2px var(--accent-bg),0 14px 44px rgba(0,0,0,.07)}
+.card img{display:block; width:100%; height:100%; object-fit:cover; pointer-events:none}
+
+.reveal{position:absolute; left:16px; bottom:14px; font-size:13px; color:var(--ink-faint);
+  background:rgba(255,255,255,.82); backdrop-filter:blur(8px); border-radius:999px;
+  padding:5px 13px; opacity:0; transition:.25s var(--ease); pointer-events:none}
+.card.revealed .reveal{opacity:1}
+.reveal b{font-weight:600; color:var(--ink); margin-right:7px}
+
+.hint{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  background:rgba(29,29,31,.72); color:#fff; font-size:13px; padding:8px 16px;
+  border-radius:999px; pointer-events:none; opacity:0; transition:.4s var(--ease)}
+.hint.show{opacity:1}
+
+/* the "picture doesn't fit" flag — quiet by design. It sits at the card's top-right,
+   nearly invisible until wanted, and never intercepts the tap-to-hear gesture. */
+.flag{position:absolute; top:10px; right:10px; width:34px; height:34px; border:0;
+  border-radius:999px; background:rgba(255,255,255,.62); backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  color:var(--ink-faint); opacity:.38; transition:.25s var(--ease); padding:0}
+.card:hover .flag, .flag:focus-visible{opacity:.9}
+.flag:hover{background:rgba(255,255,255,.92); color:var(--ink-soft); transform:scale(1.06)}
+.flag svg{width:15px; height:15px; display:block}
+.flag.on{opacity:.95; background:var(--accent-bg); color:var(--accent-dk)}
+.flag.on svg{fill:currentColor}
+.chkclip{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.flag-toast{position:absolute; left:50%; bottom:52px; transform:translateX(-50%);
+  background:rgba(29,29,31,.78); color:#fff; font-size:12.5px; padding:7px 14px;
+  border-radius:999px; pointer-events:none; opacity:0; transition:.35s var(--ease);
+  white-space:nowrap}
+.flag-toast.show{opacity:1}
+
+/* GROWTH — the progress panel. Words owned is the linear, always-climbing
+   metric; coverage stays the honest instrument. No warped axes, ever. */
+.cov-num{cursor:pointer; transition:.2s var(--ease)}
+.cov-num:hover{opacity:.75}
+.growth-hero{text-align:center; margin-bottom:8px}
+.growth-hero .gnum{font-size:64px; font-weight:600; letter-spacing:-.03em; line-height:1}
+.growth-hero .glbl{font-size:14px; color:var(--ink-soft); margin-top:6px}
+.growth-sub{font-size:12.5px; color:var(--ink-faint); text-align:center; margin:0 0 22px}
+.growth-chart{background:var(--bg-alt); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 18px 8px; margin-bottom:18px}
+.growth-chart p{font-size:12.5px; color:var(--ink-soft); margin:0 0 8px}
+.growth-chart svg{width:100%; height:auto; display:block}
+
+/* CHECK CELEBRATION — four tiers, all celebrating something true.
+   Perfect = mugunghwa petal burst + gold sparks. Strong = petal drift.
+   Good = glow pulse. Steady = calm warmth, no motion. Never sound,
+   never farmable, honours prefers-reduced-motion. */
+#chkDone .chk-title{transition:none}
+.done-pop .chk-title{animation:donePop .7s var(--ease) both}
+@keyframes donePop{0%{transform:scale(.6); opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1); opacity:1}}
+.done-perfect .chk-title{color:var(--accent-dk); font-size:26px}
+.done-great .chk-title{color:var(--accent-dk)}
+.done-good .chk-title{color:var(--ink)}
+.done-steady .chk-title{color:var(--ink)}
+.done-glow{position:relative}
+.done-glow::before{content:''; position:absolute; left:50%; top:38px; width:220px; height:220px;
+  transform:translateX(-50%); border-radius:50%; pointer-events:none; z-index:-1;
+  background:radial-gradient(circle, rgba(217,164,65,.28), rgba(217,164,65,0) 65%);
+  animation:glowPulse 2.2s var(--ease) 2}
+@keyframes glowPulse{0%,100%{opacity:.25; transform:translateX(-50%) scale(.9)} 50%{opacity:1; transform:translateX(-50%) scale(1.12)}}
+.done-words{text-align:center; margin:10px 0 2px; font-size:15px; color:var(--ink-soft)}
+.done-words b{font-size:34px; font-weight:600; letter-spacing:-.02em; color:var(--ink);
+  font-variant-numeric:tabular-nums}
+
+/* MILESTONE — the six-second moment. Outranks everything: densest petals,
+   the medal itself descending with a glow, the fanfare. One-shot forever. */
+.mile{position:fixed; inset:0; z-index:80; display:none; align-items:center;
+  justify-content:center; background:rgba(255,253,248,.96);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px)}
+.mile.show{display:flex}
+.mile-box{text-align:center; padding:24px; max-width:480px}
+.mile-medal{width:min(46vw,260px); height:auto; display:block; margin:0 auto 18px;
+  filter:drop-shadow(0 18px 44px rgba(0,0,0,.22));
+  animation:medalIn 1.15s cubic-bezier(.22,1.2,.36,1) both}
+@keyframes medalIn{
+  0%{transform:translateY(-70px) scale(.35) rotate(-8deg); opacity:0}
+  55%{transform:translateY(6px) scale(1.06) rotate(1.5deg); opacity:1}
+  100%{transform:translateY(0) scale(1) rotate(0)}}
+.mile-halo{position:absolute; left:50%; top:50%; width:420px; height:420px;
+  transform:translate(-50%,-58%); border-radius:50%; pointer-events:none; z-index:-1;
+  background:radial-gradient(circle, rgba(217,164,65,.32), rgba(217,164,65,0) 62%);
+  animation:haloBloom 1.6s var(--ease) both}
+@keyframes haloBloom{0%{opacity:0; transform:translate(-50%,-58%) scale(.5)} 100%{opacity:1; transform:translate(-50%,-58%) scale(1)}}
+.mile-tier{font-size:30px; font-weight:600; letter-spacing:-.02em; color:var(--accent-dk);
+  animation:donePop .7s .5s var(--ease) both}
+.mile-line{font-size:15.5px; color:var(--ink-soft); margin:8px 0 24px; line-height:1.6;
+  animation:mileFade .7s .8s var(--ease) both}
+@keyframes mileFade{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+.mile-btn{animation:mileFade .7s 1.2s var(--ease) both}
+.mile-mute{position:absolute; bottom:22px; left:50%; transform:translateX(-50%);
+  background:none; border:0; font:inherit; font-size:12px; color:var(--ink-faint);
+  cursor:pointer; padding:6px 14px; border-radius:999px}
+.mile-mute:hover{background:var(--bg-alt)}
+@media (prefers-reduced-motion: reduce){
+  .mile-medal,.mile-tier,.mile-line,.mile-btn,.mile-halo{animation:none; opacity:1; transform:none}}
+
+/* the medal shelf on the growth panel — the whole arc, visible from day one */
+.shelf{display:grid; grid-template-columns:repeat(5,1fr); gap:14px 10px; margin:20px 0 6px}
+.shelf .m{text-align:center}
+.shelf .m img{width:100%; max-width:64px; height:auto; transition:.3s var(--ease)}
+.shelf .m.locked img{filter:grayscale(1) opacity(.28)}
+.shelf .m span{display:block; font-size:10.5px; color:var(--ink-faint); margin-top:3px}
+.shelf .m.earned span{color:var(--ink-soft); font-weight:600}
+.celebrate-layer{position:fixed; inset:0; pointer-events:none; z-index:65; overflow:hidden}
+.petal{position:absolute; top:-24px; border-radius:62% 38% 58% 42%;
+  animation:petalFall linear both}
+@keyframes petalFall{
+  0%{transform:translate3d(0,0,0) rotate(0deg); opacity:1}
+  85%{opacity:1}
+  100%{transform:translate3d(var(--sway), 108vh, 0) rotate(var(--spin)); opacity:0}}
+.spark{position:absolute; width:5px; height:5px; border-radius:50%; background:#d9a441;
+  animation:sparkUp ease-out both}
+@keyframes sparkUp{
+  0%{transform:translate3d(0,0,0) scale(1); opacity:1}
+  100%{transform:translate3d(var(--sx), var(--sy), 0) scale(.2); opacity:0}}
+@media (prefers-reduced-motion: reduce){
+  .petal,.spark{display:none}
+  .done-pop .chk-title{animation:none}
+  .done-glow::before{animation:none; opacity:.4}
+}
+.arcwrap{margin:6px 0 20px}
+.arcbar{position:relative; height:10px; border-radius:999px; background:var(--bg-alt);
+  border:1px solid var(--line); overflow:hidden}
+.arcfill{position:absolute; left:0; top:0; bottom:0; background:var(--accent); border-radius:999px;
+  transition:width .6s var(--ease)}
+.arcticks{position:relative; height:16px; margin-top:4px}
+.arcticks i{position:absolute; top:2px; width:4px; height:4px; border-radius:50%;
+  background:var(--warmDD,#b9b1a4); background:#cfc9bf}
+.arcticks i.hit{background:var(--accent-dk)}
+.arcnote{font-size:12px; color:var(--ink-faint); text-align:center; margin-top:2px}
+.growth-cov{font-size:13px; color:var(--ink-soft); text-align:center; line-height:1.7;
+  margin-top:4px}
+.growth-cov b{color:var(--ink)}
+
+/* REVIEW MODE — browsing words already known. Same sacred card, visibly
+   different dress so it can never be mistaken for learning. Since the brand
+   pivot made blue the base UI colour, review mode wears the logo GREEN. */
+.review-banner{display:none; align-items:center; justify-content:center; gap:16px;
+  background:var(--accent-green-bg); color:var(--accent-green-dk); border-radius:999px;
+  padding:8px 10px 8px 22px; margin:0 auto 22px; width:fit-content;
+  font-size:13.5px; font-weight:600}
+body.reviewing .review-banner{display:flex}
+.review-banner .btn{color:var(--accent-green-dk); font-size:13px; padding:6px 14px}
+.review-banner .btn:hover{background:rgba(255,255,255,.7)}
+body.reviewing .card{border-color:var(--accent-green-dk); box-shadow:0 0 0 1px var(--accent-green-bg)}
+body.reviewing .btn.primary{color:var(--accent-green-dk); background:var(--accent-green-bg)}
+body.reviewing #testBtn, body.reviewing #reviewBtn{display:none}
+body.reviewing .controls .dot{display:none}
+
+/* ACCOUNTS — the save-progress moment. Hidden entirely until AUTH.enabled
+   (or ?auth=preview). Never a wall, never a nag: a ghost link under the
+   coverage number, one earned line after a clean check, and later the first
+   medal. One sheet, three provider buttons, zero text fields. */
+.savelink{display:none; margin-top:14px; font-size:13px; color:var(--ink-faint);
+  background:none; border:0; cursor:pointer; font-family:inherit; padding:6px 14px;
+  border-radius:999px; transition:.2s var(--ease)}
+.savelink.show{display:inline-block}
+.savelink:hover{background:var(--bg-alt); color:var(--ink-soft)}
+.savelink.saved{color:var(--accent-green); cursor:default}
+.savelink.saved:hover{background:none}
+.auth-sheet{position:fixed; inset:0; background:rgba(29,29,31,.34); backdrop-filter:blur(4px);
+  display:none; align-items:flex-end; justify-content:center; z-index:70}
+.auth-sheet.show{display:flex}
+.auth-box{background:var(--bg); border-radius:var(--radius) var(--radius) 0 0; width:100%;
+  max-width:430px; padding:30px 28px calc(26px + env(safe-area-inset-bottom));
+  box-shadow:0 -18px 60px rgba(0,0,0,.2); text-align:center}
+@media (min-width:640px){
+  .auth-sheet{align-items:center}
+  .auth-box{border-radius:var(--radius); padding-bottom:26px}
+}
+.auth-title{font-size:18px; font-weight:600; letter-spacing:-.01em; margin-bottom:6px}
+.auth-sub{font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:22px}
+.auth-btn{display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+  border:1px solid var(--line); border-radius:14px; background:var(--bg); cursor:pointer;
+  font:inherit; font-size:15px; font-weight:600; padding:13px 16px; margin-bottom:10px;
+  transition:.18s var(--ease)}
+.auth-btn:hover{transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.auth-btn .pmark{width:20px; height:20px; border-radius:5px; display:inline-flex;
+  align-items:center; justify-content:center; font-size:12px; font-weight:800}
+.auth-kakao{background:#FEE500; border-color:#FEE500; color:#191919}
+.auth-kakao .pmark{background:#191919; color:#FEE500; border-radius:50%}
+.auth-naver{background:#03C75A; border-color:#03C75A; color:#fff}
+.auth-naver .pmark{background:#fff; color:#03C75A}
+.auth-google .pmark{background:#fff; border:1px solid var(--line); color:#4285F4}
+.auth-cancel{background:none; border:0; font:inherit; font-size:13.5px; color:var(--ink-faint);
+  cursor:pointer; margin-top:8px; padding:8px 16px; border-radius:999px}
+.auth-cancel:hover{background:var(--bg-alt)}
+.auth-note{font-size:11.5px; color:var(--ink-faint); margin-top:14px; line-height:1.5}
+.done-save{display:none; margin-top:16px; font-size:13.5px; color:var(--ink-soft)}
+.done-save.show{display:block}
+.done-save button{background:none; border:0; font:inherit; font-size:13.5px; font-weight:600;
+  color:var(--accent-blue); cursor:pointer; padding:2px 6px}
+/* first-tap confirmation: the flag is a bug report, not a bookmark. Shown once. */
+.flagc{position:fixed; inset:0; background:rgba(29,29,31,.32); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:60; padding:24px}
+.flagc.show{display:flex}
+.flagc-box{background:var(--bg); border-radius:var(--radius); max-width:400px; width:100%;
+  padding:28px 28px 22px; box-shadow:0 24px 64px rgba(0,0,0,.18); text-align:center}
+.flagc-title{font-size:17px; font-weight:600; margin-bottom:10px}
+.flagc-body{font-size:14px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px}
+.flagc-note{width:100%; box-sizing:border-box; font:inherit; font-size:14px; color:var(--ink);
+  background:var(--bg-alt); border:1px solid var(--line); border-radius:12px;
+  padding:10px 14px; margin-bottom:16px; resize:none; line-height:1.5;
+  -webkit-user-select:text; user-select:text}
+.flagc-note:focus{outline:none; border-color:var(--accent)}
+.flagc-note::placeholder{color:var(--ink-faint)}
+.flagc-row{display:flex; gap:10px; justify-content:center}
+
+/* ---------- the Hall of Names — a wall, not a ladder ---------- */
+.wall-mine{background:var(--cream); border-radius:var(--radius); padding:18px 22px;
+  margin:6px 0 22px; font-size:14px; color:var(--ink-soft); text-align:center; line-height:1.6}
+.wall-mine .btn{margin-top:8px}
+.wall-sect{font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--accent-dk); margin:22px 0 10px; text-align:center}
+.wgrid{display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
+.wentry{display:flex; align-items:center; gap:10px; background:var(--bg-alt);
+  border:1px solid var(--line); border-radius:999px; padding:6px 14px 6px 7px;
+  animation:wIn .4s var(--ease) both}
+@keyframes wIn{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
+.wentry img.wav{width:38px; height:38px; border-radius:50%; background:var(--cream)}
+.wentry .wname{font-size:14px; font-weight:600; color:var(--ink); word-break:keep-all;
+  display:flex; flex-direction:column; line-height:1.25}
+.wentry .wwords{font-size:11.5px; font-weight:500; color:var(--ink-faint)}
+.wentry img.wmedal{width:26px; height:26px; object-fit:contain}
+.wentry.me{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-bg);
+  background:#fff}
+.wentry .wme{color:var(--accent-dk); font-weight:700}
+.wj-handle{display:flex; gap:8px; margin-bottom:14px}
+.wj-handle input{flex:1; font:inherit; font-size:15px; padding:10px 14px;
+  border:1px solid var(--line); border-radius:12px; background:var(--bg-alt);
+  color:var(--ink); -webkit-user-select:text; user-select:text}
+.wj-handle input:focus{outline:none; border-color:var(--accent)}
+.wj-avatars{display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:16px}
+.wj-avatars button{border:2px solid transparent; border-radius:14px; background:var(--bg-alt);
+  padding:4px; cursor:pointer}
+.wj-avatars button.sel{border-color:var(--accent); background:var(--accent-bg)}
+.wj-avatars img{width:100%; display:block; border-radius:10px}
+.wj-err{font-size:13px; color:var(--accent-dk); text-align:center; min-height:18px; margin-top:10px}
+
+.controls{display:flex; align-items:center; gap:8px; margin-top:30px; flex-wrap:wrap; justify-content:center}
+.btn{border:0; background:none; cursor:pointer; font:inherit; font-size:14px;
+  color:var(--ink-soft); padding:9px 18px; border-radius:999px; transition:.2s var(--ease)}
+.btn:hover{background:var(--bg-alt); color:var(--ink)}
+.btn.primary{color:var(--accent-dk); background:var(--accent-bg)}
+.btn.primary:hover{filter:brightness(.97)}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--line)}
+
+.voices{display:flex; align-items:center; gap:7px; margin-top:20px; opacity:.6; transition:opacity .22s var(--ease)}
+.voices:hover{opacity:1}
+.vlbl{font-size:12.5px; color:var(--ink-faint); margin-right:3px}
+.vbtn{width:27px;height:27px;border-radius:50%;border:1px solid var(--line);background:none;
+  color:var(--ink-faint); font:inherit; font-size:12.5px; cursor:pointer; transition:.2s var(--ease); padding:0}
+.vbtn:hover{border-color:var(--ink-faint); color:var(--ink)}
+.vbtn.on{background:var(--accent-bg); border-color:transparent; color:var(--accent-dk); font-weight:600}
+.vbtn.off{opacity:.28; cursor:default}
+.vname{font-size:12.5px; color:var(--ink-faint); margin-left:7px}
+
+.meta{margin-top:20px; font-size:13px; color:var(--ink-faint); text-align:center; line-height:1.7}
+.meta span{color:var(--line); margin:0 7px}
+
+.notice{max-width:520px; margin:0 0 32px; padding:16px 20px; border-radius:14px;
+  background:var(--accent-blue-bg); color:var(--accent-blue); font-size:13.5px; line-height:1.55; display:none}
+.notice.show{display:block}
+.notice b{display:block; margin-bottom:5px; font-weight:600}
+
+.test{display:none; width:100%; flex-direction:column; align-items:center}
+.test.show{display:flex}
+.stage.hidden,.controls.hidden,.voices.hidden,.statwrap.hidden,.meta.hidden{display:none}
+.test-q{font-size:14px; color:var(--ink-soft); margin-bottom:8px}
+.test-play{border:0; background:var(--accent-bg); color:var(--accent-dk); cursor:pointer;
+  border-radius:999px; padding:12px 26px; font:inherit; font-size:15px; font-weight:500;
+  margin-bottom:28px; transition:.2s var(--ease)}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; max-width:460px}
+.opt{aspect-ratio:1/1; border-radius:14px; background:var(--bg-alt); border:1px solid var(--line);
+  overflow:hidden; cursor:pointer; padding:0; transition:.2s var(--ease)}
+.opt:hover{box-shadow:0 8px 26px rgba(0,0,0,.06)}
+.opt img{display:block;width:100%;height:100%;object-fit:cover}
+.opt.right{border-color:var(--accent-green); box-shadow:0 0 0 2px rgba(155,194,58,.25)}
+.opt.wrong{opacity:.35}
+
+/* THE DRIP — a single review question living INSIDE the card stream
+   (references/15-drip-spec.md). Same stage, same footprint as the card; the
+   only tell is four pictures instead of one — the affordance itself says
+   "asked, not shown", so no mode chrome is ever needed. The right arrow
+   skips it: a drip is a card you can flip past that happens to be a question. */
+.dripwrap{flex:0 1 440px; display:none; flex-direction:column; align-items:center; gap:10px}
+.dripwrap.show{display:flex}
+.dripwrap .grid{max-width:none; width:100%; gap:10px}
+.dripwrap .opt{border-radius:12px}
+.drip-play{border:0; background:var(--accent-bg); color:var(--accent-dk); cursor:pointer;
+  border-radius:999px; padding:8px 20px; font:inherit; font-size:13.5px; font-weight:500;
+  transition:.2s var(--ease)}
+body.dripping .card{display:none}
+/* THE VERB CLIP (16-verb-motion-pilot.md): on a word's FIRST meeting only, its
+   clip (if videos/{word}.mp4 exists) plays once over the still, then crossfades
+   back to the canonical still. Retrieval contexts never see motion; grids never
+   see motion. Missing file = static card, silently. */
+.card video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  opacity:0; transition:opacity .3s var(--ease); pointer-events:none}
+.card.clipping video{opacity:1}
+/* while a drip is up, the card-level controls point at a hidden card — freeze
+   them rather than let "I know this" retire something invisible */
+body.dripping .controls{opacity:.4; pointer-events:none}
+
+.check{display:none; width:100%; flex-direction:column; align-items:center; position:relative}
+/* the identity chip — always in the top right corner: your character when
+   signed in, a blank face when not. Tap = the Progress page. */
+.id-chip{position:fixed; top:16px; right:16px; z-index:40; width:44px; height:44px;
+  border-radius:50%; border:1.5px solid var(--line); background:var(--cream); padding:0;
+  cursor:pointer; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.06);
+  transition:.2s var(--ease)}
+.id-chip:hover{transform:scale(1.05); box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.id-chip img{width:100%; height:100%; object-fit:cover; display:block}
+.id-chip.in{border-color:var(--accent-green); border-width:2px}
+.id-chip.empty{border-style:dashed}
+.gear{position:absolute; top:4px; right:8px; z-index:5; line-height:0;
+  background:none; border:none; cursor:pointer; color:var(--ink-faint);
+  padding:9px; border-radius:50%; transition:.2s var(--ease)}
+.gear:hover{color:var(--accent-dk); background:var(--bg-alt)}
+.gear svg{width:20px; height:20px}
+.set-row{display:flex; justify-content:space-between; align-items:center; gap:14px;
+  padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; text-align:left}
+.set-row small{color:var(--ink-faint); font-size:12px}
+.set-row:last-of-type{border-bottom:none; margin-bottom:6px}
+.check.show{display:flex}
+.chk-head{text-align:center; margin-bottom:6px}
+.chk-title{font-size:19px; font-weight:500; letter-spacing:-.01em}
+.chk-sub{font-size:13.5px; color:var(--ink-faint); margin-top:7px; line-height:1.5}
+.chk-dots{display:flex; gap:6px; margin-top:26px}
+.chk-dots i{width:6px; height:6px; border-radius:50%; background:var(--line); transition:.25s var(--ease)}
+.chk-dots i.done{background:var(--accent-green)}
+.chk-dots i.miss{background:var(--accent)}
+.chk-dots i.now{background:var(--ink-faint); transform:scale(1.5)}
+.backlist{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:520px; margin:22px 0 4px}
+.backlist span{font-size:14px; background:var(--accent-bg); color:var(--accent-dk);
+  border-radius:999px; padding:6px 14px}
+.backlist b{font-weight:600; margin-right:6px}
+.statwrap{margin-top:26px; display:flex; flex-direction:column; align-items:center; width:100%}
+.statlink{font-size:12.5px; color:var(--ink-faint)}
+.stats{display:none; margin-top:14px; width:100%; max-width:520px;
+  font-size:13px; color:var(--ink-soft); border-top:1px solid var(--line); padding-top:14px}
+.stats.show{display:block}
+.stats table{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums}
+.stats td{padding:5px 0; border-bottom:1px solid var(--line)}
+.stats td:last-child{text-align:right; color:var(--ink-faint)}
+.stats td.vcell{width:42px; text-align:right; padding-right:14px;
+  color:var(--accent-dk); font-weight:600}
+.stats td.rcell{width:46px; text-align:center; color:var(--ink-faint); font-weight:600}
+.stats td.tcell{width:64px; text-align:right; padding-right:14px; color:var(--ink-soft);
+  white-space:nowrap}
+.stats tr.hdr td{font-size:10.5px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-faint); line-height:1.35;
+  border-bottom:2px solid var(--line); padding-bottom:7px}
+.stats tr.hdr td:last-child, .stats tr.hdr td.vcell{color:var(--ink-faint)}
+.stats .warn{color:var(--warn); font-weight:500}
+.stats .note{color:var(--ink-faint); font-size:12.5px; margin:12px 0 0; line-height:1.55}
+
+/* the city backdrop — Huntsville on the left, Seoul on the right. PAGE furniture,
+   never card content: it sits behind the whole tool at z-index:-1 and degrades to
+   nothing if skyline.png is missing. Tuning surface: opacity, the saturate() filter,
+   and the two mask stops. Preston's first pass was opacity:.62 with stops 30%/68%
+   and no filter; he judged it still too colourful against the text, hence these
+   faded values. To revert, restore those three numbers and delete the filter line. */
+body::after{
+  content:''; position:fixed; left:0; right:0; bottom:0;
+  height:min(42vh,360px);
+  background:url('skyline.png') no-repeat bottom center;
+  background-size:100% auto;
+  opacity:.34;
+  filter:saturate(.55);
+  pointer-events:none; z-index:-1;
+  -webkit-mask-image:linear-gradient(to top,#000 24%,rgba(0,0,0,.35) 58%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 24%,rgba(0,0,0,.35) 58%,transparent 100%);
+}
+@media (max-width:640px){ body::after{ height:26vh; opacity:.26 } }
+
+@media (max-width:640px){
+  body{padding:28px 16px 44px}
+  .cov-num{font-size:52px}
+  .stage{gap:6px}
+  .arrow{width:38px;height:38px}
+}
+</style>
+</head>
+<body>
+<button class="id-chip" id="idChip" aria-label="내 성장 · Your progress">
+  <img id="idChipImg" alt=""></button>
+<div class="wrap">
+  <div class="notice" id="notice"></div>
+
+  <div class="cov">
+    <div class="cov-num" id="covNum">0.0%</div>
+    <div class="cov-lbl">of the content words in everyday spoken Korean</div>
+    <button class="savelink" id="saveLink">저장 · Save progress</button>
+  </div>
+
+  <div class="review-banner" id="reviewBanner">
+    <span id="rvLabel">복습 · Reviewing words you already know</span>
+    <button class="btn" id="reviewExit">학습으로 · Back to learning</button>
+  </div>
+
+  <div class="stage" id="stage">
+    <button class="arrow" id="prev" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="card" id="card" role="button" tabindex="0" aria-label="Tap to hear">
+      <img id="art" alt="">
+      <video id="artVid" muted playsinline preload="none"></video>
+      <div class="reveal" id="reveal"></div>
+      <div class="hint" id="hint">tap to hear</div>
+      <button class="flag" id="flagBtn" aria-label="This picture doesn\'t fit the word" aria-pressed="false" title="This picture doesn\'t fit the word">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4"/><path d="M4 5c5-2.5 8 2.5 15 0v9c-7 2.5-10-2.5-15 0"/></svg>
+      </button>
+      <div class="flag-toast" id="flagToast"></div>
+    </div>
+    <div class="dripwrap" id="dripWrap">
+      <button class="drip-play" id="dripPlay">&#9656; 다시 듣기 · Hear it again</button>
+      <div class="grid" id="dripGrid"></div>
+    </div>
+    <button class="arrow" id="next" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="btn primary" id="retire">I know this</button>
+    <div class="dot"></div>
+    <button class="btn" id="showBtn">Hide English</button>
+    <div class="dot"></div>
+    <button class="btn" id="testBtn">Test me</button>
+    <div class="dot"></div>
+    <button class="btn" id="reviewBtn">복습 · Review known</button>
+  </div>
+
+  <div class="check" id="check">
+    <div class="chk-head">
+      <div class="chk-title" id="chkTitle"></div>
+      <div class="chk-sub" id="chkSub"></div>
+    </div>
+    <button class="test-play" id="chkPlay">&#9656; Play again</button>
+    <div class="grid" id="chkGrid"></div>
+    <div class="chk-dots" id="chkDots"></div>
+  </div>
+
+  <div class="check" id="chkDone">
+    <div class="chk-head">
+      <div class="chk-title" id="doneTitle"></div>
+      <div class="chk-sub" id="doneSub"></div>
+    </div>
+    <div class="done-words" id="doneWordsWrap" style="display:none">단어 · words you own&nbsp; <b id="doneWords">0</b></div>
+    <div class="backlist" id="backList"></div>
+    <div class="done-save" id="doneSave">These words are only on this device.
+      <button id="doneSaveBtn">Save them forever &rarr;</button></div>
+    <div class="controls"><button class="btn primary" id="doneBtn">계속 · Continue</button></div>
+  </div>
+
+  <div class="check" id="progress">
+    <button class="gear" id="gearBtn" aria-label="설정 · Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <line x1="4" y1="6.5" x2="20" y2="6.5"/><circle cx="14.5" cy="6.5" r="2.5" fill="#fff"/>
+        <line x1="4" y1="12" x2="20" y2="12"/><circle cx="8.5" cy="12" r="2.5" fill="#fff"/>
+        <line x1="4" y1="17.5" x2="20" y2="17.5"/><circle cx="16.5" cy="17.5" r="2.5" fill="#fff"/>
+      </svg></button>
+    <div class="chk-head">
+      <div class="chk-title">나의 성장 · Your growth</div>
+      <div class="chk-sub">Every word you've proven on a test, counted honestly. This number never goes down.</div>
+    </div>
+    <div class="growth-hero"><div class="gnum" id="gNum">0</div>
+      <div class="glbl">단어 · words proven on tests</div></div>
+    <div class="growth-sub" id="gGoal"></div>
+    <div class="growth-chart"><p id="gChartLbl">Your words, day by day</p>
+      <svg id="gChart" viewBox="0 0 560 200" role="img" aria-label="Words owned over time"></svg>
+    </div>
+    <div class="shelf" id="gShelf"></div>
+    <div class="arcwrap">
+      <div class="arcbar"><div class="arcfill" id="gArc"></div></div>
+      <div class="arcticks" id="gTicks"></div>
+      <div class="arcnote" id="gArcNote"></div>
+    </div>
+    <div class="growth-cov" id="gCov"></div>
+    <div class="controls" style="margin-top:26px"><button class="btn primary" id="gBackTop">계속 · Back to the cards</button></div>
+    <div class="wall-sect" style="margin-top:30px">단어 기록 · Word history</div>
+    <div class="controls" style="margin-top:2px; margin-bottom:6px">
+      <button class="btn" id="studyTop">상위 10 공부 · Study my top ten</button></div>
+    <div class="stats show" id="gHist"></div>
+    <div class="controls"><button class="btn primary" id="gBack">계속 · Back to the cards</button>
+      <button class="btn" id="gWall">명예의 전당 · Hall of Names</button>
+      <button class="btn" id="gMusic">♪ 음악</button></div>
+  </div>
+
+  <div class="check" id="wall">
+    <div class="chk-head">
+      <div class="chk-title">명예의 전당 · The Hall of Names</div>
+      <div class="chk-sub">Everyone who has earned a medal, forever. Nobody is ranked —
+        being here is the achievement, and it never comes off.</div>
+    </div>
+    <div class="wall-mine" id="wallMine"></div>
+    <div id="wallMonth"></div>
+    <div id="wallList"><p class="note" style="text-align:center">불러오는 중 · loading…</p></div>
+    <div class="controls">
+      <button class="btn primary" id="wallBack">계속 · Back to the cards</button>
+      <button class="btn" id="wallMusic">♪ 음악</button>
+    </div>
+  </div>
+
+  <div class="check" id="offer">
+    <div class="chk-head">
+      <div class="chk-title" id="offerTitle">열 개를 안다고 하셨어요.</div>
+      <div class="chk-sub" id="offerSub"></div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="offerYes">확인 · Check them</button>
+      <div class="dot"></div>
+      <button class="btn" id="offerNo">Later</button>
+    </div>
+  </div>
+
+  <div class="test" id="test">
+    <div class="test-q">Which one?</div>
+    <button class="test-play" id="testPlay">&#9656; Play again</button>
+    <div class="grid" id="testGrid"></div>
+    <div class="controls"><button class="btn" id="testExit">Back to cards</button></div>
+  </div>
+
+  <div class="voices" id="voices">
+    <span class="vlbl">Voice</span>
+    <button class="vbtn on" data-v="0">1</button>
+    <button class="vbtn" data-v="1">2</button>
+    <button class="vbtn" data-v="2">3</button>
+    <button class="vbtn" data-v="3">4</button>
+    <span class="vname" id="vname"></span>
+  </div>
+
+  <div class="meta" id="meta"></div>
+  <div class="statwrap" id="statwrap">
+    <button class="btn statlink" id="growthBtn">성장 · Progress</button>
+    <button class="btn statlink" id="wallLink">명예의 전당 · Hall of Names</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   KOREAN LAB  v3
+   One picture. One voice. Tap it until it's yours.
+   Real generated artwork, 20 cards, validated priority order.
+   ============================================================ */
+
+/* On. The word history below is only useful if it accumulates across sittings,
+   and the deck is real enough now to be worth remembering. */
+const PERSIST = true;
+
+/* ============================================================
+   ACCOUNTS — sign-in as a SYNC feature, never an access feature.
+   Local-first stays absolute: the tool is fully usable forever with no
+   account, and the default path collects nothing (see 12-progression-system
+   §5 — the COPPA line: accounts are adult-initiated; anonymous learners
+   stay anonymous).
+
+   To turn this on (the 15-minute runbook is FIREBASE-SETUP.md, next to
+   this file): create the Firebase project UNDER THE NAKS GOOGLE ACCOUNT,
+   paste its web config below, set enabled:true and providers.google:true.
+   Kakao (OIDC, config-only) and Naver (small Cloud Function) switch on
+   after the site has its production domain — their developer apps need it.
+
+   Until enabled, nothing renders. ?auth=preview shows the UI with inert
+   buttons for design QC.
+   ============================================================ */
+const AUTH = {
+  enabled: true,
+  firebase: {              // korean-lab project, owned by the NAKS Google account
+    apiKey: "AIzaSyBendgHqNorOYk_9QRYJ2SGHiqwhmuVBnc",
+    authDomain: "korean-lab-1b2a0.firebaseapp.com",
+    projectId: "korean-lab-1b2a0",
+    storageBucket: "korean-lab-1b2a0.firebasestorage.app",
+    messagingSenderId: "842211057267",
+    appId: "1:842211057267:web:2af25bc68f7323413bd406"
+  },
+  providers: { google: true, kakao: false, naver: false },
+  kakaoProviderId: 'oidc.kakao',   // Firebase OIDC provider id, post-deploy
+};
+const AUTH_PREVIEW = /[?&]auth=preview/.test(location.search);
+
+const DECK = [{"k":"나","en":"I, me","t":"B","w":3.4397,"vc":"person_single","cp":"너"},{"k":"보다","en":"to see, to look","t":"A","w":1.0829,"vc":"face_closeup","cp":"듣다"},{"k":"안","en":"not","t":"B","w":1.0895,"vc":"abstract_symbol"},{"k":"집","en":"house, home","t":"A","w":0.2372,"vc":"building_exterior"},{"k":"주다","en":"to give","t":"B","w":0.6318,"vc":"person_two","cp":"받다"},{"k":"그것","en":"that thing","t":"B","w":0.7241,"vc":"hand","cp":"이것"},{"k":"더","en":"more","t":"B","w":0.412,"vc":"comparison_two_objects","cp":"덜"},{"k":"개","en":"dog","t":"A","w":0.0631,"vc":"animal"},{"k":"먹다","en":"to eat","t":"A","w":0.1313,"vc":"person_single"},{"k":"좋다","en":"to be good","t":"B","w":0.8423,"vc":"abstract_symbol","cp":"나쁘다"},{"k":"하나","en":"one","t":"B","w":0.1879,"vc":"number_symbol","cp":"둘"},{"k":"우리","en":"we, our","t":"B","w":1.1593,"vc":"person_group"},{"k":"돈","en":"money","t":"A","w":0.116,"vc":"money_object"},{"k":"눈","en":"eye","t":"A","w":0.0953,"vc":"body_part"},{"k":"엄마","en":"mom","t":"A","w":0.2589,"vc":"person_single","cp":"아빠"},{"k":"크다","en":"to be big","t":"B","w":0.1127,"vc":"comparison_two_objects","cp":"작다"},{"k":"무엇","en":"what","t":"B","w":0.6844,"vc":"text_symbol"},{"k":"밤","en":"night","t":"A","w":0.1234,"vc":"sky_weather","cp":"낮"},{"k":"길","en":"road, way","t":"A","w":0.0809,"vc":"street_scene"},{"k":"물","en":"water","t":"A","w":0.0596,"vc":"drink_vessel"},{"k":"당신","en":"you (formal)","t":"B","w":0.881,"vc":"person_single"},{"k":"가다","en":"to go","t":"B","w":0.8769,"vc":"arrow_motion","cp":"오다"},{"k":"여기","en":"here","t":"B","w":0.6164,"vc":"hand","cp":"거기"},{"k":"조금","en":"a little","t":"B","w":0.5833,"vc":"comparison_two_objects","cp":"많이"},{"k":"왜","en":"why","t":"B","w":0.4558,"vc":"text_symbol"},{"k":"다","en":"all","t":"B","w":0.41,"vc":"abstract_symbol"},{"k":"사람","en":"person","t":"A","w":0.6582,"vc":"person_single"},{"k":"괜찮다","en":"to be okay","t":"B","w":0.3424,"vc":"face_closeup"},{"k":"찾다","en":"to look for, to find","t":"B","w":0.227,"vc":"tool_object"},{"k":"고맙다","en":"to be thankful","t":"B","w":0.218,"vc":"person_two"},{"k":"누구","en":"who","t":"B","w":0.3998,"vc":"text_symbol"},{"k":"못","en":"cannot","t":"B","w":0.4086,"vc":"abstract_symbol"},{"k":"죽다","en":"to die","t":"B","w":0.2591,"vc":"person_single","cp":"살다"},{"k":"다른","en":"other, different","t":"B","w":0.2093,"vc":"comparison_two_objects"},{"k":"안녕","en":"hi, hello","t":"C","w":0.1796,"vc":"hand"},{"k":"친구","en":"friend","t":"B","w":0.1913,"vc":"person_two"},{"k":"어디","en":"where","t":"B","w":0.28,"vc":"text_symbol"},{"k":"지금","en":"now","t":"B","w":0.3546,"vc":"abstract_symbol"},{"k":"여자","en":"woman","t":"A","w":0.1911,"vc":"person_single","cp":"남자"},{"k":"오","en":"five","t":"B","w":0.1774,"vc":"number_symbol"},{"k":"미안","en":"sorry","t":"B","w":0.1682,"vc":"face_closeup"},{"k":"같이","en":"together","t":"B","w":0.1485,"vc":"person_two","cp":"혼자"},{"k":"오늘","en":"today","t":"B","w":0.1911,"vc":"text_symbol","cp":"내일"},{"k":"맞다","en":"to be correct","t":"B","w":0.2419,"vc":"abstract_symbol","cp":"틀리다"},{"k":"애","en":"kid","t":"A","w":0.185,"vc":"person_single"},{"k":"나오다","en":"to come out","t":"B","w":0.14,"vc":"arrow_motion","cp":"들어가다"},{"k":"많다","en":"to be many","t":"B","w":0.1397,"vc":"comparison_two_objects","cp":"적다"},{"k":"쓰다","en":"to write; to use","t":"B","w":0.1389,"vc":"hand"},{"k":"다시","en":"again","t":"B","w":0.2106,"vc":"abstract_symbol"},{"k":"저","en":"I (humble)","t":"B","w":0.9836,"vc":"person_single"},{"k":"나가다","en":"to go out","t":"B","w":0.1293,"vc":"arrow_motion","cp":"들어오다"},{"k":"두","en":"two (determiner)","t":"B","w":0.1221,"vc":"number_symbol","cp":"한"},{"k":"만나다","en":"to meet","t":"B","w":0.1328,"vc":"person_two"},{"k":"만들다","en":"to make","t":"B","w":0.1345,"vc":"hand"},{"k":"모든","en":"every, all","t":"B","w":0.2003,"vc":"abstract_symbol"},{"k":"그녀","en":"she","t":"B","w":0.1812,"vc":"person_single","cp":"그"},{"k":"이름","en":"name","t":"B","w":0.1172,"vc":"text_symbol"},{"k":"빨리","en":"quickly","t":"B","w":0.1126,"vc":"arrow_motion","cp":"천천히"},{"k":"몇","en":"how many","t":"B","w":0.1125,"vc":"number_symbol"},{"k":"손","en":"hand","t":"A","w":0.1209,"vc":"hand"},{"k":"시간","en":"time, hour","t":"B","w":0.1968,"vc":"abstract_symbol"},{"k":"원","en":"won (currency)","t":"B","w":0.1116,"vc":"money_object"},{"k":"차","en":"car","t":"A","w":0.1088,"vc":"vehicle"},{"k":"사랑","en":"love","t":"B","w":0.1677,"vc":"abstract_symbol"},{"k":"너","en":"you","t":"B","w":1.812,"vc":"person_single","cp":"나"},{"k":"얼마나","en":"how much, how","t":"B","w":0.1031,"vc":"text_symbol"},{"k":"모두","en":"all, everyone","t":"B","w":0.183,"vc":"person_group"},{"k":"돕다","en":"to help","t":"B","w":0.1084,"vc":"person_two"},{"k":"끝","en":"end","t":"B","w":0.1287,"vc":"abstract_symbol","cp":"처음"},{"k":"아버지","en":"father","t":"A","w":0.1224,"vc":"person_single","cp":"어머니"},{"k":"싫다","en":"to dislike","t":"B","w":0.1162,"vc":"face_closeup","cp":"좋다"},{"k":"전화","en":"telephone, a call","t":"A","w":0.1029,"vc":"screen_device"},{"k":"잡다","en":"to catch, to grab","t":"B","w":0.0982,"vc":"hand","cp":"놓다"},{"k":"수술","en":"surgery","t":"B","w":0.1006,"vc":"person_group"},{"k":"다음","en":"next","t":"B","w":0.0891,"vc":"arrow_motion","cp":"처음"},{"k":"소리","en":"sound","t":"B","w":0.1123,"vc":"abstract_symbol"},{"k":"감사","en":"thanks","t":"B","w":0.0825,"vc":"person_two"},{"k":"언제","en":"when","t":"B","w":0.0756,"vc":"text_symbol"},{"k":"기다리다","en":"to wait","t":"B","w":0.1192,"vc":"person_single"},{"k":"떠나다","en":"to leave, to depart","t":"B","w":0.0781,"vc":"arrow_motion","cp":"돌아오다"},{"k":"가족","en":"family","t":"A","w":0.0775,"vc":"person_group"},{"k":"선생","en":"teacher","t":"A","w":0.0992,"vc":"person_single"},{"k":"죽이다","en":"to kill","t":"B","w":0.143,"vc":"person_two"},{"k":"밖","en":"outside","t":"B","w":0.0748,"vc":"building_exterior","cp":"안"},{"k":"걱정","en":"worry","t":"B","w":0.0747,"vc":"face_closeup"},{"k":"많이","en":"a lot","t":"B","w":0.0871,"vc":"comparison_two_objects","cp":"조금"},{"k":"이것","en":"this thing","t":"B","w":0.5869,"vc":"hand","cp":"그것"},{"k":"아이","en":"child","t":"A","w":0.132,"vc":"person_single","cp":"어른"},{"k":"머리","en":"head, hair","t":"A","w":0.0728,"vc":"body_part"},{"k":"쪽","en":"side, direction","t":"B","w":0.0774,"vc":"arrow_motion"},{"k":"저희","en":"we (humble)","t":"B","w":0.0704,"vc":"person_group","cp":"우리"},{"k":"둘","en":"two","t":"B","w":0.1178,"vc":"number_symbol","cp":"하나"},{"k":"함께","en":"together","t":"B","w":0.0923,"vc":"person_two","cp":"혼자"},{"k":"새","en":"bird","t":"A","w":0.0652,"vc":"animal"},{"k":"방","en":"room","t":"A","w":0.0491,"vc":"room_interior"},{"k":"우주","en":"space, the universe","t":"A","w":0.0206,"vc":"sky_weather"},{"k":"대학","en":"university","t":"A","w":0.0133,"vc":"building_exterior"},{"k":"웃다","en":"to laugh, to smile","t":"A","w":0.0175,"vc":"face_closeup","cp":"울다"},{"k":"오다","en":"to come","t":"B","w":0.5883,"vc":"arrow_motion","cp":"가다"},{"k":"남자","en":"man","t":"A","w":0.1323,"vc":"person_single","cp":"여자"},{"k":"나무","en":"tree","t":"A","w":0.0177,"vc":"plant"},{"k":"커피","en":"coffee","t":"A","w":0.0178,"vc":"drink_vessel"},{"k":"놀다","en":"to play, hang out","t":"A","w":0.0173,"vc":"person_group","cp":"일하다"},{"k":"컴퓨터","en":"computer","t":"A","w":0.0117,"vc":"screen_device"},{"k":"받다","en":"to receive","t":"B","w":0.1686,"vc":"person_two","cp":"주다"},{"k":"앉다","en":"to sit","t":"A","w":0.0605,"vc":"person_single","cp":"서다"},{"k":"옷","en":"clothes","t":"A","w":0.048,"vc":"clothing_item"},{"k":"문","en":"door","t":"A","w":0.0619,"vc":"room_interior"},{"k":"바다","en":"sea, ocean","t":"A","w":0.0138,"vc":"landscape"},{"k":"두다","en":"to put, to place","t":"B","w":0.06,"vc":"hand"},{"k":"얼굴","en":"face","t":"A","w":0.0482,"vc":"face_closeup"},{"k":"해","en":"the sun","t":"A","w":0.016,"vc":"sky_weather","cp":"달"},{"k":"마시다","en":"to drink","t":"A","w":0.0534,"vc":"drink_vessel"},{"k":"달러","en":"dollar","t":"A","w":0.0165,"vc":"money_object"},{"k":"게임","en":"game","t":"A","w":0.0224,"vc":"screen_device"},{"k":"아들","en":"son","t":"A","w":0.0745,"vc":"person_single","cp":"딸"},{"k":"학교","en":"school","t":"A","w":0.0484,"vc":"building_exterior"},{"k":"아빠","en":"dad","t":"A","w":0.1976,"vc":"person_single","cp":"엄마"},{"k":"작다","en":"to be small","t":"B","w":0.0451,"vc":"comparison_two_objects","cp":"크다"},{"k":"벽","en":"wall","t":"A","w":0.0168,"vc":"room_interior"},{"k":"불","en":"fire, light","t":"A","w":0.0331,"vc":"small_object"},{"k":"듣다","en":"to hear, to listen","t":"A","w":0.0739,"vc":"face_closeup","cp":"보다"},{"k":"열다","en":"to open","t":"A","w":0.0323,"vc":"hand","cp":"닫다"},{"k":"앞","en":"front, ahead","t":"B","w":0.0757,"vc":"arrow_motion","cp":"뒤"},{"k":"지구","en":"the Earth","t":"A","w":0.0178,"vc":"abstract_symbol"},{"k":"배","en":"belly, stomach","t":"A","w":0.042,"vc":"body_part"},{"k":"읽다","en":"to read","t":"A","w":0.0267,"vc":"person_single"},{"k":"식사","en":"meal","t":"A","w":0.0129,"vc":"food_dish"},{"k":"동물","en":"animal","t":"A","w":0.0163,"vc":"animal"},{"k":"영화","en":"movie, film","t":"A","w":0.0304,"vc":"screen_device"},{"k":"공","en":"ball","t":"A","w":0.0135,"vc":"small_object"},{"k":"죄송하다","en":"sorry (formal)","t":"B","w":0.0828,"vc":"face_closeup"},{"k":"저기","en":"over there","t":"B","w":0.1187,"vc":"hand","cp":"여기"},{"k":"도시","en":"city","t":"A","w":0.0271,"vc":"street_scene"},{"k":"회사","en":"company, firm","t":"A","w":0.0272,"vc":"building_exterior"},{"k":"술","en":"alcohol, liquor","t":"A","w":0.0482,"vc":"drink_vessel"},{"k":"부모","en":"parents","t":"A","w":0.0346,"vc":"person_two"},{"k":"입","en":"mouth","t":"A","w":0.042,"vc":"body_part"},{"k":"버스","en":"bus","t":"A","w":0.0106,"vc":"vehicle"},{"k":"입다","en":"to wear, to put on","t":"A","w":0.035,"vc":"person_single","cp":"벗다"},{"k":"바닥","en":"floor, ground surface","t":"A","w":0.0139,"vc":"room_interior"},{"k":"밥","en":"cooked rice, meal","t":"A","w":0.0224,"vc":"food_dish"},{"k":"가방","en":"bag","t":"A","w":0.0154,"vc":"container"},{"k":"담배","en":"cigarette","t":"A","w":0.0102,"vc":"small_object"},{"k":"산","en":"mountain","t":"A","w":0.0214,"vc":"landscape"},{"k":"아파트","en":"apartment","t":"A","w":0.0103,"vc":"building_exterior"},{"k":"비","en":"rain","t":"A","w":0.0159,"vc":"sky_weather"},{"k":"기계","en":"machine","t":"A","w":0.009,"vc":"tool_object"},{"k":"색","en":"color","t":"A","w":0.0119,"vc":"abstract_symbol"},{"k":"목","en":"neck, throat","t":"A","w":0.0655,"vc":"body_part"},{"k":"파티","en":"party","t":"A","w":0.0317,"vc":"person_group"},{"k":"노래","en":"song","t":"A","w":0.034,"vc":"person_single"},{"k":"고기","en":"meat","t":"A","w":0.0094,"vc":"food_dish"},{"k":"속","en":"inside","t":"B","w":0.0626,"vc":"container","cp":"밖"},{"k":"약","en":"medicine","t":"A","w":0.0301,"vc":"small_object"},{"k":"도로","en":"road","t":"A","w":0.0107,"vc":"street_scene"},{"k":"카드","en":"card","t":"A","w":0.0118,"vc":"money_object"},{"k":"카메라","en":"camera","t":"A","w":0.0172,"vc":"tool_object"},{"k":"결혼","en":"marriage","t":"A","w":0.0644,"vc":"person_two"},{"k":"아침","en":"morning","t":"A","w":0.0596,"vc":"sky_weather","cp":"저녁"},{"k":"음악","en":"music","t":"A","w":0.0223,"vc":"abstract_symbol"},{"k":"의사","en":"doctor","t":"A","w":0.0538,"vc":"person_single"},{"k":"짐","en":"luggage, baggage","t":"A","w":0.0199,"vc":"container"},{"k":"경기","en":"game, match","t":"A","w":0.0095,"vc":"person_group"},{"k":"울다","en":"to cry","t":"A","w":0.0119,"vc":"face_closeup","cp":"웃다"},{"k":"호텔","en":"hotel","t":"A","w":0.0143,"vc":"building_exterior"},{"k":"발","en":"foot","t":"A","w":0.0311,"vc":"body_part"},{"k":"책","en":"book","t":"A","w":0.0364,"vc":"small_object"},{"k":"세","en":"three (determiner)","t":"B","w":0.0438,"vc":"number_symbol"},{"k":"살다","en":"to live","t":"B","w":0.1155,"vc":"person_single","cp":"죽다"},{"k":"신발","en":"shoes","t":"A","w":0.011,"vc":"clothing_item"},{"k":"강","en":"river","t":"A","w":0.0092,"vc":"landscape"},{"k":"학생","en":"student","t":"A","w":0.0092,"vc":"person_single","cp":"선생"},{"k":"서다","en":"to stand","t":"A","w":0.0344,"vc":"person_single","cp":"앉다"},{"k":"다르다","en":"to be different","t":"B","w":0.0446,"vc":"comparison_two_objects","cp":"같다"},{"k":"달","en":"moon","t":"A","w":0.032,"vc":"sky_weather"},{"k":"잔","en":"glass, cup","t":"A","w":0.031,"vc":"drink_vessel"},{"k":"마이크","en":"microphone","t":"A","w":0.0202,"vc":"tool_object"},{"k":"거기","en":"there","t":"B","w":0.1396,"vc":"hand","cp":"여기"},{"k":"생일","en":"birthday","t":"A","w":0.0142,"vc":"food_dish"},{"k":"환자","en":"patient","t":"A","w":0.09,"vc":"person_single"},{"k":"나라","en":"country, nation","t":"B","w":0.0198,"vc":"abstract_symbol"},{"k":"팀","en":"team","t":"B","w":0.0358,"vc":"person_group"},{"k":"한","en":"one (determiner)","t":"B","w":0.489,"vc":"number_symbol"},{"k":"양","en":"sheep","t":"A","w":0.0317,"vc":"animal"},{"k":"시장","en":"market","t":"A","w":0.0086,"vc":"street_scene"},{"k":"트럭","en":"truck","t":"A","w":0.0135,"vc":"vehicle"},{"k":"뒤","en":"back, behind","t":"B","w":0.0708,"vc":"arrow_motion","cp":"앞"},{"k":"만지다","en":"to touch","t":"A","w":0.01,"vc":"hand"},{"k":"등","en":"back (of the body)","t":"A","w":0.0118,"vc":"body_part"},{"k":"길다","en":"to be long","t":"B","w":0.0164,"vc":"comparison_two_objects","cp":"짧다"},{"k":"별","en":"star","t":"A","w":0.0355,"vc":"sky_weather"},{"k":"사다","en":"to buy","t":"B","w":0.0585,"vc":"money_object","cp":"팔다"},{"k":"회의","en":"meeting","t":"A","w":0.0112,"vc":"person_group"},{"k":"바지","en":"pants, trousers","t":"A","w":0.0099,"vc":"clothing_item"},{"k":"요리","en":"cooking, a dish","t":"A","w":0.0093,"vc":"food_dish"},{"k":"자리","en":"seat, spot","t":"B","w":0.0422,"vc":"furniture"},{"k":"몸","en":"body","t":"A","w":0.0527,"vc":"person_single"},{"k":"내리다","en":"to get off, to lower","t":"B","w":0.0429,"vc":"arrow_motion","cp":"타다"},{"k":"거리","en":"street","t":"A","w":0.0263,"vc":"street_scene"},{"k":"칼","en":"knife","t":"A","w":0.0277,"vc":"tool_object"},{"k":"라디오","en":"radio","t":"A","w":0.0049,"vc":"small_object"},{"k":"잠","en":"sleep","t":"A","w":0.0233,"vc":"person_single"},{"k":"넣다","en":"to put in, to insert","t":"B","w":0.0381,"vc":"container","cp":"빼다"},{"k":"위","en":"above, on top","t":"B","w":0.0369,"vc":"arrow_motion","cp":"아래"},{"k":"아내","en":"wife","t":"A","w":0.0443,"vc":"person_single","cp":"남편"},{"k":"택시","en":"taxi","t":"A","w":0.0061,"vc":"vehicle"},{"k":"폰","en":"phone","t":"A","w":0.0182,"vc":"screen_device"},{"k":"가게","en":"shop, store","t":"A","w":0.023,"vc":"building_exterior"},{"k":"피","en":"blood","t":"A","w":0.0346,"vc":"body_part"},{"k":"소","en":"cow","t":"A","w":0.0159,"vc":"animal"},{"k":"선물","en":"gift, present","t":"A","w":0.0244,"vc":"small_object"},{"k":"소녀","en":"girl","t":"A","w":0.0106,"vc":"person_single","cp":"소년"},{"k":"무기","en":"weapon","t":"A","w":0.0241,"vc":"tool_object"},{"k":"나이","en":"age","t":"B","w":0.015,"vc":"number_symbol"},{"k":"따르다","en":"to follow","t":"B","w":0.0493,"vc":"person_two"},{"k":"모양","en":"shape, form","t":"B","w":0.0153,"vc":"abstract_symbol"},{"k":"경찰","en":"police","t":"A","w":0.0635,"vc":"person_single"},{"k":"돌리다","en":"to turn, spin (something)","t":"B","w":0.0188,"vc":"arrow_motion"},{"k":"치즈","en":"cheese","t":"A","w":0.0057,"vc":"food_dish"},{"k":"모자","en":"hat","t":"A","w":0.0097,"vc":"clothing_item"},{"k":"약간","en":"a little, slightly","t":"B","w":0.0191,"vc":"comparison_two_objects"},{"k":"물다","en":"to bite","t":"A","w":0.0322,"vc":"face_closeup"},{"k":"지도","en":"map","t":"A","w":0.0228,"vc":"small_object"},{"k":"쉽다","en":"to be easy","t":"B","w":0.0359,"vc":"abstract_symbol","cp":"어렵다"},{"k":"땅","en":"ground, land","t":"A","w":0.0204,"vc":"landscape","cp":"하늘"},{"k":"병원","en":"hospital","t":"A","w":0.0454,"vc":"building_exterior"},{"k":"아기","en":"baby","t":"A","w":0.0438,"vc":"person_single"},{"k":"놀라다","en":"to be surprised","t":"B","w":0.0179,"vc":"face_closeup"},{"k":"다리","en":"leg","t":"A","w":0.0278,"vc":"body_part"},{"k":"들어가다","en":"to go in, to enter","t":"B","w":0.0824,"vc":"arrow_motion","cp":"나오다"},{"k":"싸우다","en":"to fight","t":"A","w":0.0459,"vc":"person_two"},{"k":"놓다","en":"to put down, to release","t":"B","w":0.0447,"vc":"hand","cp":"잡다"},{"k":"자네","en":"you (familiar)","t":"B","w":0.1884,"vc":"person_single"},{"k":"파일","en":"file","t":"A","w":0.0075,"vc":"small_object"},{"k":"테이블","en":"table","t":"A","w":0.0057,"vc":"furniture"},{"k":"맛","en":"taste, flavor","t":"B","w":0.0127,"vc":"face_closeup"},{"k":"시작","en":"start, beginning","t":"B","w":0.1057,"vc":"abstract_symbol","cp":"끝"},{"k":"향하다","en":"to head toward, to face","t":"B","w":0.0114,"vc":"arrow_motion"},{"k":"신부","en":"bride","t":"A","w":0.0141,"vc":"person_single","cp":"신랑"},{"k":"기도","en":"prayer","t":"A","w":0.0117,"vc":"hand"},{"k":"저녁","en":"evening; dinner","t":"A","w":0.0321,"vc":"sky_weather","cp":"아침"},{"k":"일부","en":"a part, some of","t":"B","w":0.0093,"vc":"comparison_two_objects","cp":"전체"},{"k":"사진","en":"photograph","t":"A","w":0.0359,"vc":"small_object"},{"k":"임신","en":"pregnancy","t":"A","w":0.0111,"vc":"person_single"},{"k":"봄","en":"spring (season)","t":"A","w":0.0019,"vc":"landscape","cp":"가을"},{"k":"키스","en":"kiss","t":"A","w":0.014,"vc":"person_two"},{"k":"총","en":"gun","t":"A","w":0.0659,"vc":"tool_object"},{"k":"자다","en":"to sleep","t":"A","w":0.0441,"vc":"person_single"},{"k":"수영","en":"swimming","t":"A","w":0.0093,"vc":"person_single"},{"k":"나누다","en":"to divide, to share","t":"B","w":0.0108,"vc":"comparison_two_objects"},{"k":"죽","en":"rice porridge","t":"A","w":0.0313,"vc":"food_dish"},{"k":"귀","en":"ear","t":"A","w":0.009,"vc":"body_part"},{"k":"어머니","en":"mother","t":"A","w":0.0437,"vc":"person_single","cp":"아버지"},{"k":"열리다","en":"to be opened","t":"B","w":0.011,"vc":"room_interior","cp":"닫히다"},{"k":"하루","en":"one day","t":"B","w":0.0398,"vc":"text_symbol"},{"k":"우유","en":"milk","t":"A","w":0.0034,"vc":"drink_vessel"},{"k":"주변","en":"surroundings, vicinity","t":"B","w":0.012,"vc":"comparison_two_objects"},{"k":"강하다","en":"to be strong","t":"B","w":0.018,"vc":"person_single","cp":"약하다"},{"k":"타다","en":"to ride, to get on","t":"B","w":0.0532,"vc":"vehicle","cp":"내리다"},{"k":"막다","en":"to block, prevent","t":"B","w":0.0195,"vc":"hand"},{"k":"테이프","en":"tape","t":"A","w":0.0045,"vc":"small_object"},{"k":"서로","en":"each other","t":"B","w":0.0448,"vc":"person_two"},{"k":"마을","en":"village","t":"A","w":0.0206,"vc":"landscape"},{"k":"엔진","en":"engine","t":"A","w":0.0071,"vc":"tool_object"},{"k":"변하다","en":"to change, turn into","t":"B","w":0.0153,"vc":"comparison_two_objects"},{"k":"음식","en":"food","t":"A","w":0.0202,"vc":"food_dish"},{"k":"왕","en":"king","t":"A","w":0.0236,"vc":"person_single","cp":"여왕"},{"k":"처음","en":"first time, beginning","t":"B","w":0.0672,"vc":"abstract_symbol","cp":"마지막"},{"k":"가슴","en":"chest, breast","t":"A","w":0.0173,"vc":"body_part"},{"k":"형","en":"older brother (male speaker)","t":"B","w":0.047,"vc":"person_two","cp":"동생"},{"k":"바이러스","en":"virus","t":"A","w":0.008,"vc":"small_object"},{"k":"교수","en":"professor","t":"B","w":0.0103,"vc":"person_single"},{"k":"보내다","en":"to send","t":"B","w":0.1048,"vc":"arrow_motion","cp":"받다"},{"k":"어리다","en":"to be young","t":"B","w":0.034,"vc":"comparison_two_objects","cp":"늙다"},{"k":"컵","en":"cup","t":"A","w":0.0022,"vc":"drink_vessel"},{"k":"올리다","en":"to raise, lift up","t":"B","w":0.0192,"vc":"hand","cp":"내리다"},{"k":"악마","en":"devil, demon","t":"A","w":0.0144,"vc":"person_single","cp":"천사"},{"k":"화","en":"anger","t":"A","w":0.0112,"vc":"face_closeup"},{"k":"너희","en":"you (plural)","t":"B","w":0.0996,"vc":"person_group"},{"k":"대답","en":"answer, reply","t":"B","w":0.02,"vc":"person_two","cp":"질문"},{"k":"크리스마스","en":"Christmas","t":"A","w":0.0122,"vc":"plant"},{"k":"미국","en":"the United States","t":"A","w":0.0379,"vc":"abstract_symbol"},{"k":"방향","en":"direction","t":"B","w":0.0097,"vc":"arrow_motion"},{"k":"일어나다","en":"to get up, to stand up","t":"B","w":0.0829,"vc":"person_single","cp":"앉다"},{"k":"소스","en":"sauce","t":"A","w":0.0035,"vc":"container"},{"k":"하늘","en":"sky","t":"A","w":0.0151,"vc":"sky_weather","cp":"땅"},{"k":"그림","en":"picture, drawing","t":"A","w":0.0126,"vc":"small_object"},{"k":"쿠키","en":"cookie","t":"A","w":0.0103,"vc":"food_dish"},{"k":"남편","en":"husband","t":"A","w":0.0441,"vc":"person_single","cp":"아내"},{"k":"미래","en":"the future","t":"B","w":0.0202,"vc":"abstract_symbol","cp":"과거"},{"k":"이곳","en":"this place","t":"B","w":0.036,"vc":"hand","cp":"그곳"},{"k":"뇌","en":"brain","t":"A","w":0.0148,"vc":"body_part"},{"k":"글","en":"writing, a written piece","t":"A","w":0.0111,"vc":"text_symbol"},{"k":"여성","en":"woman, female","t":"A","w":0.0129,"vc":"person_single","cp":"남성"},{"k":"법","en":"law","t":"B","w":0.0333,"vc":"tool_object"},{"k":"자라다","en":"to grow up","t":"B","w":0.011,"vc":"comparison_two_objects"},{"k":"세우다","en":"to stand (something) up","t":"B","w":0.0103,"vc":"hand"},{"k":"보트","en":"boat","t":"A","w":0.0084,"vc":"vehicle"},{"k":"묻다","en":"to ask","t":"B","w":0.0227,"vc":"person_two","cp":"대답하다"}];
+const STAGE_TOTAL = DECK.reduce((s,c)=>s+c.w,0);
+
+/* ---------- state ---------- */
+/* stats[word] = {p: passed, r: recycled back, t: last checked, n: lifetime taps}
+   The pass/recycle tally is not scorekeeping — it is a diagnostic. A word with a
+   high recycle count is either genuinely hard OR has a picture that is not doing
+   its job, and the second case is a bug report about the artwork that only the
+   learner can file. */
+const mem = { retired:new Set(), met:new Set(), stats:{}, sinceCheck:0, pending:[], queue:null, qi:0, back:[], flags:{}, flagAck:false, moved:{}, chkN:0, hw:0, hist:{}, miles:[], mute:false, musicOff:false, latBase:[], wall:null, avatar:undefined, dripA:undefined, dripAn:0, dripNote:false };
+const stat = k => {
+  const s = (mem.stats[k] = mem.stats[k] || {p:0, r:0, t:0, n:0});
+  if(s.n === undefined) s.n = 0;          // upgrade older saves
+  return s;
+};
+/* set during Start over: blocks the pagehide/debounce writers from
+   resurrecting the very state being erased */
+let resetting = false;
+const Store = {
+  read(){ if(!PERSIST) return null;
+    try{ return JSON.parse(localStorage.getItem('koreanLab')||'null'); }catch(e){ return null; } },
+  _t: null,
+  /* writes are debounced 250 ms — a tap burst serializes state once, not
+     per tap. flush() is the synchronous path for pagehide/hidden. */
+  write(){ if(!PERSIST || resetting) return;
+    clearTimeout(Store._t);
+    Store._t = setTimeout(()=>Store.flush(), 250);
+    if(typeof cloudPush === 'function' && authUser) cloudPush(); },
+  flush(){ if(!PERSIST || resetting) return;
+    clearTimeout(Store._t);
+    try{ localStorage.setItem('koreanLab', JSON.stringify({
+      v:3, retired:[...mem.retired], met:[...mem.met],
+      stats: mem.stats, sinceCheck: mem.sinceCheck, pending: mem.pending,
+      flags: mem.flags, flagAck: !!mem.flagAck, moved: mem.moved, chkN: mem.chkN,
+      hw: mem.hw, hist: mem.hist, miles: mem.miles, mute: !!mem.mute, musicOff: !!mem.musicOff,
+      latBase: mem.latBase, wall: mem.wall || undefined, hwV2: true,
+      avatar: mem.avatar, dripA: mem.dripA, dripAn: mem.dripAn || 0,
+      dripNote: mem.dripNote || undefined })); }catch(e){} }
+};
+function restore(){
+  const s = Store.read(); if(!s) return;
+  if(Array.isArray(s)){ mem.retired = new Set(s); return; }   // v1
+  (s.retired||[]).forEach(k=>mem.retired.add(k));
+  (s.met||[]).forEach(k=>mem.met.add(k));
+  if(s.stats) mem.stats = s.stats;
+  if(typeof s.sinceCheck === 'number') mem.sinceCheck = s.sinceCheck;
+  if(Array.isArray(s.pending)) mem.pending = s.pending;
+  if(s.flags && typeof s.flags === 'object') mem.flags = s.flags;
+  if(s.flagAck) mem.flagAck = true;
+  if(s.moved && typeof s.moved === 'object') mem.moved = s.moved;
+  if(typeof s.chkN === 'number') mem.chkN = s.chkN;
+  if(typeof s.hw === 'number') mem.hw = s.hw;
+  if(s.hist && typeof s.hist === 'object') mem.hist = s.hist;
+  if(Array.isArray(s.miles)) mem.miles = s.miles;
+  if(s.mute) mem.mute = true;
+  if(s.musicOff) mem.musicOff = true;
+  if(Array.isArray(s.latBase)) mem.latBase = s.latBase;
+  if(s.wall && s.wall.n) mem.wall = s.wall;
+  if(typeof s.avatar === 'number') mem.avatar = s.avatar;
+  if(typeof s.dripA === 'number') mem.dripA = s.dripA;
+  if(typeof s.dripAn === 'number') mem.dripAn = s.dripAn;
+  if(s.dripNote) mem.dripNote = true;
+  /* one-time migration to VERIFIED counting: old saves carry an hw built from
+     "I know this" clicks. Recompute from test passes, cap the history curve,
+     and revoke any medal the old counting handed out early — it will be
+     re-earned the moment the test agrees. */
+  if(!s.hwV2){
+    mem.hw = verifiedCount();
+    Object.keys(mem.hist).forEach(d => { mem.hist[d] = Math.min(mem.hist[d], mem.hw); });
+    mem.miles = mem.miles.filter(m => m <= Math.floor(mem.hw / 100));
+    if(mem.wall) mem.wall.m = Math.min(mem.wall.m || 0, Math.floor(mem.hw / 100)) || undefined;
+  }
+  mem.hwV2 = true;
+}
+
+let idx = 0;
+let revealed = true;
+/* REVIEW MODE. The whole card machinery — paint, arrows, taps, voices, the
+   flag — runs unchanged; only the list it walks changes. savedIdx remembers
+   the learning position for the return trip. Not persisted: a reload lands
+   back in learning mode, which is the safe default. */
+let reviewMode = false;
+let savedIdx = 0;
+let taps = 0;              // consecutive taps on the current card
+
+/* The deck order, with one amendment: a word that came back from a check is
+   RE-INSERTED A FEW CARDS AHEAD of the learner, not left at its original slot.
+   Un-retiring alone put an old word 150 positions behind the pointer, where
+   forward-only navigation never finds it — and being un-retired also removed it
+   from the recheck pool, so the safety net that caught it could never catch it
+   again. mem.moved[word] = the word it now sits in front of. Cleared on retire. */
+const learnList = () => {
+  const base = DECK.filter(c => !mem.retired.has(c.k) && !(c.k in mem.moved));
+  for(const [k, anchor] of Object.entries(mem.moved)){
+    if(mem.retired.has(k)) continue;
+    const c = DECK.find(x => x.k === k); if(!c) continue;
+    let at = base.findIndex(x => x.k === anchor);
+    if(at < 0) at = Math.min(idx + 3, base.length);
+    base.splice(at, 0, c);
+  }
+  return base;
+};
+let focusList = null;   // when set, review mode walks THESE words instead
+const reviewList = () => focusList
+  ? DECK.filter(c => focusList.includes(c.k))
+  : DECK.filter(c => mem.retired.has(c.k));
+const active = () => reviewMode ? reviewList() : learnList();
+/* CARD ART LIVES IN FILES NOW (perf audit 2026-08-08): the 6 MB of base64
+   embeds made first load ~36 s on school wifi. Art loads per-card from
+   cards/{word}.webp — same sibling-folder contract as audio/ and videos/.
+   The player HTML is ~175 KB and load time is O(1) in deck size: the
+   1,500-card future costs the same first paint as 300. */
+const CARD_BASE = 'cards/';
+const src = c => CARD_BASE + encodeURIComponent(c.k) + '.webp';
+/* warm the cache a few cards each way, off the main path */
+const warmed = new Set();
+function warmImages(deck, at){
+  const idle = window.requestIdleCallback || (fn => setTimeout(fn, 200));
+  idle(()=>{
+    for(const off of [1, -1, 2, 3]){
+      const n = deck[at + off];
+      if(n && !warmed.has(n.k)){ warmed.add(n.k); const i = new Image(); i.src = src(n); }
+    }
+  });
+}
+
+/* ============================================================
+   VOICE
+   Two sources, in priority order:
+   1. Real recordings — set AUDIO_BASE and drop in <base>/1/물.mp3 etc.
+   2. Whatever Korean voices this machine has, as a stand-in.
+
+   THE AMENDMENT (references/06-audio-and-repetition.md): EVERY tap serves a
+   different speaker. The gesture and the unlimited repeats are untouched; what
+   changes is that massed identical repetition becomes distributed talker
+   variability, which is the thing that actually works. Single-talker training
+   is a documented failure mode — the learner memorises the recording rather
+   than the word. Manual 1/2/3/4 still overrides at any time.
+
+   Preston, on the four real voices landing: "anytime the person clicks on the
+   image the audio file that plays cycles through the 4 voices."
+
+   Four taps therefore = four different people saying the same word. That is
+   exactly the HVPT design (g = 0.92, four talkers the modal count), arrived at
+   by the natural gesture rather than by any setting the learner has to find.
+   ============================================================ */
+/* Set to 'audio/' once generate-audio.py has written the clips. Real files mean
+   every visitor hears the same four speakers regardless of what their machine has
+   installed — and the apologetic "install more Korean voices" notice disappears,
+   because it is only shown when we are falling back to the browser. */
+const AUDIO_BASE   = 'audio/';  // real clips — generate-audio.py, OpenAI gpt-4o-mini-tts
+const AUDIO_VOICES = 4;         // how many folders generate-audio.py wrote
+const AUDIO_EXT    = 'mp3';     // 'wav' if generate-audio.py ran without ffmpeg
+const AUDIO_NAMES  = ['목소리 1', '목소리 2', '목소리 3', '목소리 4'];  // onyx, ash, coral, nova
+
+let VOICES = [];
+let vIdx = 0;
+const slots = () => AUDIO_BASE ? AUDIO_VOICES : VOICES.length;
+
+/* ---- clip cache -------------------------------------------------------------
+   Rotating on every tap means tap 2 requests a file tap 1 never touched. Without
+   preloading, the second tap stalls on the network — and the second tap is
+   precisely when the learner has got into a rhythm of hammering the same card.
+   A stall there is the difference between "burn it in" and "wait for the app".
+   So: every voice of the current word is fetched the moment the card is shown. */
+const clips = new Map();        // 'word|voice' -> HTMLAudioElement, insertion = LRU order
+let nowPlaying = null;
+
+/* THE CAP (perf audit round 2, 2026-08-09). Chrome allows ~75 simultaneously
+   loaded media players per frame; beyond that, every new load is DEFERRED until
+   old players are lazily garbage-collected. At 4 voices per card + 2 prefetched
+   for the next, an unbounded cache crosses 75 at card ~18 — which is exactly
+   where Preston felt the lag begin ("after about 20 cards"). So the cache is an
+   LRU capped well under the limit: 24 elements ≈ the last 5 words' voices, which
+   still covers the hammer-the-same-card rhythm the cache exists for. Evicted
+   elements release their player explicitly (src removed + load()) instead of
+   waiting on GC; a re-visit re-fetches from the browser's disk cache, which is
+   cheap. The element mid-sound is never evicted. */
+const CLIP_CACHE_MAX = 24;
+function releaseClip(a){
+  try{ a.pause(); }catch(e){}
+  a.onended = a.onerror = null;
+  a.removeAttribute('src');
+  try{ a.load(); }catch(e){}
+}
+function clip(text, v){
+  const key = text + '|' + v;
+  let a = clips.get(key);
+  if(a){
+    clips.delete(key); clips.set(key, a);   // touch: move to newest LRU slot
+    return a;
+  }
+  a = new Audio(AUDIO_BASE + (v+1) + '/' + encodeURIComponent(text) + '.' + AUDIO_EXT);
+  a.preload = 'auto';
+  clips.set(key, a);
+  if(clips.size > CLIP_CACHE_MAX){
+    for(const [k0, a0] of clips){
+      if(clips.size <= CLIP_CACHE_MAX) break;
+      if(a0 === nowPlaying) continue;        // never yank the sound mid-word
+      clips.delete(k0);
+      releaseClip(a0);
+    }
+  }
+  return a;
+}
+
+function prefetch(text, count){
+  if(!AUDIO_BASE || !text) return;
+  const n = count || AUDIO_VOICES;
+  for(let i = 0; i < n; i++){
+    const v = (vIdx + i) % AUDIO_VOICES;
+    try{ clip(text, v).load(); }catch(e){}
+  }
+}
+
+function pickVoice(){
+  const all = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  const ko = all.filter(v=>/^ko/i.test(v.lang));
+  const seen = new Set();
+  VOICES = ko.filter(v=>{ const n=v.name.replace(/\s*\(.*\)$/,'').trim();
+      if(seen.has(n)) return false; seen.add(n); return true; })
+    .sort((a,b)=>(/premium|enhanced|siri|neural/i.test(b.name)?1:0)-(/premium|enhanced|siri|neural/i.test(a.name)?1:0))
+    .slice(0,3);
+  if(vIdx >= Math.max(slots(),1)) vIdx = 0;
+  renderVoices(); renderNotice(all.length);
+}
+if(window.speechSynthesis){
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+  setTimeout(pickVoice, 900);
+}
+
+function renderNotice(total){
+  const el = document.getElementById('notice');
+  if(AUDIO_BASE || VOICES.length >= 3 || !total){ el.classList.remove('show'); return; }
+  const names = VOICES.map(v=>v.name.replace(/\s*\(.*\)$/,'').trim()).join(', ');
+  el.innerHTML = '<b>' + (VOICES.length===0
+      ? 'No Korean voice is installed on this device.'
+      : VOICES.length + ' Korean voice' + (VOICES.length>1?'s':'') + ' found: ' + names + '.')
+    + '</b>Three separate voices matter more than any other setting here — one recording '
+    + 'repeated is close to the worst use of a hundred repetitions. '
+    + 'System Settings → Accessibility → Spoken Content → System Voice → Manage Voices → '
+    + 'Korean, and install every Korean voice offered. Reload afterwards. '
+    + 'Chrome exposes a Google Korean voice that Safari does not, so it is worth opening this in both.';
+  el.classList.add('show');
+}
+
+function renderVoices(){
+  const box = document.getElementById('voices');
+  const n = slots();
+  [...box.querySelectorAll('.vbtn')].forEach((b,i)=>{
+    const ok = i < n;
+    b.disabled = !ok;
+    b.classList.toggle('off', !ok);
+    b.classList.toggle('on', ok && i===vIdx);
+  });
+  const v = VOICES[vIdx];
+  const name = AUDIO_BASE ? (AUDIO_NAMES[vIdx] || 'set ' + (vIdx + 1))
+             : (v ? v.name.replace(/\s*\(.*\)$/,'').trim() : '—');
+  document.getElementById('vname').textContent =
+      n===0 ? 'no Korean voice installed'
+    : n===1 ? name + ' — only 1 installed'
+    : name;
+}
+
+/* Manual override. Was wired to the 1/2/3/4 keys and the voice chips but never
+   actually defined — both threw ReferenceError on every press. */
+function setVoice(i){
+  if(!(i >= 0 && i < slots())) return;
+  vIdx = i;
+  renderVoices();
+  playCurrent();
+}
+
+function say(text){
+  const el = document.getElementById('card');
+  if(AUDIO_BASE){
+    /* Stop whatever is still sounding. Tapping fast enough to overlap two
+       different speakers produces a garbled chorus, which teaches nothing. */
+    if(nowPlaying){ try{ nowPlaying.pause(); }catch(e){} }
+    const a = clip(text, vIdx);
+    nowPlaying = a;
+    try{ a.currentTime = 0; }catch(e){}
+    el.classList.add('speaking');
+    a.onended = ()=>el.classList.remove('speaking');
+    a.onerror = ()=>{ el.classList.remove('speaking'); speak(text); };
+    a.play().catch(()=>{ el.classList.remove('speaking'); speak(text); });
+    return;
+  }
+  speak(text);
+}
+
+function speak(text){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='ko-KR';
+  try{ if(VOICES[vIdx]) u.voice = VOICES[vIdx]; }catch(e){}
+  u.rate=0.86; u.pitch=1.0;
+  const el = document.getElementById('card');
+  u.onstart = ()=>el.classList.add('speaking');
+  u.onend = u.onerror = ()=>el.classList.remove('speaking');
+  speechSynthesis.speak(u);
+}
+
+/* A tap on the card. Every tap advances to the next speaker. */
+function tapCard(){
+  if(dripState){ itemReplays++; sayNextVoice(dripState.k); return; }
+  /* Preston: tapping to hear must NEVER disturb the clip's play/rest cycle —
+     the voice and the motion simply coexist. (Replaces the old skip-to-still.) */
+  const d = active(); if(!d[idx]) return;
+  /* Lifetime tap count. Preston: "If I click that audio a bunch of times over the
+     life of learning a card, I can also learn something about that person's
+     struggle with that word." Only deliberate taps count — arriving at a card
+     auto-plays it, and that is not the learner asking for another listen. */
+  stat(d[idx].k).n++; Store.write();
+  taps++;
+  /* Advance BEFORE speaking, so tap 1 is a different speaker from the auto-play
+     that greeted the card. Otherwise the first tap just repeats what was already
+     heard, and the learner has to tap twice to get any variation at all. */
+  if(slots() > 1){
+    vIdx = (vIdx + 1) % slots();
+    renderVoices();
+  }
+  say(d[idx].k);
+}
+
+function playCurrent(){ const d = active(); if(d[idx]) say(d[idx].k); }
+
+/* Replays cycle speakers everywhere, not just on the card. A replay that repeats
+   the identical recording teaches nothing new (06-audio-and-repetition.md). */
+function sayNextVoice(word){
+  if(slots() > 1){ vIdx = (vIdx + 1) % slots(); renderVoices(); }
+  say(word);
+}
+
+/* Advance to the next item only after the confirmation clip has finished.
+   A fixed timer cut the audio off mid-word — the next item's own say() pauses
+   whatever is still playing. minDwell keeps the right/wrong colours on screen;
+   the safety timer advances anyway if 'ended' never fires (bad clip, TTS path). */
+function advanceAfterClip(minDwell, fn){
+  const t0 = Date.now();
+  let done = false;
+  const go = ()=>{ if(done) return; done = true; fn(); };
+  const a = nowPlaying;
+  if(a && AUDIO_BASE){
+    a.addEventListener('ended', ()=>{
+      setTimeout(go, Math.max(0, minDwell - (Date.now() - t0)));
+    }, {once:true});
+    setTimeout(go, minDwell + 3500);
+  }else{
+    setTimeout(go, minDwell);
+  }
+}
+
+/* ============================================================
+   THE VERB CLIP — first-exposure motion (16-verb-motion-pilot.md).
+   Finding #11 intact: retrieval is static, forever. A clip plays exactly
+   once, on the word's FIRST meeting, silent, then the card settles back
+   onto the canonical still with a short crossfade (Grok has no last-frame
+   control; the fade is the accepted seam). Tap skips to the still.
+   prefers-reduced-motion disables the whole thing.
+   ============================================================ */
+const VIDEO_BASE = 'videos/';
+let clipTimer = null;
+let clipGen = 0;   // generation token: a stop's delayed cleanup must never kill the NEXT clip's load
+/* which words HAVE clips — learned lazily from load results, so the replay
+   badge only ever shows on cards where a replay is possible */
+const clipHave = {};
+let lastPaintedKey = null;
+/* (the top-left replay badge was removed 2026-08-08 late — the loop made it
+   redundant; clipHave stays as the known-missing skip list) */
+function stopCardClip(){
+  const v = document.getElementById('artVid'); if(!v) return;
+  clearTimeout(clipTimer);
+  const card = document.getElementById('card');
+  card.classList.remove('clipping');
+  try{ v.pause(); }catch(e){}
+  /* release the src after the fade completes so the crossfade is visible —
+     but ONLY if no newer play has started since (the token guards the race
+     where card N's cleanup fired while card N+1's clip was still loading) */
+  const g = ++clipGen;
+  setTimeout(()=>{
+    if(g === clipGen && !card.classList.contains('clipping')){
+      v.removeAttribute('src'); try{ v.load(); }catch(e){}
+    }
+  }, 350);
+}
+/* THE LOOP-WITH-REST (Preston's pilot amendment, 2026-08-08 late): while a
+   card is on screen in the browse surfaces, its clip cycles forever — ~5 s of
+   motion, crossfade to the still, 2 s of rest, play again. Navigating away, a
+   drip, or a hard stop kills the cycle via the generation token. The file
+   stays loaded between cycles (no re-fetch, no flash). Tapping the card is
+   AUDIO-ONLY and never touches the cycle. */
+const CLIP_REST_MS = 1500;
+function armClipEnd(word, v){
+  v.onended = ()=>{ clearTimeout(clipTimer); restCardClip(word); };
+  clearTimeout(clipTimer);
+  clipTimer = setTimeout(()=>restCardClip(word), 9000);   // safety: treat as ended
+}
+function restCardClip(word){
+  const card = document.getElementById('card');
+  card.classList.remove('clipping');                      // crossfade to the still
+  const g = ++clipGen;
+  const again = ()=>{
+    if(g !== clipGen) return;                             // navigated / dripped / stopped
+    if(document.hidden){ clipTimer = setTimeout(again, CLIP_REST_MS); return; }
+    if(lastPaintedKey !== word || dripState) return;
+    const v = document.getElementById('artVid'); if(!v || !v.getAttribute('src')) return;
+    armClipEnd(word, v);
+    try{ v.currentTime = 0; }catch(e){}
+    v.play().catch(()=>{});
+  };
+  clipTimer = setTimeout(again, CLIP_REST_MS);
+}
+function playCardClip(word){
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(clipHave[word] === false) return;     // known missing: skip the network round-trip
+  const v = document.getElementById('artVid'); if(!v) return;
+  clipGen++;                               // invalidate any pending cleanup
+
+  v.muted = true;                          // belt over the attribute: silent, always
+  v.onerror = ()=>{ clipHave[word] = false; stopCardClip(); };
+  v.onplaying = ()=>{
+    clipHave[word] = true;
+    document.getElementById('card').classList.add('clipping');
+  };
+  armClipEnd(word, v);                     // ended -> rest -> play again, forever
+  v.src = VIDEO_BASE + encodeURIComponent(word) + '.mp4';
+  try{ v.currentTime = 0; }catch(e){}
+  v.play().catch(()=>{
+    /* refused autoplay (cold load, no gesture yet): if the file actually
+       loaded, remember it exists so the badge still offers a manual play */
+    if(v.readyState >= 2){ clipHave[word] = true; }
+    stopCardClip();
+  });
+}
+
+/* THE REVEAL CLIP (Preston, test mode): after an answer, the CORRECT picture
+   animates in its own grid cell, then the flow continues. Never before the
+   answer — a moving tile in an unanswered grid is a flashing arrow at the
+   right answer (the anti-leak rule). Used by Test me; checks and drips stay
+   static pending Preston's pacing verdict. */
+function revealClipIn(cell, word, after){
+  const rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(rm || !cell || clipHave[word] === false){ after(); return; }
+  const v = document.createElement('video');
+  v.muted = true; v.playsInline = true;
+  v.className = 'chkclip';
+  let fin = false;
+  const done = ()=>{ if(fin) return; fin = true; setTimeout(()=>v.remove(), 250); after(); };
+  v.onended = done;
+  v.onerror = ()=>{ clipHave[word] = false; done(); };
+  v.onplaying = ()=>{ clipHave[word] = true; };
+  setTimeout(done, 9000);
+  cell.style.position = 'relative';
+  cell.appendChild(v);
+  v.src = VIDEO_BASE + encodeURIComponent(word) + '.mp4';
+  v.play().catch(done);
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const coverage = () => DECK.reduce((s,c)=>s + (mem.retired.has(c.k) ? c.w : 0), 0);
+
+function paint(){
+  paintAuth();
+  document.body.classList.toggle('reviewing', reviewMode);
+  $('retire').textContent = reviewMode ? '잘 몰라요 · Not solid yet' : 'I know this';
+  $('reviewBtn').style.display = (!reviewMode && mem.retired.size) ? '' : 'none';
+  const deck = active();
+  if(deck.length === 0){
+    $('stage').innerHTML = '<div style="text-align:center;padding:64px 24px">'
+      + '<div style="font-size:22px;font-weight:500;margin-bottom:10px">These twenty are yours.</div>'
+      + '<div style="font-size:15px;color:var(--ink-soft);line-height:1.6;max-width:400px;margin:0 auto">'
+      + 'Cards 21–50 finish Stage 1. Sentences arrive at Stage 6, built only from words you already own.'
+      + '</div></div>';
+    $('controls').style.display='none';
+    $('covNum').textContent = coverage().toFixed(1)+'%';
+    $('meta').textContent = DECK.length + ' of ' + DECK.length + ' retired';
+    return;
+  }
+  if(idx >= deck.length) idx = deck.length-1;
+  if(idx < 0) idx = 0;
+  const c = deck[idx];
+
+  curWasNew = !mem.met.has(c.k);
+  if(curWasNew){ mem.met.add(c.k); Store.write(); }
+  watchCard(dripState ? null : c.k);
+  /* Preston's pilot amendment #1 (2026-08-08): the clip plays on EVERY arrival
+     at a card in the browse surfaces (learning, review, focus) — not just the
+     first meeting. Repaints of the SAME card (English toggle, auth changes)
+     never restart or kill a running clip. */
+  const arrived = c.k !== lastPaintedKey;
+  lastPaintedKey = c.k;
+  if(arrived){
+    stopCardClip();
+    if(!dripState) playCardClip(c.k);
+  }
+  $('art').src = src(c);
+  $('art').alt = c.en;
+  $('reveal').innerHTML = '<b>'+c.k+'</b>'+c.en;
+  $('card').classList.toggle('revealed', revealed);
+  paintFlag(c);
+
+  /* preload neighbours (±1 sync so the next card never flashes; +2,+3 idle) */
+  [deck[idx+1], deck[idx-1]].forEach(n=>{ if(n && !warmed.has(n.k)){ warmed.add(n.k); const i=new Image(); i.src=src(n); } });
+  warmImages(deck, idx);
+  /* every voice of THIS word (taps cycle fast); only the first two of the
+     next word — the rest load when the learner actually arrives there */
+  prefetch(c.k);
+  if(deck[idx+1]) prefetch(deck[idx+1].k, 2);
+
+  $('prev').disabled = idx===0;
+  $('next').disabled = idx===deck.length-1;
+  $('covNum').textContent = coverage().toFixed(1)+'%';
+  const cf = reviewMode ? confidence(c.k) : null;
+  $('meta').innerHTML = reviewMode
+    ? 'reviewing ' + (idx+1) + ' of ' + deck.length + ' words you know'
+      + '<span>·</span>' + (cf === null ? '자신감 · not yet tested'
+                                        : '자신감 · <b>' + cf + '%</b> confident')
+      + '<span>·</span>\u201c잘 몰라요\u201d puts a word back in the deck, a few cards ahead'
+    : 'card ' + (idx+1) + ' of ' + deck.length
+      + '<span>·</span>' + mem.retired.size + ' of ' + DECK.length + ' retired'
+      + '<span>·</span>these ' + DECK.length + ' top out at ' + STAGE_TOTAL.toFixed(1) + '%';
+}
+
+function go(n){
+  if(dripState){ if(n === 1) skipDrip(); return; }   // right arrow skips a drip
+  const deck = active();
+  const t = idx + n;
+  if(t < 0 || t >= deck.length) return;
+  if(n === 1 && !reviewMode){
+    sinceDrip++;
+    if(postCheckQuiet > 0) postCheckQuiet--;
+    if(maybeDrip('advance')){ dripAfter = t; return; }   // land on t when it ends
+  }
+  idx = t; taps = 0; paint();
+  playCurrent();
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+$('card').addEventListener('click', tapCard);
+$('card').addEventListener('keydown', e=>{
+  if(e.key===' '||e.key==='Enter'){ e.preventDefault(); tapCard(); }
+});
+$('prev').addEventListener('click', ()=>go(-1));
+$('next').addEventListener('click', ()=>go(1));
+
+document.addEventListener('keydown', e=>{
+  /* typing beats shortcuts: while focus is in any text field (the flag
+     comment, the wall name, anything future), the keyboard belongs to the
+     typist — no audio replay, no stolen spacebar (Preston hit this while
+     writing a flag comment). Same when any dialog is open. */
+  const t = e.target;
+  if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if(document.querySelector('.flagc.show, .auth-sheet.show')) return;
+  if($('test').classList.contains('show')) return;
+  if(e.key==='ArrowLeft'){ e.preventDefault(); go(-1); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); go(1); }
+  else if(e.key===' '){ e.preventDefault(); tapCard(); }
+  else if(['1','2','3','4'].includes(e.key)) setVoice(+e.key-1);
+});
+
+function demote(k){
+  /* His own call that a "known" word is not solid. It counts as a comeback
+     (r++) so the recheck weighting watches it, but it does NOT sit out a
+     check — a self-demote is honesty, not a failed audit. Re-enters the
+     LEARNING deck a few cards ahead of where learning left off. */
+  const s = stat(k); s.r++;
+  const ll = learnList();
+  const anchor = ll[Math.min(Math.max(0, ll.length - 1), savedIdx + 3)];
+  if(anchor && anchor.k !== k) mem.moved[k] = anchor.k;
+  mem.retired.delete(k);
+  Store.write();
+  flagToast('\ub355\uc73c\ub85c \ub3cc\uc544\uac11\ub2c8\ub2e4 \u2014 back in the deck, a few cards ahead');
+  const rl = reviewList();
+  if(!rl.length){ exitReview(); return; }
+  if(idx >= rl.length) idx = rl.length - 1;
+  paint(); playCurrent();
+}
+function enterReview(){
+  if(!mem.retired.size) return;
+  savedIdx = idx;
+  reviewMode = true; idx = 0; taps = 0;
+  paint(); playCurrent();
+}
+/* FOCUS STUDY (Preston, Aug 2026): the top-10 most-important-to-study words,
+   straight off the history's priority ranking, browsed in review dress. */
+function enterFocus(keys){
+  if(!keys.length) return;
+  focusList = keys;
+  $('rvLabel').textContent = '상위 10 · Studying your most important words';
+  savedIdx = idx;
+  reviewMode = true; idx = 0; taps = 0;
+  bgmStop();
+  show('cards');
+  paint(); playCurrent();
+}
+function exitReview(){
+  reviewMode = false;
+  focusList = null;
+  $('rvLabel').textContent = '복습 · Reviewing words you already know';
+  idx = Math.min(savedIdx, Math.max(0, learnList().length - 1));
+  taps = 0; paint();
+}
+$('reviewBtn').addEventListener('click', enterReview);
+$('reviewExit').addEventListener('click', exitReview);
+
+$('retire').addEventListener('click', ()=>{
+  if(dripState) return;                    // controls are frozen during a drip
+  const deck = active(); if(!deck[idx]) return;
+  const k = deck[idx].k;
+  if(reviewMode){ demote(k); return; }
+  mem.retired.add(k);
+  recordGrowth();
+  delete mem.moved[k];           // it has a home again: the retired set
+  mem.pending.push(k);           // the claim awaiting audit
+  mem.sinceCheck++;
+  Store.write();
+  if(idx >= active().length) idx = Math.max(0, active().length-1);
+  taps = 0; paint();
+  if(mileQueue.length){ showMilestone(); return; }   // the medal outranks the check
+  if(mem.sinceCheck >= CHECK_EVERY){ offerCheck(); return; }
+  if(maybeDrip('retire')){ dripAfter = idx; return; }  // a retirement is a seam
+  playCurrent();
+});
+
+$('showBtn').addEventListener('click', ()=>{
+  revealed = !revealed;
+  $('showBtn').textContent = revealed ? 'Hide English' : 'Show English';
+  paint();
+});
+
+document.querySelectorAll('.vbtn').forEach(b=>{
+  b.addEventListener('click', ()=>{ if(!b.disabled) setVoice(+b.dataset.v); });
+});
+
+/* ---------- first-run hints, once each, then never again ---------- */
+(function(){
+  const h = $('hint');
+  setTimeout(()=>h.classList.add('show'), 600);
+  const kill = ()=>{ h.classList.remove('show'); $('card').removeEventListener('click', kill); };
+  $('card').addEventListener('click', kill);
+  setTimeout(kill, 5000);
+})();
+
+
+/* ============================================================
+   THE CHECK — an audit of "I know this", not a quiz
+
+   "I know this" retires a word and shrinks the deck. That is the mechanic that
+   makes this tool feel good, and it is also the one place it can quietly lie:
+   retire twelve words on a confident evening and three of them leave the stack
+   having never been verified. The check is what makes retiring honest.
+
+   Two parts, in this order:
+     A. THE CLAIM  — the 10 words just retired. All ten, not a sample. He said he
+        knew all ten, so all ten get asked.
+     B. THE RECHECK — a fixed THREE, priority-lane only (Preston, 2026-08-08:
+        "drop it down to 3 right now"). The heavy review lifting moved into the
+        stream — THE DRIP, references/15-drip-spec.md — which samples the
+        retired pool continuously, so the check keeps only a pinch of review:
+        ~13 items, ~90 seconds. Before the drip this was 20% capped at 10 and
+        was the ONLY review in the system; both shipped in the SAME build so
+        review capacity never dipped.
+
+   One item type, always: hear the Korean, pick the picture from four. No second
+   format to learn, no instructions ever, and it is exactly the target skill —
+   Korean arriving by ear, meaning resolving.
+
+   Distractors come from words already MET, chosen by VISUAL class (Ishii: the
+   confusion normally blamed on meaning is driven by pictures resembling each
+   other). Never from unseen cards — that would let him solve it by elimination.
+
+   Miss -> the word leaves `retired` and returns to the deck immediately.
+   No score, no percentage, no pass/fail. The deck getting longer IS the feedback.
+   ============================================================ */
+const CHECK_EVERY   = 10;    // retirements that trigger a check
+const RECHECK_N     = 3;     // Part B: fixed, priority-lane only — the drip owns review now
+
+function pickRecheck(exclude, nOverride, priOnly){
+  const pool = [...mem.retired].filter(k => !exclude.has(k)
+    && ((mem.stats[k] || {}).hc || 0) < mem.chkN);   // missed last check -> sits this one out
+  const n = Math.min(nOverride || RECHECK_N, pool.length);
+  if(n <= 0) return [];
+  const now = Date.now();
+  /* PRESTON'S TWO-LANE DESIGN (Aug 2026). Lane one, ~2/3 of the slots: the
+     PRIORITY ENGINE — (100 − confidence) × √value, biggest expected payoff
+     first, with a not-seen-lately nudge and a little jitter. Confidence
+     already folds in accuracy, speed, replays and staleness, so no separate
+     effort/fluency terms — no double counting. Lane two, ~1/3: PURE RANDOM
+     across every known word, ANY confidence — it spot-checks breadth, keeps
+     the "solid" words honest, and audits the confidence model itself (a 95%
+     word failing a random check is the model learning it was wrong). The
+     sit-out-a-check rule after a miss applies to both lanes via the pool. */
+  const nPri = priOnly ? n : Math.ceil(n * 2 / 3);
+  const scored = pool.map(k => {
+    const s = stat(k);
+    const hrs = s.t ? (now - s.t) / 3.6e6 : 24 * 30;
+    const w = refeedPriority(k, now) * Math.log(2 + hrs / 24)
+              * (0.85 + Math.random() * 0.3);
+    return {k, w};
+  });
+  scored.sort((a, b) => b.w - a.w);
+  const picks = scored.slice(0, nPri).map(x => x.k);
+  const rest = pool.filter(k => !picks.includes(k)).sort(() => Math.random() - 0.5);
+  picks.push(...rest.slice(0, n - picks.length));
+  return picks;
+}
+
+/* THE FOUNDATION AUDIT — Preston's escalation, Aug 2026.
+   A bad recheck is a base-rate estimate of the WHOLE retired pile, not just of
+   the words that happened to be sampled: miss 4 of 4 "already known" words and
+   the unsampled rest is statistically suspect too. When that happens, the next
+   thing OFFERED is a larger audit of the foundation instead of new words.
+   Offered, never forced — same precedent as the 50-card soft gate: show the
+   number, recommend, and leave the decision with the learner. It never chains:
+   a foundation audit cannot trigger another one; by then the returned cards
+   themselves are the remedy. */
+function buildFoundation(){
+  mem.chkN = (mem.chkN || 0) + 1;
+  const rec = pickRecheck(new Set(), 12);
+  mem.queue = rec.map(k => ({k, part:'recheck'}));
+  mem.qi = 0; mem.back = [];
+  return mem.queue.length;
+}
+
+/* ============================================================
+   FLUENCY + CONFIDENCE — Preston's insight, Aug 2026: how FAST a right
+   answer comes is a signal of how well the word is known, not just THAT
+   it comes. Latency is captured per check item with three walk-away guards
+   (hard cap, visibility void, personal-median normalization), smoothed into
+   one number per word (s.fl: 1.0 = his own typical speed, higher = slower),
+   plus a replay counter (s.rp — asking to hear it again is hesitation made
+   visible). Correct answers only; misses are already their own signal.
+   The personal baseline (mem.latBase) stays LOCAL — phone taps and mouse
+   clicks aren't comparable — but s.fl is normalized, so it syncs and merges
+   pessimistically (slower device wins; shaky beats solid).
+   ============================================================ */
+/* ---------- the global confusion tracker (Preston: "take the collective
+   learning and apply it to the mix"). Firestore confusions/{targetWord} holds
+   {counts: {wrongWord: n}} — incremented on every miss, read at check build.
+   Both directions piggyback on an ALREADY-LOADED Firebase SDK (signed-in
+   learners), so the anonymous default path still loads and sends nothing —
+   the COPPA position holds. Counts carry no user id: pure aggregate. */
+const confCache = {};
+function prefetchConfusions(words){
+  if(!(window.firebase && firebase.apps.length)) return;
+  try{
+    const db = firebase.firestore();
+    words.forEach(w => {
+      if(confCache[w]) return;
+      confCache[w] = [];                       // one fetch per word per session
+      db.collection('confusions').doc(w).get().then(d => {
+        const c = d.exists ? (d.data().counts || {}) : {};
+        confCache[w] = Object.entries(c).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+      }).catch(()=>{});
+    });
+  }catch(e){}
+}
+function sendConfusion(targetK, wrongK){
+  try{
+    if(!(window.firebase && firebase.apps.length)) return;
+    firebase.firestore().collection('confusions').doc(targetK).set(
+      { counts: { [wrongK]: firebase.firestore.FieldValue.increment(1) }, u: Date.now() },
+      { merge: true });
+  }catch(e){}
+}
+
+/* ---------- MEANING TWINS (Preston, Aug 2026: tested on 두, saw 둘 in the
+   same grid — "that can never happen"). Korean pairs words by register and
+   number system, so the deck legitimately holds several words with the SAME
+   meaning. A twin in the grid is not a hard question, it is an unanswerable
+   one — when the audio says 둘, the 두 picture is ALSO correct. Rule:
+   (a) when a word is the target, its whole meaning-group is banned from the
+   grid — including the personal/global confuser slots (that discrimination
+   cannot be tested with pictures at all); (b) at most ONE member of any
+   group ever appears among the distractors. Curated from the full 24-pair
+   audit of cards 1-300; run scripts/audit-meaning-twins.py on any new cards
+   before they ship and extend this list. */
+const EQUIV_GROUPS = [
+  ['나','저'], ['하나','한'], ['우리','저희'], ['길','도로'],
+  ['너','당신','자네','너희'], ['조금','약간'], ['다','모든','모두'],
+  ['여자','여성'], ['미안','죄송하다'], ['같이','함께'], ['두','둘'],
+  ['쪽','방향'], ['게임','경기'], ['식사','밥'], ['잔','컵'],
+  ['뒤','등'], ['시작','처음']
+];
+/* AMBIGUOUS BY ARTWORK (Preston caught 사람 "person" tested against 나's
+   lone-figure card, 2026-08-08): when the audio says 사람, ANY lone-figure
+   picture is arguably a right answer — a hypernym can't be discriminated
+   against its own members with pictures. Until the deeper question is
+   settled (should 사람's card become an R8 multi-person composition?), the
+   I-group and 사람 never share a grid. Same mechanics as the meaning twins;
+   merged into the same index below. */
+const AMBIG_GROUPS = [ ['나','저','사람'] ];
+const EQUIV_IDX = {};
+{ /* union-merge: a word in two groups (나 is a meaning-twin of 저 AND
+     artwork-ambiguous with 사람) collapses them into one banned cluster */
+  let next = 0;
+  for(const g of EQUIV_GROUPS.concat(AMBIG_GROUPS)){
+    let id = null;
+    for(const k of g) if(EQUIV_IDX[k] !== undefined){ id = EQUIV_IDX[k]; break; }
+    if(id === null) id = next++;
+    for(const k of g){
+      const prev = EQUIV_IDX[k];
+      if(prev !== undefined && prev !== id){
+        for(const kk of Object.keys(EQUIV_IDX)) if(EQUIV_IDX[kk] === prev) EQUIV_IDX[kk] = id;
+      }
+      EQUIV_IDX[k] = id;
+    }
+  }
+}
+
+/* TIME ON CARD (Preston, Aug 2026): cumulative seconds spent with each word,
+   stored per word in s.ms. Wall-clock while the card is on screen, with the
+   same walk-away guards as fluency: hidden tab / blurred window flushes and
+   stops the clock, and no single continuous look counts more than 90 s.
+   Valid check-answer latencies add in too. Cloud-merges by MAX (repeated
+   union merges would double-count a sum). */
+let cardKey = null, cardT0 = 0;
+function flushCardTime(){
+  if(cardKey && cardT0){
+    const ms = Math.min(90000, performance.now() - cardT0);
+    if(ms > 400) stat(cardKey).ms = (stat(cardKey).ms || 0) + Math.round(ms);
+  }
+  cardT0 = cardKey ? performance.now() : 0;
+}
+function watchCard(k){
+  flushCardTime();
+  cardKey = k || null;
+  cardT0 = cardKey && !document.hidden ? performance.now() : 0;
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ flushCardTime(); cardT0 = 0; }
+  else if(cardKey) cardT0 = performance.now();
+});
+window.addEventListener('pagehide', ()=>{ flushCardTime(); cardT0 = 0; try{ Store.flush(); }catch(e){} });
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ try{ Store.flush(); }catch(e){} } });
+function fmtDur(ms){
+  const s = Math.round((ms || 0) / 1000);
+  if(s < 60) return s + 's';
+  if(s < 3600) return Math.floor(s / 60) + 'm ' + String(s % 60).padStart(2, '0') + 's';
+  return Math.floor(s / 3600) + 'h ' + Math.floor((s % 3600) / 60) + 'm';
+}
+
+let itemT0 = 0, itemVoid = false, itemReplays = 0;
+function armItemClock(){ itemT0 = performance.now(); itemVoid = false; itemReplays = 0; }
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) itemVoid = true; });
+window.addEventListener('blur', ()=>{ itemVoid = true; });
+
+function recordFluency(s){
+  const lat = performance.now() - itemT0;
+  /* guards: walked away / tabbed out (void), gone > 12 s (doorbell, not memory),
+     or under 250 ms (a double-tap, not a decision) -> keep the answer, drop the clock */
+  if(!itemVoid && lat >= 250 && lat <= 12000){
+    mem.latBase.push(Math.round(lat));
+    if(mem.latBase.length > 30) mem.latBase.shift();
+    const sorted = [...mem.latBase].slice().sort((a, b) => a - b);
+    const med = sorted[Math.floor(sorted.length / 2)] || lat;
+    const norm = Math.min(4, lat / Math.max(400, med));
+    s.fl = s.fl ? Math.round((0.65 * s.fl + 0.35 * norm) * 100) / 100
+                : Math.round(norm * 100) / 100;
+    s.ms = (s.ms || 0) + Math.round(lat);        // check time counts as time on card
+  }
+  const rNow = Math.min(3, itemReplays);
+  s.rp = s.rp === undefined ? rNow
+       : Math.round((0.6 * s.rp + 0.4 * rNow) * 100) / 100;
+}
+
+/* One honest 0-100 per word. Untested words return null (the caller says
+   "untested" rather than inventing a number). Anatomy: Laplace-smoothed
+   accuracy (1 clean pass ≈ 67%, four ≈ 83%, nine ≈ 91%) x a fluency factor
+   (his own speed = neutral, fast lifts a little, slow costs up to a quarter)
+   x a replay factor x a STABILITY-DEPENDENT staleness decay (an established
+   word barely drifts for months; a one-pass word halves in ~6 weeks; floor
+   0.5). 95% needs a long, fast, clean record — exactly what 95% should mean. */
+/* THE VALUE SCORE (Preston, Aug 2026): a 100-point scale anchored at 나 = 100.
+   value = 100 × √(word's speech share ÷ 나's) — the square root spreads the
+   deck across the scale (linear would put everything but the top ten at 1-8,
+   because real frequency is that skewed). This displayed number IS the value
+   term in the re-feed priority — one scale, no secret second one. */
+let MAXW = 0;
+for(const c of DECK){ if(c.w > MAXW) MAXW = c.w; }
+const valueScore = c => Math.round(100 * Math.sqrt((c.w || 0) / MAXW));
+/* re-feed priority: how badly he knows it, TILTED by how much it matters.
+   Confidence leads; value adjusts within a 0.5-1.0 band (at most 2×), so an
+   80%-known giant can NEVER outrank a 20%-known small word — Preston caught
+   나 at 80% floating above genuinely broken words when value multiplied at
+   full √ strength. Now: broken first, valuable-broken first of all. */
+function refeedPriority(k, now){
+  const c = byWord(k); if(!c) return 0;
+  const cf = confidence(k);
+  const gap = 100 - (cf === null ? 50 : cf);
+  return gap * (0.5 + 0.5 * Math.sqrt((c.w || 0) / MAXW));
+}
+
+/* TREND-AWARE ACCURACY (Preston, Aug 2026): conquer a word and the score
+   should say so. s.ap/s.ar are decayed pass/miss counters — every new test
+   outcome shrinks the past by 20%, giving confidence an effective memory of
+   the last ~5 tests (weights sum to 1/(1-0.8)). Early misses fade
+   geometrically; a sudden slump on a long-solid word cuts through just as
+   fast. Lifetime p/r stay untouched — the visible record is permanent,
+   only confidence's READING of it is recency-weighted. Legacy saves seed
+   the counters from lifetime at capped mass (≤5) preserving the ratio, so
+   nobody's score jumps on migration. */
+function seedDecay(s){
+  const tot = (s.p || 0) + (s.r || 0);
+  const M = Math.min(tot, 5);
+  return tot ? { ap: M * (s.p || 0) / tot, ar: M * (s.r || 0) / tot } : { ap: 0, ar: 0 };
+}
+function decayOutcome(s, right){
+  if(s.ap === undefined){ const d = seedDecay(s); s.ap = d.ap; s.ar = d.ar; }
+  s.ap = Math.round((0.8 * s.ap + (right ? 1 : 0)) * 100) / 100;
+  s.ar = Math.round((0.8 * s.ar + (right ? 0 : 1)) * 100) / 100;
+}
+
+function confidence(k){
+  const s = mem.stats[k];
+  const seen = s ? (s.p || 0) + (s.r || 0) : 0;
+  if(!seen) return null;
+  const d = s.ap === undefined ? seedDecay(s) : { ap: s.ap, ar: s.ar };
+  const acc = (d.ap + 0.5) / (d.ap + d.ar + 1);
+  const flFac = s.fl ? Math.max(0.75, Math.min(1.05, 1.15 - 0.15 * s.fl)) : 1;
+  const rpFac = (s.rp || 0) > 0.6 ? 0.93 : 1;
+  const hrs = s.t ? (Date.now() - s.t) / 3.6e6 : 24 * 60;
+  /* STABILITY-DEPENDENT STALENESS (15-drip-spec.md §9): how fast confidence
+     drifts down untested now depends on how ESTABLISHED the word is — decayed
+     pass mass sets a half-life. One shaky pass: ~6 weeks to half. Five clean
+     passes: holds ≥80% for ~4 months (half-life capped at a year). Floor 0.5,
+     down from 0.85 — at 1,000 retired words an 0.85 floor overstates year-old
+     knowledge, and the drip's priority lane needs the truly stale to SINK so
+     it can find them. */
+  const H = Math.min(365, 42 * Math.pow(2.5, Math.max(0, (d.ap || 0) - 1)));
+  const recFac = Math.max(0.5, Math.pow(2, -(hrs / 24) / H));
+  return Math.max(5, Math.min(99, Math.round(100 * acc * flFac * rpFac * recFac)));
+}
+
+function buildCheck(claim){
+  /* Checks are numbered so a word missed in check n can sit out check n+1.
+     (Declining an offered check still advances the number — the hold is a
+     heuristic delay, not an entitlement, and this errs toward re-testing.) */
+  mem.chkN = (mem.chkN || 0) + 1;
+  const eligible = claim.filter(k => mem.chkN > (stat(k).hc || 0));
+  /* SHUFFLED (Preston, 2026-08-08): the claim used to be asked in the exact
+     order the words were retired — after a few checks you can answer by
+     POSITION without knowing the word. The order is now random every time. */
+  eligible.sort(() => Math.random() - 0.5);
+  const rec = pickRecheck(new Set(claim), RECHECK_N, true);   // Part B: fixed 3, priority lane
+  mem.queue = eligible.map(k => ({k, part:'claim'})).concat(rec.map(k => ({k, part:'recheck'})));
+  mem.qi = 0; mem.back = [];
+  prefetchConfusions(mem.queue.map(q => q.k));   // global confusers, ready before items render
+  return mem.queue.length;
+}
+
+function byWord(k){ return DECK.find(c => c.k === k); }
+
+function renderDots(){
+  $('chkDots').innerHTML = mem.queue.map((q, i) =>
+    `<i class="${i < mem.qi ? (q.missed ? 'miss' : 'done') : (i === mem.qi ? 'now' : '')}"></i>`).join('');
+}
+
+/* one grid builder for every asker — the check, the foundation audit, and THE
+   DRIP all share it, so the meaning-twin ban, the personal/global confusers and
+   the Ishii cap can never drift apart between surfaces.
+
+   `batch` (claim items only): the keys of the just-learned ten. Preston's
+   catch, 2026-08-08 — in "Your new ten," a distractor that is an OLD familiar
+   card can't possibly be the answer, so the item collapses to elimination.
+   With batch set, every distractor is drawn from the SAME new batch first
+   (old met words only as fallback when twins/caps leave the batch short), so
+   knowing "the answer is one of my new ten" eliminates nothing. The forced
+   personal/global confusers are SKIPPED in batch mode — they are old words,
+   which is exactly the leak. Twin ban, one-per-meaning-group, and the Ishii
+   ≤2 same-class cap all still hold. */
+function buildOptions(target, batch){
+  /* MEANING TWINS banned first — before confusers, before look-alikes. A word
+     with the same meaning as the target can never be in this grid: it would
+     be a second correct answer. This outranks every other selection rule. */
+  const tGroup = EQUIV_IDX[target.k];
+  const met = DECK.filter(c => c.k !== target.k && mem.met.has(c.k)
+    && !(tGroup !== undefined && EQUIV_IDX[c.k] === tGroup));
+  if(batch){
+    const inBatch = new Set(batch);
+    const cand = met.filter(c => inBatch.has(c.k)).sort(() => Math.random() - 0.5)
+      .concat(met.filter(c => !inBatch.has(c.k)).sort(() => Math.random() - 0.5));
+    const usedG = new Set();
+    const distractors = [];
+    for(const c of cand){
+      if(distractors.length >= 3) break;
+      if(distractors.some(x => x.k === c.k)) continue;
+      const g = EQUIV_IDX[c.k];
+      if(g !== undefined && usedG.has(g)) continue;
+      if(c.vc === target.vc && distractors.filter(x => x.vc === target.vc).length >= 2) continue;
+      if(g !== undefined) usedG.add(g);
+      distractors.push(c);
+    }
+    return [target, ...distractors].sort(() => Math.random() - 0.5);
+  }
+  /* THE CONFUSERS COME BACK (Preston, Aug 2026). Two sources, by his design:
+     up to TWO distractors from this person's OWN past mistakes on this word
+     (most recent distinct picks — the discriminations that actually failed),
+     plus ONE from the GLOBAL confusion tracker (what everyone else most
+     commonly mistakes for this word — collective learning applied to the
+     mix). Never all three forced: the Ishii guard below still rules. */
+  const picked = (mem.stats[target.k] || {}).picks || [];
+  const seenC = new Set();
+  const forced = [];
+  for(let i = picked.length - 1; i >= 0 && forced.length < 2; i--){
+    const k = picked[i];
+    if(k !== target.k && !seenC.has(k) && met.some(c => c.k === k)){
+      seenC.add(k); forced.push(met.find(c => c.k === k));
+    }
+  }
+  const gKey = (confCache[target.k] || [])
+    .find(k => k !== target.k && !seenC.has(k) && met.some(c => c.k === k));
+  if(gKey){ seenC.add(gKey); forced.push(met.find(c => c.k === gKey)); }
+  /* Look-alike distractors are the point (Ishii), but NEVER all three. `person_single`
+     holds 나, 사람, 당신, 저 — four full-length figures in the same sweater — and a grid
+     of four of those is not a hard question, it is an unanswerable one. Capping at two
+     same-class distractors guarantees at least one visibly different option, so a bad
+     card pair can never make an item impossible. Forced confusers count toward the
+     cap — the global one is dropped first, then the older personal one. */
+  while(forced.filter(c => c.vc === target.vc).length > 2) forced.pop();
+  const forcedKeys = new Set(forced.map(c => c.k));
+  const look = met.filter(c => c.vc === target.vc && !forcedKeys.has(c.k))
+    .sort(() => Math.random() - 0.5);
+  const rest = met.filter(c => c.vc !== target.vc && !forcedKeys.has(c.k))
+    .sort(() => Math.random() - 0.5);
+  const lookCap = Math.max(0, 2 - forced.filter(c => c.vc === target.vc).length);
+  /* assemble, honouring one-per-meaning-group among the distractors: two
+     same-meaning "wrong" options waste a slot and make the item easier */
+  const usedGroups = new Set();
+  const distractors = [];
+  for(const c of [...forced, ...look.slice(0, lookCap), ...rest, ...look.slice(lookCap)]){
+    if(distractors.length >= 3) break;
+    if(distractors.some(x => x.k === c.k)) continue;
+    const g = EQUIV_IDX[c.k];
+    if(g !== undefined && usedGroups.has(g)) continue;
+    if(g !== undefined) usedGroups.add(g);
+    distractors.push(c);
+  }
+  return [target, ...distractors].sort(() => Math.random() - 0.5);
+}
+
+function askItem(){
+  if(mem.qi >= mem.queue.length){ endCheck(); return; }
+  const q = mem.queue[mem.qi];
+  const target = byWord(q.k);
+  if(!target){ mem.qi++; askItem(); return; }
+  const opts = buildOptions(target, q.part === 'claim'
+    ? mem.queue.filter(x => x.part === 'claim').map(x => x.k) : null);
+
+  const claimN = mem.queue.filter(x => x.part === 'claim').length;
+  $('chkTitle').textContent = q.part === 'claim' ? 'Your new ten' : 'A look back';
+  $('chkSub').textContent = q.part === 'claim'
+    ? `${mem.qi + 1} of ${claimN}`
+    : `${mem.qi - claimN + 1} of ${mem.queue.length - claimN} — words you already know`;
+  renderDots();
+
+  $('chkGrid').innerHTML = opts.map(o =>
+    `<button class="opt" data-k="${o.k}"><img src="${src(o)}" alt=""></button>`).join('');
+  [...$('chkGrid').children].forEach(b => {
+    b.addEventListener('click', () => {
+      const right = b.dataset.k === target.k;
+      const s = stat(target.k);
+      s.t = Date.now();
+      decayOutcome(s, right);                  // trend first: the past fades 20%
+      if(q.part === 'recheck') noteRetention(right);   // pool retention feeds the drip governor
+      if(right){ s.p++; recordFluency(s); recordGrowth(); }   // verification is here, not at the click
+      else {
+        s.r++; q.missed = true;
+        /* what fooled him is diagnostic: the contrast partner = backwards binding,
+           a same-visual-class card = artwork collision (Ishii), anything else = a
+           true blank. Kept per word, last six, surfaced in Word history. */
+        (s.picks = s.picks || []).push(b.dataset.k);
+        if(s.picks.length > 6) s.picks.shift();
+        sendConfusion(target.k, b.dataset.k);   // feed the collective tracker
+        /* sit out the NEXT check entirely (claim and recheck). Relearn-then-retest
+           minutes later only measures short-term memory; the value of the recycle
+           is in the delay. Eligible again from the check after next. */
+        s.hc = mem.chkN + 1;
+        /* re-insert 3-5-7… cards AHEAD of the learner so the word is back in his
+           path, computed before un-retiring so the target isn't in the list. */
+        const act = active();
+        const cur = Math.min(idx, Math.max(0, act.length - 1));
+        const anchorCard = act[Math.min(act.length - 1, cur + 3 + 2 * mem.back.length)];
+        if(anchorCard && anchorCard.k !== target.k) mem.moved[target.k] = anchorCard.k;
+        mem.retired.delete(target.k);          // back into the deck, just ahead
+        mem.back.push(target.k);
+      }
+      [...$('chkGrid').children].forEach(x =>
+        x.classList.add(x.dataset.k === target.k ? 'right' : 'wrong'));
+      say(target.k);
+      Store.write();
+      mem.qi++;
+      renderDots();
+      advanceAfterClip(right ? 850 : 1700, askItem);
+    }, {once:true});
+  });
+  armItemClock();
+  say(target.k);
+}
+
+/* petals + sparks, one-shot, cleaned up after themselves */
+function celebrate(tier){
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const counts = { perfect: [34, 18], great: [14, 0], good: [0, 0], steady: [0, 0] };
+  const [nPetals, nSparks] = counts[tier] || [0, 0];
+  if(!nPetals && !nSparks) return;
+  const layer = document.createElement('div');
+  layer.className = 'celebrate-layer';
+  document.body.appendChild(layer);
+  const colors = ['#d23c4c', '#e8919b', '#d9a441', '#9bc23a', '#f0d9a8'];
+  for(let i = 0; i < nPetals; i++){
+    const p = document.createElement('div');
+    p.className = 'petal';
+    const s = 9 + Math.random() * 9;
+    p.style.width = s + 'px';
+    p.style.height = s * 0.8 + 'px';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty('--sway', (Math.random() * 160 - 80) + 'px');
+    p.style.setProperty('--spin', (Math.random() * 720 - 360) + 'deg');
+    p.style.animationDuration = (2.1 + Math.random() * 1.6) + 's';
+    p.style.animationDelay = (Math.random() * 0.5) + 's';
+    layer.appendChild(p);
+  }
+  for(let i = 0; i < nSparks; i++){
+    const sp = document.createElement('div');
+    sp.className = 'spark';
+    sp.style.left = '50vw';
+    sp.style.top = '30vh';
+    const ang = Math.random() * Math.PI * 2, dist = 90 + Math.random() * 180;
+    sp.style.setProperty('--sx', Math.cos(ang) * dist + 'px');
+    sp.style.setProperty('--sy', Math.sin(ang) * dist + 'px');
+    sp.style.animationDuration = (0.7 + Math.random() * 0.7) + 's';
+    sp.style.animationDelay = (0.1 + Math.random() * 0.3) + 's';
+    layer.appendChild(sp);
+  }
+  setTimeout(()=>layer.remove(), 4500);
+}
+function countUp(el, from, to, ms){
+  const t0 = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now - t0) / ms);
+    const eased = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    if(k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function endCheck(){
+  /* Read the recheck miss rate before the queue is thrown away. Thresholds:
+     at least 3 recheck items (below that it's coin-flip noise) and misses of
+     at least 2 AND at least half — 2 of 4, 3 of 5, 5 of 10 trigger; 1 of 4 is
+     one bad card, not a rotten foundation. Only a REGULAR check (one with claim
+     items) can trigger it, so the audit never chains into another audit. */
+  const recheckItems = mem.queue.filter(q => q.part === 'recheck');
+  const recheckMiss  = recheckItems.filter(q => q.missed).length;
+  const hadClaim     = mem.queue.some(q => q.part === 'claim');
+  if(hadClaim && recheckItems.length >= 3
+     && recheckMiss >= Math.max(2, Math.ceil(recheckItems.length / 2))){
+    mem.foundationDue = { n: recheckItems.length, miss: recheckMiss };
+  }
+  /* ---- Preston's tiers: the moment after a check has to MEAN something.
+     All four celebrate what is true; the lowest reframes, never scolds
+     (rule 4: reward what was achieved, never punish what was missed). ---- */
+  const claimItems = mem.queue.filter(q => q.part === 'claim');
+  const claimMiss  = claimItems.filter(q => q.missed).length;
+  const total = mem.queue.length;
+  const miss  = mem.back.length;
+  const right = total - miss;
+  const acc   = total ? right / total : 1;
+  const tier  = miss === 0 ? 'perfect' : acc >= 0.85 ? 'great' : acc >= 0.6 ? 'good' : 'steady';
+  const newLine = claimItems.length
+    ? `${claimItems.length - claimMiss} of ${claimItems.length} new`
+    : '';
+  const revLine = recheckItems.length
+    ? `${recheckItems.length - recheckMiss} of ${recheckItems.length} review`
+    : '';
+  const scoreLine = [newLine, revLine].filter(Boolean).join(' · ');
+  const COPY = {
+    perfect: { t: '완벽해요! · Perfect!',
+      s: scoreLine + '. Every single one, first try. This is what owning words looks like.' },
+    great:   { t: '잘했어요 · Strong round.',
+      s: scoreLine + '. ' + (miss === 1 ? 'One came back — it\u2019s waiting a few cards ahead.'
+                                        : miss + ' came back — waiting a few cards ahead.') },
+    good:    { t: '좋아요 · Good work.',
+      s: scoreLine + '. ' + right + ' held. The ' + miss + ' that came back are queued just ahead — that\u2019s the deck doing its job.' },
+    steady:  { t: '천천히 가도 괜찮아요 · Slow is fine.',
+      s: 'A hard round — ' + scoreLine + '. The ' + right + ' you kept are truly yours, and the rest are back in your path, not lost. Hard words are where the real ground is gained.' }
+  };
+  show('chkDone');
+  const panel = $('chkDone');
+  panel.classList.remove('done-perfect','done-great','done-good','done-steady','done-pop','done-glow');
+  void panel.offsetWidth;                     // restart the entrance animation
+  panel.classList.add('done-' + tier, 'done-pop');
+  if(tier === 'good') panel.classList.add('done-glow');
+  $('doneTitle').textContent = COPY[tier].t;
+  $('doneSub').textContent = COPY[tier].s;
+  /* the score physically goes up: count the 단어 number to its new value */
+  const gained = claimItems.length - claimMiss;
+  if(claimItems.length && mem.hw > 0){
+    $('doneWordsWrap').style.display = '';
+    countUp($('doneWords'), Math.max(0, mem.hw - gained), mem.hw, 900);
+  }else{
+    $('doneWordsWrap').style.display = 'none';
+  }
+  celebrate(tier);
+  const n = miss;
+  /* the earned moment: a clean check is when saving means something.
+     Shown only while accounts exist and the learner isn't signed in. */
+  $('doneSave').classList.toggle('show', authOn() && !authUser && n === 0);
+  /* Value order for the comeback (Preston, Aug 2026): the returned batch is
+     re-anchored by coverage weight, so the HIGHEST-VALUE missed word is always
+     the first one back in the learner's path — 3 cards ahead, then 5, then 7.
+     Miss order decided nothing; the word doing the most work for him does. */
+  const backs = [...new Set(mem.back)].filter(k => !mem.retired.has(k) && byWord(k));
+  if(backs.length > 1){
+    backs.sort((a, b) => (byWord(b).w || 0) - (byWord(a).w || 0));
+    backs.forEach(k => delete mem.moved[k]);
+    const base = learnList();
+    const from = Math.min(idx, Math.max(0, base.length - 1));
+    backs.forEach((k, i) => {
+      const anchor = base[Math.min(base.length - 1, from + 3 + 2 * i)];
+      if(anchor && anchor.k !== k) mem.moved[k] = anchor.k;
+    });
+  }
+  $('backList').innerHTML = mem.back.map(k => {
+    const c = byWord(k); return `<span><b>${c.k}</b>${c.en}</span>`;
+  }).join('');
+  postCheckQuiet = 5;          // no drips in the 5 cards after a check (spec §2)
+  mem.queue = null;
+  Store.write();
+}
+
+/* which top-level screen is visible */
+function show(which){
+  if(which !== 'cards') watchCard(null);
+  const CARDS = ['stage','controls','voices','statwrap','meta'];
+  const PANELS = ['test','check','chkDone','offer','progress','wall'];
+  CARDS.forEach(id=>{ const el=$(id); if(el) el.classList.toggle('hidden', which !== 'cards'); });
+  PANELS.forEach(id=>{ const el=$(id); if(el) el.classList.toggle('show', id === which); });
+}
+
+function offerCheck(){
+  mem.offerMode = 'claim';
+  $('offerTitle').textContent = '열 개를 안다고 하셨어요.';
+  const claim = mem.pending.slice(0, CHECK_EVERY);
+  const total = buildCheck(claim);
+  const claimN = mem.queue.filter(q => q.part === 'claim').length;
+  $('offerSub').textContent = total > claimN
+    ? `${claimN} new, plus ${total - claimN} you already know. About ${Math.round(total * 7 / 10) / 10 * 10 | 0} seconds.`
+    : `${claimN} words. About a minute.`;
+  show('offer');
+}
+
+$('offerYes').addEventListener('click', ()=>{
+  if(mem.offerMode === 'foundation'){
+    if(!buildFoundation()){ show('cards'); paint(); return; }
+  }
+  show('check'); askItem();
+});
+$('offerNo').addEventListener('click', ()=>{
+  mem.queue = null;
+  if(mem.offerMode !== 'foundation'){ mem.sinceCheck = 0; mem.pending = []; }
+  mem.offerMode = null;
+  Store.write();
+  show('cards');
+  if(idx >= active().length) idx = Math.max(0, active().length - 1);
+  paint();
+});
+$('doneBtn').addEventListener('click', ()=>{
+  mem.sinceCheck = 0; mem.pending = []; Store.write();
+  /* the medal moment lands right after the score screen that earned it */
+  if(mileQueue.length){ showMilestone(); return; }
+  if(mem.foundationDue){
+    const f = mem.foundationDue;
+    mem.foundationDue = null;
+    mem.offerMode = 'foundation';
+    $('offerTitle').textContent = '기초를 다시 볼까요?';
+    $('offerSub').textContent = f.miss + ' of ' + f.n + ' words you already knew came back. '
+      + 'That usually means a few more are shaky. Worth checking the foundation '
+      + 'before adding new words — or keep going, nothing is locked.';
+    show('offer');
+    return;
+  }
+  show('cards');
+  if(idx >= active().length) idx = Math.max(0, active().length - 1);
+  paint();
+});
+$('chkPlay').addEventListener('click', ()=>{
+  const q = mem.queue && mem.queue[mem.qi];
+  if(q){ itemReplays++; sayNextVoice(q.k); }   // hesitation made visible
+});
+
+/* ============================================================
+   THE DRIP — review woven into the card stream (references/15-drip-spec.md,
+   designed and approved 2026-08-08).
+
+   The structural hole it fixes: review used to be a SIDE EFFECT of
+   acquisition — Part B only fired when a check fired, checks only fired on
+   retirements, so the whole journey bought ~1.7 verified retrievals per word
+   and review went to zero the day the deck was finished. The drip samples
+   the retired pool continuously, in the stream, at a density governed by
+   measured retention — one continuous deck, no test mode.
+
+   Shape: between cards, a single check-style item — audio plays, four
+   pictures, tap. Right arrow SKIPS it (no record, no penalty — a drip is a
+   card you can flip past). Misses wire into the exact machinery a check miss
+   uses. No score, no tally, no banner, ever.
+   ============================================================ */
+const DRIP_MIN_POOL = 15;   // below this the check alone covers the pool
+let dripState = null;       // {k, done} while a drip item is on screen
+let dripAfter = 0;          // where the stream lands when the drip ends
+let sinceDrip = 0;          // forward advances since the last drip
+let warmupLeft = 0;         // session-start review items still owed
+let postCheckQuiet = 0;     // cards of quiet right after a check
+let curWasNew = false;      // the card on screen was met for the first time just now
+
+function dripPool(){
+  /* the retired pool minus: words sitting out after a miss (s.hc), and the
+     recent retirements awaiting Part A (mem.pending) — the drip must never
+     leak the claim audit */
+  const pend = new Set(mem.pending);
+  return [...mem.retired].filter(k => !pend.has(k)
+    && ((mem.stats[k] || {}).hc || 0) <= mem.chkN);
+}
+
+function dripK(){
+  /* THE GOVERNOR (spec §3): rolling retention A maps to K (advances per
+     drip), plus a breadth-pressure bump when too much of the pool is going
+     unsampled. Accuracy says how well he knows what we've sampled; stale
+     share says how much we haven't sampled at all. Both hands steer.
+     Constants are Preston-tunable, not law — the 85–92 band is ruleset §7's
+     heuristic (and partly a perceptron result, honestly). */
+  const LADDER = [6, 4, 2, 1];
+  let i;
+  if(mem.dripA === undefined || (mem.dripAn || 0) < 8) i = 1;   // cold start: K=4
+  else if(mem.dripA > 0.92) i = 0;
+  else if(mem.dripA >= 0.85) i = 1;
+  else if(mem.dripA >= 0.75) i = 2;
+  else i = 3;
+  const pool = dripPool();
+  if(pool.length >= 30){
+    const now = Date.now();
+    const stale = pool.filter(k => now - ((mem.stats[k] || {}).t || 0) > 60 * 864e5).length;
+    if(stale / pool.length > 0.35) i = Math.min(LADDER.length - 1, i + 1);
+  }
+  return LADDER[i];
+}
+
+function noteRetention(right){
+  /* every retrieval on a RETIRED word feeds the governor — drips, Part B,
+     foundation audits. Claim items don't: a new word says nothing about pool
+     retention. EWMA, memory ≈ the last 20 items. */
+  mem.dripA = mem.dripA === undefined ? (right ? 1 : 0)
+            : Math.round((0.95 * mem.dripA + 0.05 * (right ? 1 : 0)) * 1000) / 1000;
+  mem.dripAn = Math.min(99, (mem.dripAn || 0) + 1);
+}
+
+function pickDrip(){
+  const pool = dripPool();
+  if(pool.length < 4) return null;
+  /* the same two lanes as the check picker (spec §4), decided per item:
+     2/3 priority, 1/3 PURE RANDOM. The random lane is the survey — an
+     unbiased rolling sample of the whole pool, and the calibration
+     instrument on the confidence model itself. */
+  if(Math.random() < 1 / 3){
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  const now = Date.now();
+  let best = null, bw = -1;
+  for(const k of pool){
+    const st = stat(k);
+    const hrs = st.t ? (now - st.t) / 3.6e6 : 24 * 30;
+    const w = refeedPriority(k, now) * Math.log(2 + hrs / 24) * (0.85 + Math.random() * 0.3);
+    if(w > bw){ bw = w; best = k; }
+  }
+  return best;
+}
+
+function maybeDrip(trigger){
+  if(dripState || reviewMode) return false;
+  if(mem.queue) return false;                        // a check is in progress
+  if($('stage').classList.contains('hidden')) return false;
+  if(postCheckQuiet > 0) return false;               // let the celebration breathe
+  if(mem.retired.size < DRIP_MIN_POOL) return false;
+  if(trigger === 'advance' && curWasNew) return false;  // never mid-first-encounter
+  const due = warmupLeft > 0 || trigger === 'retire' || sinceDrip >= dripK();
+  if(!due) return false;
+  const k = pickDrip();
+  if(!k) return false;
+  if(warmupLeft > 0) warmupLeft--;
+  sinceDrip = 0;
+  startDrip(k);
+  return true;
+}
+
+function startDrip(k){
+  const target = byWord(k);
+  if(!target) return;
+  dripState = { k, done: false };
+  stopCardClip();
+  watchCard(null);                                   // drip time isn't card time
+  document.body.classList.add('dripping');
+  $('dripWrap').classList.add('show');
+  $('prev').disabled = true;
+  $('next').disabled = false;                        // the skip is always open
+  prefetch(k);
+  const opts = buildOptions(target);
+  $('dripGrid').innerHTML = opts.map(o =>
+    `<button class="opt" data-k="${o.k}"><img src="${src(o)}" alt=""></button>`).join('');
+  [...$('dripGrid').children].forEach(b => {
+    b.addEventListener('click', () => answerDrip(b, target), {once: true});
+  });
+  armItemClock();
+  say(k);
+}
+
+function answerDrip(b, target){
+  if(!dripState || dripState.done) return;
+  dripState.done = true;
+  const right = b.dataset.k === target.k;
+  const st = stat(target.k);
+  st.t = Date.now();
+  decayOutcome(st, right);
+  noteRetention(right);
+  if(right){ st.p++; recordFluency(st); recordGrowth(); }
+  else {
+    st.r++;
+    /* the exact machinery of a check miss — one system, no second bucket */
+    (st.picks = st.picks || []).push(b.dataset.k);
+    if(st.picks.length > 6) st.picks.shift();
+    sendConfusion(target.k, b.dataset.k);
+    st.hc = mem.chkN + 1;                            // sits out the next check too
+    const act = learnList();
+    const cur = Math.min(idx, Math.max(0, act.length - 1));
+    const anchorCard = act[Math.min(act.length - 1, cur + 3)];
+    if(anchorCard && anchorCard.k !== target.k) mem.moved[target.k] = anchorCard.k;
+    mem.retired.delete(target.k);
+    if(!mem.dripNote){                               // once, ever — the hint rule
+      mem.dripNote = true;
+      flagToast('다시 만나요 · It\u2019ll come back around');
+    }
+  }
+  [...$('dripGrid').children].forEach(x => {
+    x.classList.add(x.dataset.k === target.k ? 'right' : 'wrong');
+    x.disabled = true;
+  });
+  say(target.k);
+  Store.write();
+  advanceAfterClip(right ? 850 : 1700, endDrip);
+}
+
+function skipDrip(){
+  /* the right arrow doing what it always does: next. No record, no penalty,
+     no message. Skips are counted per word (never shown) so wholesale
+     avoidance is visible to us without ever being surfaced to the learner.
+     An already-answered drip just hurries along. */
+  if(!dripState) return;
+  if(!dripState.done){
+    const st = stat(dripState.k);
+    st.sk = (st.sk || 0) + 1;
+    Store.write();
+  }
+  endDrip();
+}
+
+function endDrip(){
+  if(!dripState) return;
+  dripState = null;
+  document.body.classList.remove('dripping');
+  $('dripWrap').classList.remove('show');
+  const deck = active();
+  idx = Math.min(Math.max(0, dripAfter), Math.max(0, deck.length - 1));
+  taps = 0; paint();
+  if(mileQueue.length){ showMilestone(); return; }   // a drip pass can cross a medal
+  playCurrent();
+}
+
+$('dripPlay').addEventListener('click', ()=>{
+  if(dripState){ itemReplays++; sayNextVoice(dripState.k); }
+});
+
+
+/* SESSION WARMUP (spec §2): the first items of a sitting are review — a
+   retrieval across a consolidation gap is the most informative sample the
+   scheduler ever gets. Served on the first advances (never on cold load:
+   autoplay policy means a drip before any gesture would arrive silent).
+   Re-arms after 30 quiet minutes. */
+function armWarmup(){ warmupLeft = mem.retired.size >= DRIP_MIN_POOL ? 3 : 0; }
+let dripHiddenAt = 0;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) dripHiddenAt = Date.now();
+  else if(dripHiddenAt && Date.now() - dripHiddenAt > 30 * 60e3) armWarmup();
+});
+
+/* ============================================================
+   ACCOUNTS — the engine. Loads Firebase ONLY when enabled (zero dead weight
+   otherwise), signs in via popup, then MERGES BY UNION: signing in can only
+   ever add progress. Cloud writes piggyback on Store.write, debounced.
+   ============================================================ */
+let authUser = null;
+let cloudTimer = null;
+
+const authOn = () => (AUTH.enabled && AUTH.firebase) || AUTH_PREVIEW;
+
+function fbReady(cb){
+  if(window.firebase && firebase.apps.length){ cb(); return; }
+  const srcs = [
+    'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js'];
+  let left = srcs.length;
+  srcs.forEach(src => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = ()=>{ if(--left === 0){ firebase.initializeApp(AUTH.firebase); cb(); } };
+    document.head.appendChild(s);
+  });
+}
+
+/* union-merge: local and cloud can only grow. Counters take the max, sets take
+   the union, flags keep the earliest report. mem.moved stays local — it is a
+   position, not progress. */
+function mergeCloud(remote){
+  if(!remote) return;
+  (remote.retired || []).forEach(k => mem.retired.add(k));
+  (remote.met     || []).forEach(k => mem.met.add(k));
+  Object.entries(remote.stats || {}).forEach(([k, rs]) => {
+    const s = stat(k);
+    s.p = Math.max(s.p, rs.p || 0); s.r = Math.max(s.r, rs.r || 0);
+    s.n = Math.max(s.n || 0, rs.n || 0); s.t = Math.max(s.t || 0, rs.t || 0);
+    if(rs.hc) s.hc = Math.max(s.hc || 0, rs.hc);
+    if(rs.picks) s.picks = (rs.picks.concat(s.picks || [])).slice(-6);
+    /* fluency merges pessimistically: the slower reading wins, shaky beats solid */
+    if(rs.fl) s.fl = s.fl ? Math.max(s.fl, rs.fl) : rs.fl;
+    if(rs.rp !== undefined) s.rp = s.rp === undefined ? rs.rp : Math.max(s.rp, rs.rp);
+    if(rs.ms) s.ms = Math.max(s.ms || 0, rs.ms);
+    if(rs.sk) s.sk = Math.max(s.sk || 0, rs.sk);
+    if(rs.ap !== undefined){
+      if(s.ap === undefined){ s.ap = rs.ap; s.ar = rs.ar || 0; }
+      else{
+        const lM = s.ar / (s.ap + s.ar + 0.001), rM = (rs.ar || 0) / (rs.ap + (rs.ar || 0) + 0.001);
+        if(rM > lM){ s.ap = rs.ap; s.ar = rs.ar || 0; }
+      }
+    }
+  });
+  Object.entries(remote.flags || {}).forEach(([k, f]) => {
+    const cur = mem.flags[k];
+    if(!cur || f.t < cur.t){
+      mem.flags[k] = Object.assign({}, f);
+      if(!mem.flags[k].n && cur && cur.n) mem.flags[k].n = cur.n;  // never lose a comment
+      if(!mem.flags[k].n) delete mem.flags[k].n;
+    }else if(f.n && !cur.n){ cur.n = f.n; }
+  });
+  if(remote.chkN) mem.chkN = Math.max(mem.chkN, remote.chkN);
+  /* the governor's retention estimate merges pessimistically — the shakier
+     reading wins, consistent with every other pessimistic merge */
+  if(typeof remote.dripA === 'number'){
+    mem.dripA = mem.dripA === undefined ? remote.dripA : Math.min(mem.dripA, remote.dripA);
+    mem.dripAn = Math.max(mem.dripAn || 0, remote.dripAn || 0);
+  }
+  if(remote.dripNote) mem.dripNote = true;
+  /* a cloud doc from before the verified-counting migration carries an
+     inflated hw and possibly unearned medals — take its stats (merged above,
+     which is what verification is computed from) but not its hw/hist/miles */
+  if(remote.hwV2){
+    if(typeof remote.hw === 'number') mem.hw = Math.max(mem.hw, remote.hw);
+    Object.entries(remote.hist || {}).forEach(([d, n]) => {
+      mem.hist[d] = Math.max(mem.hist[d] || 0, n);
+    });
+    (remote.miles || []).forEach(m => { if(!mem.miles.includes(m)) mem.miles.push(m); });
+  }else{
+    mem.hw = Math.max(mem.hw, verifiedCount());
+  }
+  if(remote.flagAck) mem.flagAck = true;
+  if(remote.wall && remote.wall.n && !mem.wall) mem.wall = remote.wall;
+  if(typeof remote.avatar === 'number' && mem.avatar === undefined) mem.avatar = remote.avatar;
+}
+
+function cloudPush(){
+  if(resetting) return;
+  if(!authUser || AUTH_PREVIEW && !AUTH.enabled) return;
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(()=>{
+    try{
+      const doc = {
+        v: 4, hwV2: true, updated: Date.now(),
+        provider: (authUser.providerData[0] || {}).providerId || 'unknown',
+        retired: [...mem.retired], met: [...mem.met], hw: mem.hw, hist: mem.hist, miles: mem.miles,
+        stats: mem.stats, flags: mem.flags, chkN: mem.chkN, flagAck: !!mem.flagAck
+      };
+      if(mem.wall) doc.wall = mem.wall;
+      if(mem.avatar !== undefined) doc.avatar = mem.avatar;
+      if(mem.dripA !== undefined){ doc.dripA = mem.dripA; doc.dripAn = mem.dripAn || 0; }
+      if(mem.dripNote) doc.dripNote = true;
+      firebase.firestore().collection('users').doc(authUser.uid).set(doc);
+      pushWall();          // the public wall entry rides the same debounce
+    }catch(e){}
+  }, 2000);
+}
+
+function signIn(which){
+  if(AUTH_PREVIEW && !AUTH.enabled){
+    flagToast('Preview only \u2014 connects once the Firebase project exists');
+    return;
+  }
+  fbReady(()=>{
+    const p = which === 'google' ? new firebase.auth.GoogleAuthProvider()
+            : which === 'kakao'  ? new firebase.auth.OAuthProvider(AUTH.kakaoProviderId)
+            : null;               /* naver: custom-token Cloud Function, post-deploy */
+    if(!p) return;
+    firebase.auth().signInWithPopup(p).then(async res => {
+      authUser = res.user;
+      $('authSheet').classList.remove('show');
+      const doc = await firebase.firestore().collection('users').doc(authUser.uid).get();
+      mergeCloud(doc.exists ? doc.data() : null);
+      Store.write(); cloudPush(); paintAuth(); paint();
+      flagToast('\uc800\uc7a5\ub410\uc5b4\uc694 \u2014 everything you\u2019ve earned is safe');
+    }).catch(()=>flagToast('Sign-in didn\u2019t finish \u2014 nothing lost, try again anytime'));
+  });
+}
+
+const BLANK_FACE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44">'
+  + '<rect width="44" height="44" fill="#faf6ee"/>'
+  + '<circle cx="22" cy="17.5" r="6.6" fill="#cdd4de"/>'
+  + '<path d="M22 27.5c-6.8 0-11.3 3.6-12.6 9.8-.2 1 .4 1.7 1.4 1.7h22.4c1 0 1.6-.7 1.4-1.7-1.3-6.2-5.8-9.8-12.6-9.8z" fill="#cdd4de"/></svg>');
+function paintIdChip(){
+  const img = $('idChipImg'), chip = $('idChip');
+  if(!img || !chip) return;
+  const av = mem.avatar !== undefined ? mem.avatar
+           : (mem.wall && mem.wall.n ? (mem.wall.a || 0) : undefined);
+  /* your character shows whenever you've chosen one; the GREEN RING is the
+     signed-in signal, the dashed ring means no character picked yet */
+  img.src = av !== undefined ? avatarFile(av) : BLANK_FACE;
+  chip.classList.toggle('empty', av === undefined);
+  chip.classList.toggle('in', !!authUser);
+  chip.title = authUser ? '로그인됨 · Signed in — tap for your progress'
+                        : '내 성장 · Your progress';
+}
+function paintAuth(){
+  paintIdChip();
+  const link = $('saveLink'); if(!link) return;
+  if(!authOn()){ link.classList.remove('show'); return; }
+  if(authUser){
+    link.textContent = '\uc800\uc7a5\ub428 \u2713 \u00b7 saved';
+    link.classList.add('show','saved');
+  }else{
+    link.textContent = '\uc800\uc7a5 \u00b7 Save progress';
+    link.classList.remove('saved');
+    link.classList.toggle('show', mem.retired.size > 0);
+  }
+  /* providers not yet configured stay hidden — never show a dead button
+     (in preview, all three show so the design can be judged). The sheet's
+     markup sits after this script, so guard until the DOM is complete. */
+  if(!$('authKakao')) return;
+  const showAll = AUTH_PREVIEW && !AUTH.enabled;
+  $('authKakao').style.display  = (showAll || AUTH.providers.kakao)  ? '' : 'none';
+  $('authNaver').style.display  = (showAll || AUTH.providers.naver)  ? '' : 'none';
+  $('authGoogle').style.display = (showAll || AUTH.providers.google) ? '' : 'none';
+}
+
+$('saveLink').addEventListener('click', ()=>{
+  if(authUser) return;
+  $('authSheet').classList.add('show');
+});
+$('doneSaveBtn')?.addEventListener('click', ()=>{
+  $('authSheet').classList.add('show');
+});
+document.addEventListener('DOMContentLoaded', ()=>{
+  /* the sheet markup sits after this script in the document — bind on ready */
+  $('authCancel').addEventListener('click', ()=>$('authSheet').classList.remove('show'));
+  $('authSheet').addEventListener('click', e=>{
+    if(e.target === $('authSheet')) $('authSheet').classList.remove('show');
+  });
+  $('authGoogle').addEventListener('click', ()=>signIn('google'));
+  $('authKakao').addEventListener('click', ()=>signIn('kakao'));
+  $('authNaver').addEventListener('click', ()=>signIn('naver'));
+  paintAuth();
+});
+
+if(authOn() && AUTH.enabled){
+  fbReady(()=>{
+    firebase.auth().onAuthStateChanged(u => {
+      authUser = u;
+      paintAuth();
+      if(u) firebase.firestore().collection('users').doc(u.uid).get()
+        .then(d => { mergeCloud(d.exists ? d.data() : null); Store.write(); paint(); });
+    });
+  });
+}
+
+/* ============================================================
+   THE FLAG — "this picture doesn't fit the word"
+   Preston's spec: a small unobtrusive button beside every picture so a learner
+   can tell us when the artwork isn't carrying the meaning. Votes are kept as a
+   running history so weak cards can be swapped out over time. One vote per
+   word per browser; tapping again withdraws it. Stored locally today; when the
+   Hall-of-Names backend exists, sendFlag() is the hook that forwards votes.
+   ============================================================ */
+function sendFlag(word, on, note){
+  /* backend hook — POST {word, on, note, when} to the flag endpoint when one
+     exists. Deliberately a no-op until then; localStorage holds the history. */
+}
+function paintFlag(c){
+  const b = $('flagBtn'); if(!b) return;
+  const on = !!mem.flags[c.k];
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  b.title = on ? 'You flagged this picture — tap to undo'
+              : "This picture doesn\u2019t fit the word";
+}
+let flagToastTimer = null;
+function flagToast(msg){
+  const el = $('flagToast'); if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(flagToastTimer);
+  flagToastTimer = setTimeout(()=>el.classList.remove('show'), 1600);
+}
+function doFlag(c, note){
+  /* One flag per card per learner, by construction: mem.flags[word] is a single
+     entry however many times it is toggled, so nobody can pile votes onto one
+     image they happen to dislike. The backend hook inherits the same semantics.
+     The note is Preston's ask: a vote-down without a reason leaves us guessing;
+     a sentence of "what doesn't fit" tells us exactly what to redraw. Optional,
+     capped at 280, and the key is OMITTED when empty (Firestore rejects
+     undefined values in set()). */
+  const e = { t: Date.now(), taps: stat(c.k).n || 0 };
+  if(note && note.trim()) e.n = note.trim().slice(0, 280);
+  mem.flags[c.k] = e;
+  flagToast(e.n ? 'Noted, with your comment \u2014 thank you.'
+                : 'Noted \u2014 thank you. This helps us improve the cards.');
+  sendFlag(c.k, true, e.n);
+  Store.write();
+  paintFlag(c);
+}
+$('flagBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();                    // never steal the tap-to-hear gesture
+  const deck = active(); const c = deck[idx]; if(!c) return;
+  if(mem.flags[c.k]){
+    delete mem.flags[c.k];
+    flagToast('Flag removed');
+    sendFlag(c.k, false);
+    Store.write();
+    paintFlag(c);
+  }else{
+    /* EVERY new flag opens the dialog now (Preston, Aug 2026): the first time it
+       carries the full what-this-flag-means text; after that a short line — but
+       the optional "what doesn't fit?" box is always offered, because the note
+       is what turns a vote into a fix. Decline -> nothing recorded. */
+    $('flagcBody').innerHTML = mem.flagAck
+      ? 'Tell us what doesn’t fit about this picture and we’ll improve the card.'
+      : 'You are flagging this picture because it does a <b>poor job of illustrating '
+        + 'the word</b> — that tells us to improve the card. It isn’t a bookmark '
+        + 'for saving cards for later.';
+    $('flagcNote').value = '';
+    $('flagConfirm').classList.add('show');
+  }
+});
+document.addEventListener('DOMContentLoaded', ()=>{
+  /* the dialog markup sits after this script in the document, so bind on ready */
+  $('flagcYes').addEventListener('click', ()=>{
+    $('flagConfirm').classList.remove('show');
+    mem.flagAck = true;
+    const note = $('flagcNote').value;
+    const deck = active(); const c = deck[idx]; if(c) doFlag(c, note); else Store.write();
+  });
+  /* settings dialog lives after this script — same standing rule */
+  $('setDone').addEventListener('click', ()=>$('settings').classList.remove('show'));
+  $('setMusic').addEventListener('click', ()=>{
+    mem.musicOff = !mem.musicOff; Store.write();
+    if(mem.musicOff) bgmStop();
+    else if($('progress').classList.contains('show')) bgmStart('browse');
+    paintSettings(); paintMusicChip();
+  });
+  /* START OVER (Preston chose the learner-facing settings option, 2026-08-08).
+     Double-confirmed: the dialog's erase button must be tapped TWICE — the
+     first tap arms it and changes its label; only the armed tap erases.
+     Order matters: the CLOUD doc is deleted first (while we can still fail
+     safely), then localStorage, then reload. If the cloud delete fails,
+     NOTHING is erased — a local-only wipe would just be resurrected by the
+     union merge at next sign-in, which reads as a bug. `resetting` blocks
+     the pagehide writer and the cloud debounce from re-saving mid-erase.
+     No red anywhere (brand rule): the armed state wears the warn gold. */
+  let rstArmed = false;
+  const rstPaint = ()=>{
+    $('rstBody').innerHTML = 'Every retired word, test record, medal, and your growth history '
+      + (authUser ? 'on this device <b>and in your saved account</b> ' : 'on this device ')
+      + 'will be erased forever. This cannot be undone.';
+    $('rstYes').textContent = '지우고 처음부터 · Erase everything';
+    $('rstYes').style.background = '';
+    $('rstYes').style.borderColor = '';
+    rstArmed = false;
+  };
+  $('setReset').addEventListener('click', ()=>{
+    $('settings').classList.remove('show');
+    rstPaint();
+    $('resetConfirm').classList.add('show');
+  });
+  $('rstNo').addEventListener('click', ()=>$('resetConfirm').classList.remove('show'));
+  $('resetConfirm').addEventListener('click', e=>{
+    if(e.target === $('resetConfirm')) $('resetConfirm').classList.remove('show');
+  });
+  $('rstYes').addEventListener('click', async ()=>{
+    if(!rstArmed){
+      rstArmed = true;
+      $('rstYes').textContent = '한 번 더 누르면 지워집니다 · Tap once more to erase forever';
+      $('rstYes').style.background = 'var(--warn, #a8781f)';
+      $('rstYes').style.borderColor = 'var(--warn, #a8781f)';
+      return;
+    }
+    resetting = true;
+    clearTimeout(cloudTimer);
+    try{
+      if(authUser && window.firebase && firebase.apps.length){
+        await firebase.firestore().collection('users').doc(authUser.uid).delete();
+        try{ await firebase.firestore().collection('wall').doc(authUser.uid).delete(); }catch(e){}
+      }
+    }catch(e){
+      resetting = false;
+      $('resetConfirm').classList.remove('show');
+      flagToast('저장된 계정에 닿지 못했어요 — nothing was erased, try again');
+      return;
+    }
+    try{ localStorage.removeItem('koreanLab'); }catch(e){}
+    location.reload();
+  });
+
+  $('setSounds').addEventListener('click', ()=>{
+    mem.mute = !mem.mute; Store.write(); paintSettings();
+  });
+  $('setName').addEventListener('click', ()=>{
+    if(!authOn() || !authUser){
+      flagToast('로그인 먼저 — sign in first, in Account above'); return;
+    }
+    if(Math.floor((mem.hw || 0) / 100) < 1){
+      flagToast('첫 메달부터 — your first medal unlocks your name'); return;
+    }
+    $('settings').classList.remove('show');
+    openJoin();
+  });
+
+  /* wall-join dialog also lives after this script — same standing rule */
+  $('wjYes').addEventListener('click', ()=>{
+    const raw = $('wjName').value;
+    const bad = nameProblem(raw);
+    if(bad){ $('wjErr').textContent = bad; return; }
+    const prev = mem.wall || {};
+    mem.wall = { n: raw.trim().replace(/\s+/g, ' '), a: wjSel,
+                 j: prev.j, m: prev.m, mu: prev.mu };
+    mem.avatar = wjSel;
+    $('wallJoin').classList.remove('show');
+    Store.write();                                  // rides the debounce -> pushWall
+    paintWallMine();
+    flagToast('올랐어요 — your name is on the wall');
+    openWall();
+  });
+  $('wjNo').addEventListener('click', ()=>$('wallJoin').classList.remove('show'));
+  $('wjSpin').addEventListener('click', ()=>{
+    const h = drawHandle();
+    $('wjName').value = h.name;
+    wjSel = h.av;
+    [...$('wjAvatars').children].forEach(x => x.classList.toggle('sel', +x.dataset.i === wjSel));
+  });
+
+  $('flagcNo').addEventListener('click', ()=>{
+    $('flagConfirm').classList.remove('show');
+  });
+  $('flagConfirm').addEventListener('click', (e)=>{
+    if(e.target === $('flagConfirm')) $('flagConfirm').classList.remove('show');
+  });
+});
+
+/* ============================================================
+   GROWTH — Preston's requirement: "if they can see their progress, they will
+   be incentivized to keep coming back."
+   The design honours the honesty rule instead of warping an axis: WORDS OWNED
+   is plotted, because it is linear in effort by construction — every card is
+   +1 at word 12 and at word 1,200. It is also HIGH-WATER (the decided policy:
+   the achievement number never decreases; coverage remains the honest
+   instrument and may drop). Coverage appears as text, with the ceiling
+   reframe: X% of speech = Y% of the 47-point ceiling pictures can teach.
+   No inverted-log axes — rule 3 outlives the feature request.
+   ============================================================ */
+/* ============================================================
+   MEDALS — the fifteen states of one plant, from ref 12. The art already
+   exists (08-admin-graphics -> 04-player/medals/). Sound: real files in
+   04-player/sounds/ when Preston generates them; until then a warm
+   WebAudio chime stands in, so the moment works TODAY. mem.mute persisted.
+   ============================================================ */
+const MEDALS = [
+  ['seed',        '씨앗',  'Seed',         'A seed rests in dark soil. 100 words are planted.'],
+  ['germination', '싹틈',  'Germination',  'The seed coat splits. 200 words, and something is stirring.'],
+  ['roots',       '뿌리',  'Roots',        'Roots reach and branch. 300 words hold the ground.'],
+  ['seed-leaves', '떡잎',  'Seed leaves',  'The first leaves unfold underground no more. 400 words.'],
+  ['sprout',      '새싹',  'Sprout',       '500 words. You have broken the surface.'],
+  ['stem',        '줄기',  'Stem',         'The stem stands on its own. 600 words strong.'],
+  ['first-leaf',  '풀잎',  'First leaf',   'A true leaf opens to the light. 700 words.'],
+  ['full-foliage','무성함','Full foliage', '800 words, and the green is thick now.'],
+  ['bud',         '봉오리','Bud',          'A bud forms. 900 words, holding something beautiful.'],
+  ['bloom',       '꽃',    'Bloom',        '1,000 words. The flower is open.'],
+  ['pollination', '수분',  'Pollination',  '1,100 words — life passing forward.'],
+  ['fruit-set',   '열매',  'Fruit set',    'Fruit sets behind the petals. 1,200 words.'],
+  ['ripe',        '익음',  'Ripe',         '1,300 words, heavy and sweet.'],
+  ['tree',        '나무',  'Tree',         'A tree now, in full leaf. 1,400 words.'],
+  ['mugunghwa',   '무궁화','Mugunghwa',    '1,500 words. The rose of Sharon blooms on your tree. Every picturable word is yours.']
+];
+const medalFile = i => 'medals/medal-' + String((i + 1) * 100).padStart(4, '0') + '-' + MEDALS[i][0] + '@512.png';
+/* Two fanfare takes alternate by medal number (odd medals hear take 1, even
+   medals take 2) so each 100-word moment feels slightly fresh; the 15th medal
+   — 무궁화, 1,500 words — gets its own grander finale. Deterministic by medal
+   number, so the same medal sounds the same on every device. */
+const SOUNDS = { fanfares: ['sounds/medal-fanfare-1.mp3', 'sounds/medal-fanfare-2.mp3'],
+                 final: 'sounds/medal-mugunghwa.mp3' };
+function playFanfare(final, m){
+  if(mem.mute) return;
+  const src = final ? SOUNDS.final : SOUNDS.fanfares[((m || 1) - 1) % SOUNDS.fanfares.length];
+  const a = new Audio(src);
+  a.volume = 0.9;
+  a.play().catch(()=>chime(final));       // missing file (or blocked) -> the stand-in
+  a.onerror = ()=>chime(final);
+}
+/* the stand-in: a warm pentatonic bloom, gayageum-ish pluck envelopes */
+function chime(final){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = final ? [293.66, 369.99, 440, 587.33, 739.99, 880]
+                        : [293.66, 369.99, 440, 587.33];
+    notes.forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      const t0 = ctx.currentTime + i * 0.14;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.22, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 1.4);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t0); o.stop(t0 + 1.5);
+    });
+    setTimeout(()=>ctx.close(), 3000);
+  }catch(e){}
+}
+/* ---------- browse music: Cheerful Hanbok Hop while the growth panel is open.
+   The same loop is meant for any future browse view (settings, Hall of Names) —
+   call bgmStart()/bgmStop() when those views open and close. Opening the panel
+   is always a tap, so autoplay policy never blocks it. Missing file = silence. */
+const LOOPS = { browse: 'sounds/progress-loop.mp3', wall: 'sounds/wall-loop.mp3' };
+let bgm = null, bgmRAF = 0, bgmSrc = '';
+function fadeAudio(a, target, ms, pauseAfter){
+  const v0 = a.volume; let t0 = null;
+  const step = ts => {
+    if(t0 === null) t0 = ts;
+    const p = Math.min(1, (ts - t0) / ms);
+    a.volume = v0 + (target - v0) * p;
+    if(p < 1) requestAnimationFrame(step);
+    else if(pauseAfter) a.pause();
+  };
+  requestAnimationFrame(step);
+}
+function bgmFade(target, ms, pauseAfter){
+  if(!bgm) return;
+  cancelAnimationFrame(bgmRAF);
+  const a = bgm, v0 = a.volume; let t0 = null;
+  const step = ts => {
+    if(t0 === null) t0 = ts;
+    const p = Math.min(1, (ts - t0) / ms);
+    a.volume = v0 + (target - v0) * p;
+    if(p < 1) bgmRAF = requestAnimationFrame(step);
+    else if(pauseAfter) a.pause();
+  };
+  bgmRAF = requestAnimationFrame(step);
+}
+function bgmStart(which){
+  if(mem.musicOff) return;
+  const src = LOOPS[which || 'browse'] || LOOPS.browse;
+  if(bgm && bgmSrc !== src){          // screen change = song change: old one bows out
+    fadeAudio(bgm, 0, 700, true);
+    bgm = null;
+  }
+  if(!bgm){
+    bgm = new Audio(src); bgmSrc = src; bgm.loop = true;
+    bgm.onerror = ()=>{ bgm.dead = true; };
+  }
+  if(bgm.dead) return;
+  if(bgm.paused){
+    bgm.volume = 0;
+    bgm.play().then(()=>bgmFade(0.5, 1200)).catch(()=>{});
+  }else{
+    bgmFade(0.5, 800);
+  }
+}
+function bgmStop(){                    // immediate-ish: the mute toggle
+  if(!bgm || bgm.paused) return;
+  bgmFade(0, 600, true);
+}
+/* Leaving a music screen (Preston, Aug 2026): the song doesn't cut — it keeps
+   playing over the next screen and slowly melts away, exactly like the
+   landing-page handoff. The first tap hurries the remaining fade so it never
+   fights the word audio. */
+function bgmDrift(){
+  if(!bgm || bgm.paused) return;
+  cancelAnimationFrame(bgmRAF);
+  const a = bgm, v0 = a.volume, t0 = performance.now();
+  let ms = 6500;
+  const step = ts => {
+    const p = Math.min(1, (ts - t0) / ms);
+    a.volume = v0 * (1 - p);
+    if(p < 1) bgmRAF = requestAnimationFrame(step);
+    else a.pause();
+  };
+  bgmRAF = requestAnimationFrame(step);
+  document.addEventListener('pointerdown', ()=>{
+    ms = Math.min(ms, (performance.now() - t0) + 1000);
+  }, {capture:true, passive:true, once:true});
+}
+function paintMusicChip(){
+  const b = $('gMusic'); if(!b) return;
+  b.textContent = mem.musicOff ? '♪ 음악 꺼짐' : '♪ 음악';
+  b.style.opacity = mem.musicOff ? .6 : 1;
+}
+
+/* ---------- the landing-page handoff: if the visitor clicked Start while the
+   landing song was playing, resume it at the very same beat and let it melt
+   away over the first card (~7 s) instead of cutting off at the page change.
+   First tap on anything accelerates the remaining fade so the word audio is
+   never fighting the music. If autoplay is refused, we simply stay silent. */
+(function(){
+  let h = null;
+  try{
+    h = JSON.parse(sessionStorage.getItem('klMusicHandoff') || 'null');
+    sessionStorage.removeItem('klMusicHandoff');
+  }catch(e){}
+  if(!h || (Date.now() - (h.at || 0)) > 20000) return;
+  const a = new Audio('sounds/landing-song.mp3');
+  a.preload = 'auto';
+  a.addEventListener('loadedmetadata', ()=>{
+    try{ a.currentTime = Math.min(h.t || 0, Math.max(0, a.duration - 1)); }catch(e){}
+    a.volume = 0.55;
+    a.play().then(()=>{
+      const t0 = performance.now(), v0 = a.volume;
+      let ms = 7000;
+      const step = ts => {
+        const p = Math.min(1, (ts - t0) / ms);
+        a.volume = v0 * (1 - p);
+        if(p < 1) requestAnimationFrame(step);
+        else { a.pause(); a.src = ''; }
+      };
+      requestAnimationFrame(step);
+      document.addEventListener('pointerdown', ()=>{
+        ms = Math.min(ms, (performance.now() - t0) + 1200);
+      }, {capture:true, passive:true});
+    }).catch(()=>{});
+  });
+  a.onerror = ()=>{};
+})();
+
+/* ============================================================
+   명예의 전당 · THE HALL OF NAMES — a wall, not a ladder (13-rewards).
+   Everyone who earns a medal goes on, permanently: display name, avatar,
+   highest medal. Ordered by arrival, newest first. Nobody has a rank.
+   Viewing is public; joining needs a signed-in account AND a first medal —
+   you name yourself once you've earned the wall. Firestore: wall/{uid},
+   owner-write public-read (rules in FIREBASE-SETUP.md Part 4).
+   ============================================================ */
+/* LAUNCH GATE (Preston, Aug 2026): the main-screen Hall of Names link currently
+   opens THIS mock-up so the wall can be felt before the backend is on. Before
+   the site goes live: (1) publish the Part 4 rules, (2) change the wallLink
+   handler below from openWall(DEMO_WALL) to openWall(), (3) delete DEMO_WALL.
+   Real accounts then populate the wall and the demo names never ship. */
+const DEMO_WALL_DAY = 864e5;
+const DEMO_WALL = () => { const now = Date.now(); return [
+  { n: '웃는 진돗개',  a: 2,  m: 3, w: 327, j: now - 2*DEMO_WALL_DAY,  mu: now - 2*DEMO_WALL_DAY },
+  { n: '조용한 호랑이', a: 0,  m: 1, w: 114, j: now - 4*DEMO_WALL_DAY,  mu: now - 4*DEMO_WALL_DAY, me: true },
+  { n: 'Demi',        a: 1,  m: 5, w: 568, j: now - 6*DEMO_WALL_DAY,  mu: now - 12*DEMO_WALL_DAY },
+  { n: '빠른 까치',    a: 1,  m: 2, w: 231, j: now - 15*DEMO_WALL_DAY, mu: now - 44*DEMO_WALL_DAY },
+  { n: '용감한 곰',    a: 3,  m: 1, w: 187, j: now - 21*DEMO_WALL_DAY, mu: now - 21*DEMO_WALL_DAY },
+  { n: '다정한 토끼',  a: 4,  m: 4, w: 402, j: now - 33*DEMO_WALL_DAY, mu: now - 60*DEMO_WALL_DAY },
+  { n: '반짝이는 용',  a: 11, m: 8, w: 856, j: now - 50*DEMO_WALL_DAY, mu: now - 35*DEMO_WALL_DAY }
+]; };
+
+const AVATARS = [['tiger','호랑이'],['magpie','까치'],['jindo-dog','진돗개'],['bear','곰'],
+  ['rabbit','토끼'],['turtle','거북이'],['carp','잉어'],['sparrow','참새'],
+  ['squirrel','다람쥐'],['cat','고양이'],['fox','여우'],['dragon','용']];
+const avatarFile = i => 'avatars/avatar-' + AVATARS[(i||0) % AVATARS.length][0] + '@128.png';
+const HANDLE_ADJ = ['조용한','빠른','웃는','용감한','똑똑한','씩씩한','다정한','부지런한','반짝이는','노래하는'];
+function drawHandle(){
+  const i = Math.floor(Math.random() * AVATARS.length);
+  return { name: HANDLE_ADJ[Math.floor(Math.random() * HANDLE_ADJ.length)] + ' ' + AVATARS[i][1], av: i };
+}
+/* filtered on save (13-rewards): rejected names get a plain "try another one",
+   not a lecture. A human moderator pass in the Firebase console remains the
+   real backstop — this is a school site. */
+function nameProblem(raw){
+  const n = raw.trim().replace(/\s+/g, ' ');
+  if(n.length < 2)  return '조금 더 길게 · a little longer';
+  if(n.length > 24) return '조금 더 짧게 · a little shorter';
+  if(/https?:|www\.|@|\.(com|net|org|kr|io)/i.test(n)) return '링크는 안 돼요 · no links or handles';
+  if(/\d{4,}/.test(n.replace(/\s/g, ''))) return '긴 숫자는 안 돼요 · no long numbers';
+  if(/(fuck|shit|bitch|cunt|nigg|fagg?ot|whore|slut|시발|씨발|씨팔|병신|개새|좆|지랄|썅|년놈)/i
+     .test(n.replace(/[\s.\-_]/g, ''))) return '다른 이름으로 해요 · try another one';
+  return null;
+}
+const escName = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function pushWall(){
+  if(!authUser || !mem.wall || !mem.wall.n) return;
+  const medal = Math.min(15, Math.floor((mem.hw || 0) / 100));
+  if(medal < 1) return;
+  if(!mem.wall.j) mem.wall.j = Date.now();
+  if(medal > (mem.wall.m || 0)){ mem.wall.m = medal; mem.wall.mu = Date.now(); }
+  try{
+    firebase.firestore().collection('wall').doc(authUser.uid).set({
+      n: mem.wall.n, a: mem.wall.a || 0, m: mem.wall.m, w: mem.hw || 0,
+      j: mem.wall.j, mu: mem.wall.mu || mem.wall.j, u: Date.now()
+    });
+  }catch(e){}
+}
+
+function wallEntry(r, meId){
+  const me = r.me || (meId && r.id === meId);
+  /* the medal is the emblem; the NUMBER is what it means (Preston: "so many
+     medals it's hard to tell what that actually represents"). w = the
+     high-water word count, the never-decreasing number. Older docs without
+     w fall back to the medal's floor. */
+  const words = r.w || Math.min(15, Math.max(1, r.m)) * 100;
+  return `<div class="wentry${me ? ' me' : ''}">`
+       + `<img class="wav" src="${avatarFile(r.a)}" alt="">`
+       + `<span class="wname"><span>${escName(r.n)}${me ? ' <b class="wme">· 나</b>' : ''}</span>`
+       + `<span class="wwords">${words.toLocaleString()} 단어</span></span>`
+       + `<img class="wmedal" src="${medalFile(Math.min(15, Math.max(1, r.m)) - 1)}" `
+       + `alt="" title="${MEDALS[Math.min(15, Math.max(1, r.m)) - 1][1]}"></div>`;
+}
+function renderWall(rows){
+  const meId = authUser ? authUser.uid : null;
+  if(!rows.length){
+    $('wallMonth').innerHTML = '';
+    $('wallList').innerHTML = '<p class="note" style="text-align:center">아직 아무도 없어요 — '
+      + 'the wall is waiting for its first name. It could be yours.</p>';
+    return;
+  }
+  const cut = Date.now() - 30 * 24 * 3.6e6;
+  const month = rows.filter(r => (r.mu || 0) > cut);
+  $('wallMonth').innerHTML = month.length
+    ? `<div class="wall-sect">이번 달 · This month</div><div class="wgrid">`
+      + month.map(r => wallEntry(r, meId)).join('') + '</div>'
+    : '';
+  $('wallList').innerHTML = `<div class="wall-sect">모두 · Everyone</div><div class="wgrid">`
+    + rows.map(r => wallEntry(r, meId)).join('') + '</div>';
+}
+function paintWallMine(){
+  const el = $('wallMine');
+  const medal = Math.min(15, Math.floor((mem.hw || 0) / 100));
+  if(!authOn()){ el.innerHTML = ''; return; }
+  if(mem.wall && mem.wall.n){
+    el.innerHTML = `You're on the wall as <b>${escName(mem.wall.n)}</b>.<br>`
+      + `<button class="btn" id="wallEdit">이름 바꾸기 · Change my name</button>`;
+    $('wallEdit').addEventListener('click', ()=>openJoin());
+  }else if(!authUser){
+    el.innerHTML = `Your first medal puts your name here — forever.<br>`
+      + `<button class="btn" id="wallSignIn">로그인 · Sign in to join</button>`;
+    $('wallSignIn').addEventListener('click', ()=>$('authSheet').classList.add('show'));
+  }else if(medal < 1){
+    const left = 100 - (mem.hw || 0);
+    el.innerHTML = `Your first medal — at 100 words — puts your name here forever. `
+      + `<b>${left} word${left === 1 ? '' : 's'} to go.</b>`;
+  }else{
+    el.innerHTML = `You've earned your place.<br>`
+      + `<button class="btn primary" id="wallAdd">이름 올리기 · Put your name on the wall</button>`;
+    $('wallAdd').addEventListener('click', ()=>openJoin());
+  }
+}
+let wjSel = 0;
+function openJoin(){
+  const seed = (mem.wall && mem.wall.n) ? { name: mem.wall.n, av: mem.wall.a || 0 }
+             : Object.assign(drawHandle(), mem.avatar !== undefined ? { av: mem.avatar } : {});
+  $('wjName').value = seed.name;
+  wjSel = seed.av;
+  $('wjAvatars').innerHTML = AVATARS.map((a, i) =>
+    `<button type="button" class="${i === wjSel ? 'sel' : ''}" data-i="${i}" title="${a[1]}">`
+    + `<img src="${avatarFile(i)}" alt="${a[1]}"></button>`).join('');
+  [...$('wjAvatars').children].forEach(b => b.addEventListener('click', ()=>{
+    wjSel = +b.dataset.i;
+    [...$('wjAvatars').children].forEach(x => x.classList.toggle('sel', +x.dataset.i === wjSel));
+  }));
+  $('wjErr').textContent = '';
+  $('wallJoin').classList.add('show');
+}
+function openWall(demoRows){
+  show('wall'); bgmStart('wall');
+  const b = $('wallMusic');
+  if(b){ b.textContent = mem.musicOff ? '♪ 음악 꺼짐' : '♪ 음악'; b.style.opacity = mem.musicOff ? .6 : 1; }
+  paintWallMine();
+  if(demoRows){ renderWall(demoRows); return; }
+  if(!authOn()){
+    $('wallList').innerHTML = '<p class="note" style="text-align:center">The wall connects once accounts are live.</p>';
+    return;
+  }
+  fbReady(()=>{
+    firebase.firestore().collection('wall').orderBy('j', 'desc').limit(500).get()
+      .then(q => renderWall(q.docs.map(d => Object.assign({ id: d.id }, d.data()))))
+      .catch(()=>{ $('wallList').innerHTML =
+        '<p class="note" style="text-align:center">The wall couldn’t load — try again in a moment.</p>'; });
+  });
+}
+
+let mileQueue = [];
+function checkMilestone(prevHw){
+  const before = Math.floor(prevHw / 100), after = Math.floor(mem.hw / 100);
+  for(let m = before + 1; m <= Math.min(after, 15); m++){
+    if(!mem.miles.includes(m)){ mem.miles.push(m); mileQueue.push(m); }
+  }
+}
+function showMilestone(){
+  const m = mileQueue.shift();
+  if(!m) return false;
+  const i = m - 1, final = m === 15;
+  $('mileMedal').src = medalFile(i);
+  $('mileTier').textContent = MEDALS[i][1] + ' · ' + MEDALS[i][2];
+  $('mileLine').textContent = MEDALS[i][3];
+  $('mileMute').textContent = mem.mute ? '소리 켜기 · unmute' : '소리 끄기 · mute';
+  $('mile').classList.add('show');
+  playFanfare(final, m);
+  celebrate('perfect');                    // and then some:
+  setTimeout(()=>celebrate(final ? 'perfect' : 'great'), 700);
+  Store.write();
+  return true;
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  /* the overlay markup sits after this script — bind on ready (the standing rule) */
+  $('mileGo').addEventListener('click', ()=>{
+    $('mile').classList.remove('show');
+    if(showMilestone()) return;            // stacked milestones, rare but possible
+    if(mem.sinceCheck >= CHECK_EVERY){ offerCheck(); return; }
+    paint();
+  });
+  $('mileMute').addEventListener('click', ()=>{
+    mem.mute = !mem.mute; Store.write();
+    $('mileMute').textContent = mem.mute ? '소리 켜기 · unmute' : '소리 끄기 · mute';
+  });
+});
+
+/* Demo door: ?demo=medal previews the 100-word medal moment (?demo=medal-7 for
+   the 700 tier, ?demo=medal-15 for the 무궁화 finale). Waits for one click so
+   the fanfare is allowed to sound, and never writes to mem.miles — a preview,
+   not an earning. */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const d = new URLSearchParams(location.search).get('demo');
+  if(!d) return;
+  if(d === 'wall'){ openWall(DEMO_WALL()); return; }
+  const m = d.match(/^medal(?:-(\d+))?$/);
+  if(!m) return;
+  const tier = Math.min(15, Math.max(1, parseInt(m[1] || '1', 10)));
+  flagToast('클릭하세요 — click anywhere to preview the medal moment');
+  document.addEventListener('pointerdown', ()=>{
+    mileQueue.push(tier);
+    showMilestone();
+  }, {once:true});
+});
+
+const CEILING = 47.0;                       // the picture-deck ceiling, 05-limitations.md
+/* VERIFIED, NOT CLAIMED (Preston, Aug 2026): he clicked "I know this" a
+   hundred times and the seed medal fired — "when I click I know this, that
+   means I MAY know this. I don't officially know it until I pass it on the
+   test." The 단어 number, the medals, and the wall now all count words that
+   have passed at least one check item. Clicking retires the card; only the
+   test makes it count. */
+function verifiedCount(){
+  let n = 0;
+  for(const c of DECK){ if(((mem.stats[c.k] || {}).p || 0) > 0) n++; }
+  return n;
+}
+function recordGrowth(){
+  const prev = mem.hw || 0;
+  mem.hw = Math.max(prev, verifiedCount());
+  const day = new Date().toISOString().slice(0, 10);
+  mem.hist[day] = Math.max(mem.hist[day] || 0, mem.hw);
+  checkMilestone(prev);
+}
+function drawGrowth(){
+  recordGrowth();
+  const hw = mem.hw || 0;
+  $('gNum').textContent = hw;
+  const nextGoal = (Math.floor(hw / 100) + 1) * 100;
+  $('gGoal').textContent = hw >= 1500 ? '무궁화 · The whole arc is yours.'
+    : (nextGoal - hw) + ' words to your ' + (nextGoal === 100 ? 'first medal — 씨앗, the seed'
+       : 'next medal at ' + nextGoal);
+  $('gShelf').innerHTML = MEDALS.map((md, i) => {
+    const earned = hw >= (i + 1) * 100;
+    return `<div class="m ${earned ? 'earned' : 'locked'}">`
+         + `<img src="${medalFile(i)}" alt="${md[2]}" loading="lazy"><span>${md[1]}</span></div>`;
+  }).join('');
+  /* the arc: 0 -> 1,500, one tick per hundred (the fifteen medals) */
+  $('gArc').style.width = Math.min(100, hw / 1500 * 100) + '%';
+  $('gTicks').innerHTML = Array.from({length: 15}, (_, i) =>
+    `<i class="${hw >= (i + 1) * 100 ? 'hit' : ''}" style="left:${((i + 1) * 100) / 1500 * 100}%"></i>`).join('');
+  $('gArcNote').textContent = hw + ' of the 1,500 picturable words · a medal every 100';
+  /* coverage, honest + the ceiling reframe */
+  const cov = coverage();
+  $('gCov').innerHTML = '<b>' + cov.toFixed(1) + '%</b> of the content words in everyday '
+    + 'spoken Korean &nbsp;·&nbsp; that is <b>' + Math.round(cov / CEILING * 100) + '%</b> of '
+    + 'everything pictures can teach — the rest lives in the phrase track, coming later.';
+  /* the staircase: daily high-water, always climbing */
+  const days = Object.keys(mem.hist).sort();
+  const W = 560, H = 200, L = 40, R = 12, T = 14, B = 26;
+  let svg = '';
+  if(days.length < 2){
+    $('gChartLbl').textContent = 'Your words, day by day — this chart grows with you';
+    svg = `<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="13" fill="#86868b">`
+        + `Day one. Come back tomorrow and there will be a line here.</text>`;
+    if(days.length === 1){
+      svg += `<circle cx="${L}" cy="${H-B-4}" r="5" fill="#1f4788" stroke="#fbfbfd" stroke-width="2"/>`
+          +  `<text x="${L+12}" y="${H-B-8}" font-size="12" font-weight="600" fill="#1d1d1f">${mem.hist[days[0]]}</text>`;
+    }
+  }else{
+    $('gChartLbl').textContent = 'Your words, day by day';
+    const t0 = new Date(days[0]).getTime(), t1 = new Date(days[days.length-1]).getTime();
+    const span = Math.max(1, t1 - t0);
+    const ymax = Math.max(nextGoal, Math.ceil(hw * 1.15));
+    const X = d => L + (new Date(d).getTime() - t0) / span * (W - L - R);
+    const Y = n => T + (1 - n / ymax) * (H - T - B);
+    /* stepped path through the daily high-water points */
+    let px = X(days[0]), py = Y(mem.hist[days[0]]);
+    let path = `M ${px} ${py}`;
+    for(let i = 1; i < days.length; i++){
+      const x = X(days[i]), y = Y(mem.hist[days[i]]);
+      path += ` L ${x} ${py} L ${x} ${y}`;
+      px = x; py = y;
+    }
+    /* goal line at the next medal */
+    const gy = Y(nextGoal);
+    svg += `<line x1="${L}" y1="${gy}" x2="${W-R}" y2="${gy}" stroke="#d9a441" stroke-width="1.5" stroke-dasharray="5 4"/>`
+        +  `<text x="${L+2}" y="${gy-5}" font-size="11" fill="#a87f2f">${nextGoal} · next medal</text>`;
+    /* axis + the line itself */
+    svg += `<line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="#e3e3e6"/>`
+        +  `<path d="${path}" fill="none" stroke="#1f4788" stroke-width="2.5" stroke-linejoin="round"/>`
+        +  `<circle cx="${px}" cy="${py}" r="5" fill="#1f4788" stroke="#fbfbfd" stroke-width="2"/>`
+        +  `<text x="${Math.min(px, W-R-30)}" y="${Math.max(py-10, 12)}" font-size="13" font-weight="600" fill="#1d1d1f">${hw}</text>`
+        +  `<text x="${L}" y="${H-B+16}" font-size="11" fill="#86868b">${days[0]}</text>`
+        +  `<text x="${W-R}" y="${H-B+16}" text-anchor="end" font-size="11" fill="#86868b">${days[days.length-1]}</text>`;
+  }
+  $('gChart').innerHTML = svg;
+}
+function openGrowth(){ drawGrowth(); renderHistory(); Store.write(); show('progress'); paintMusicChip(); bgmStart('browse'); }
+$('growthBtn').addEventListener('click', openGrowth);
+$('covNum').addEventListener('click', openGrowth);
+$('gBack').addEventListener('click', ()=>{
+  bgmDrift();
+  show('cards');
+  if(idx >= active().length) idx = Math.max(0, active().length - 1);
+  paint();
+});
+$('gMusic').addEventListener('click', ()=>{
+  mem.musicOff = !mem.musicOff; Store.write();
+  if(mem.musicOff) bgmStop(); else bgmStart('browse');
+  paintMusicChip();
+});
+/* LAUNCH GATE: BOTH wall entry points open the mock-up until the backend is
+   on — switch BOTH to openWall() at launch. See the note above DEMO_WALL. */
+$('gWall').addEventListener('click', ()=>openWall(DEMO_WALL()));
+$('idChip').addEventListener('click', ()=>{
+  if($('progress').classList.contains('show')) return;
+  bgmStop();
+  openGrowth();
+});
+function paintSettings(){
+  const cur = mem.avatar !== undefined ? mem.avatar
+            : (mem.wall && mem.wall.n ? (mem.wall.a || 0) : -1);
+  $('setAvatars').innerHTML = AVATARS.map((a, i) =>
+    `<button type="button" class="${i === cur ? 'sel' : ''}" data-i="${i}" title="${a[1]}">`
+    + `<img src="${avatarFile(i)}" alt="${a[1]}"></button>`).join('');
+  [...$('setAvatars').children].forEach(b => b.addEventListener('click', ()=>{
+    mem.avatar = +b.dataset.i;
+    if(mem.wall && mem.wall.n) mem.wall.a = mem.avatar;
+    Store.write();
+    [...$('setAvatars').children].forEach(x => x.classList.toggle('sel', +x.dataset.i === mem.avatar));
+    paintIdChip();
+  }));
+  $('setMusic').textContent  = mem.musicOff ? '꺼짐 · Off' : '켜짐 · On';
+  $('setSounds').textContent = mem.mute ? '꺼짐 · Off' : '켜짐 · On';
+  const acc = $('setAccount');
+  if(!authOn()){
+    acc.innerHTML = '<span>계정 · Account<br><small>accounts arrive with the public site</small></span>';
+  }else if(authUser){
+    const who = (authUser.displayName || authUser.email || 'signed in');
+    acc.innerHTML = '<span>계정 · Account<br><small>' + escName(who) + '</small></span>'
+      + '<button class="btn" id="setOut">로그아웃 · Sign out</button>';
+    $('setOut').addEventListener('click', ()=>{
+      try{ fbReady(()=>firebase.auth().signOut()); }catch(e){}
+      $('settings').classList.remove('show');
+      flagToast('로그아웃 되었어요 — progress stays on this device');
+    });
+  }else{
+    acc.innerHTML = '<span>계정 · Account<br><small>not signed in — progress lives only on this device</small></span>'
+      + '<button class="btn" id="setIn">로그인 · Sign in</button>';
+    $('setIn').addEventListener('click', ()=>{
+      $('settings').classList.remove('show');
+      $('authSheet').classList.add('show');
+    });
+  }
+}
+$('gearBtn').addEventListener('click', ()=>{ paintSettings(); $('settings').classList.add('show'); });
+$('gBackTop').addEventListener('click', ()=>$('gBack').click());
+$('studyTop').addEventListener('click', ()=>{
+  const nowF = Date.now();
+  const top = Object.keys(mem.stats)
+    .filter(k => byWord(k) && ((mem.stats[k].p || 0) + (mem.stats[k].r || 0) + (mem.stats[k].n || 0)) > 0)
+    .sort((a, b) => refeedPriority(b, nowF) - refeedPriority(a, nowF))
+    .slice(0, 10);
+  enterFocus(top);
+});
+$('wallLink').addEventListener('click', ()=>openWall(DEMO_WALL()));
+$('wallBack').addEventListener('click', ()=>{
+  bgmDrift();
+  show('cards');
+  if(idx >= active().length) idx = Math.max(0, active().length - 1);
+  paint();
+});
+$('wallMusic').addEventListener('click', ()=>{
+  mem.musicOff = !mem.musicOff; Store.write();
+  if(mem.musicOff) bgmStop(); else bgmStart('wall');
+  const b = $('wallMusic');
+  b.textContent = mem.musicOff ? '♪ 음악 꺼짐' : '♪ 음악';
+  b.style.opacity = mem.musicOff ? .6 : 1;
+});
+
+/* ---------- the word history: a bug report about the artwork ---------- */
+function flagSection(){
+  const rows = Object.entries(mem.flags)
+    .sort((a,b)=>b[1].t-a[1].t)
+    .map(([k,f])=>{
+      const c = byWord(k); if(!c) return '';
+      const when = new Date(f.t).toLocaleDateString();
+      const note = f.n ? ` &nbsp;\u00b7&nbsp; \u201c${f.n.replace(/</g,'&lt;')}\u201d` : '';
+      return `<tr><td class="warn">${c.k} &nbsp;<span style="color:var(--ink-faint)">${c.en}</span></td>`
+           + `<td>picture flagged &nbsp;\u00b7&nbsp; ${when}${note}</td></tr>`;
+    }).join('');
+  if(!rows) return '';
+  return `<p class="note" style="margin-top:18px"><b>Flagged pictures</b> \u2014 cards where the `
+       + `image was voted down as not fitting the word. These are queued to be redrawn.</p>`
+       + '<table>' + rows + '</table>';
+}
+/* Word history now lives INSIDE the Progress page (Preston, Aug 2026) —
+   rendered fresh every time the panel opens. Column headers per his ask. */
+function renderHistory(){
+  const box = $('gHist');
+  if(!box) return;
+  const tapped = Object.values(mem.stats).map(s=>s.n||0).filter(n=>n>0);
+  const avg = tapped.length ? tapped.reduce((a,b)=>a+b,0)/tapped.length : 1;
+  /* sorted by the RE-FEED PRIORITY (worst-known × most-valuable first), so
+     the top of this list is literally what the deck plans to bring back next
+     — and the value column on the left explains the order */
+  const nowH = Date.now();
+  const rows = Object.entries(mem.stats)
+    .filter(([k, s]) => s.p + s.r + (s.n||0) > 0)
+    .sort((a, b) => refeedPriority(b[0], nowH) - refeedPriority(a[0], nowH));
+  if(!rows.length){ box.innerHTML = '<p class="note">Nothing checked yet.</p>' + flagSection(); return; }
+  const hdr = '<tr class="hdr"><td class="rcell">순위<br>most important<br>to study</td>'
+            + '<td>단어<br>word</td><td class="vcell">가치<br>value</td>'
+            + '<td class="tcell">시간<br>time on card</td>'
+            + '<td>자신감 · 기록<br>confidence &amp; record</td></tr>';
+  box.innerHTML = '<table>' + hdr + rows.map(([k, s], ri) => {
+    const c = byWord(k); if(!c) return '';
+    /* gold = the PICTURE is suspect: tapped far above his own average, which
+       usually means the image isn't doing its job (the rank column already
+       says which words are hard — this flags which CARDS might be broken) */
+    const bad = (s.n || 0) > avg * 2.5;
+    let mix = '';
+    if(s.picks && s.picks.length){
+      const counts = {};
+      s.picks.forEach(p => counts[p] = (counts[p] || 0) + 1);
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+      const tc = byWord(top);
+      if(tc){
+        const why = (c.cp && top === c.cp) ? 'its opposite'
+                  : (tc.vc === c.vc ? 'a look-alike' : '');
+        mix = ` &nbsp;·&nbsp; mixed up with <b>${tc.k}</b>${why ? ' — ' + why : ''}`;
+      }
+    }
+    const cf = confidence(k);
+    const cfCell = cf === null ? 'untested &nbsp;·&nbsp; ' : `<b>${cf}%</b> &nbsp;·&nbsp; `;
+    return `<tr><td class="rcell">${ri + 1}</td>`
+         + `<td class="${bad ? 'warn' : ''}">${c.k} &nbsp;<span style="color:var(--ink-faint)">${c.en}</span></td>`
+         + `<td class="vcell">${valueScore(c)}</td>`
+         + `<td class="tcell">${fmtDur(s.ms)}</td>`
+         + `<td>${cfCell}${s.n || 0} taps &nbsp;·&nbsp; ${s.p} passed &nbsp;·&nbsp; ${s.r} missed${mix}</td></tr>`;
+  }).join('') + '</table>'
+  + `<p class="note">The rank on the left is your <b>study priority</b> — how badly you know a `
+  + `word weighted by its <b>value</b>: how hard it works in real spoken Korean, on a 100-point `
+  + `scale where 나 sets the bar at 100. The percentage is our `
+  + `confidence you truly own the word — built from your record, how quickly the right answer `
+  + `comes, and how recently it was checked. The list runs worst-to-best by confidence weighted `
+  + `by value, which makes the top of this list exactly what the deck plans to bring back next. `
+  + `A word high on this list is either genuinely hard, or its picture is not doing its `
+  + `job. A word shown in <b style="color:var(--warn)">gold</b> is the second kind of suspect — `
+  + `you tap it far more than your average, which usually means the picture isn't landing. `
+  + `That's a bug in the card, not in you — tap the little flag on that card's picture and we'll fix it.</p>` + flagSection();
+}
+
+/* ============================================================
+   TEST
+   Distractors are chosen by VISUAL class first, not meaning.
+   Ishii (2015): the confusion normally blamed on semantics is driven by the
+   pictures resembling each other. A look-alike distractor is a real test;
+   a merely same-topic one is not.
+   ============================================================ */
+let testAnswer = null;
+function startTest(){
+  const pool = DECK;
+  testAnswer = pool[Math.floor(Math.random()*pool.length)];
+  /* same meaning-twin rules as the check: no twin of the answer, ever, and
+     at most one member of any meaning-group among the distractors */
+  const aGroup = EQUIV_IDX[testAnswer.k];
+  const others = pool.filter(c=>c.k !== testAnswer.k
+    && !(aGroup !== undefined && EQUIV_IDX[c.k] === aGroup));
+  const look = others.filter(c=>c.vc === testAnswer.vc).sort(()=>Math.random()-0.5);
+  const rest = others.filter(c=>c.vc !== testAnswer.vc).sort(()=>Math.random()-0.5);
+  const usedG = new Set();
+  const distractors = [];
+  for(const c of [...look, ...rest]){
+    if(distractors.length >= 3) break;
+    const g = EQUIV_IDX[c.k];
+    if(g !== undefined && usedG.has(g)) continue;
+    if(g !== undefined) usedG.add(g);
+    distractors.push(c);
+  }
+  const opts = [testAnswer, ...distractors].sort(()=>Math.random()-0.5);
+
+  $('testGrid').innerHTML = opts.map(o=>
+    '<button class="opt" data-k="'+o.k+'"><img src="'+src(o)+'" alt=""></button>').join('');
+
+  [...$('testGrid').children].forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const right = b.dataset.k === testAnswer.k;
+      [...$('testGrid').children].forEach(x=>
+        x.classList.add(x.dataset.k===testAnswer.k ? 'right' : 'wrong'));
+      say(testAnswer.k);
+      advanceAfterClip(right ? 900 : 1800, ()=>{
+        const cell = [...$('testGrid').children].find(x => x.dataset.k === testAnswer.k);
+        revealClipIn(cell, testAnswer.k, startTest);
+      });
+    }, {once:true});
+  });
+  say(testAnswer.k);
+}
+$('testBtn').addEventListener('click', ()=>{ show('test'); startTest(); });
+$('testExit').addEventListener('click', ()=>{ show('cards'); paint(); });
+$('testPlay').addEventListener('click', ()=>{ if(testAnswer) sayNextVoice(testAnswer.k); });
+
+restore();
+armWarmup();
+paint();
+</script>
+<div class="mile" id="mile" role="dialog" aria-modal="true">
+  <div class="mile-box">
+    <div class="mile-halo"></div>
+    <img class="mile-medal" id="mileMedal" src="" alt="">
+    <div class="mile-tier" id="mileTier"></div>
+    <div class="mile-line" id="mileLine"></div>
+    <button class="btn primary mile-btn" id="mileGo">계속 · Continue</button>
+  </div>
+  <button class="mile-mute" id="mileMute"></button>
+</div>
+<div class="auth-sheet" id="authSheet" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="auth-box">
+    <div class="auth-title" id="authTitle">지금까지 배운 것, 잃지 마세요.</div>
+    <div class="auth-sub" id="authSub">Keep everything you've earned. 3초면 됩니다 —
+      takes three seconds, and your words follow you to any device.</div>
+    <button class="auth-btn auth-kakao" id="authKakao"><span class="pmark">K</span>카카오로 계속하기 · Continue with Kakao</button>
+    <button class="auth-btn auth-naver" id="authNaver"><span class="pmark">N</span>네이버로 계속하기 · Continue with Naver</button>
+    <button class="auth-btn auth-google" id="authGoogle"><span class="pmark">G</span>Continue with Google</button>
+    <button class="auth-cancel" id="authCancel">나중에 · Maybe later</button>
+    <div class="auth-note">No password, no email form, nothing to fill in.
+      Signing in only ever <b>adds</b> — it can never erase progress on this device.</div>
+  </div>
+</div>
+<div class="flagc" id="settings" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="flagc-box">
+    <div class="flagc-title" id="setTitle">설정 · Settings</div>
+    <div class="set-row" id="setAccount"></div>
+    <div class="set-row" style="flex-direction:column; align-items:stretch">
+      <span style="margin-bottom:10px">캐릭터 · Your character<br>
+      <small>shows in the corner — and on the Hall of Names when you join</small></span>
+      <div class="wj-avatars" id="setAvatars" style="margin-bottom:0"></div></div>
+    <div class="set-row"><span>이름 · Display name<br>
+      <small>how you appear on the Hall of Names</small></span>
+      <button class="btn" id="setName">바꾸기 · Change</button></div>
+    <div class="set-row"><span>배경 음악 · Background music<br>
+      <small>off = only the Korean voices, everywhere</small></span>
+      <button class="btn" id="setMusic"></button></div>
+    <div class="set-row"><span>축하 소리 · Celebration sounds<br>
+      <small>the medal fanfares</small></span>
+      <button class="btn" id="setSounds"></button></div>
+    <div class="set-row"><span>처음부터 · Start over<br>
+      <small id="setResetSub">erases every word, medal, and record</small></span>
+      <button class="btn" id="setReset">다시 시작 · Reset</button></div>
+    <div class="flagc-row"><button class="btn primary" id="setDone">닫기 · Done</button></div>
+  </div>
+</div>
+
+<div class="flagc" id="resetConfirm" role="dialog" aria-modal="true" aria-labelledby="rstTitle">
+  <div class="flagc-box">
+    <div class="flagc-title" id="rstTitle">처음부터 다시 시작할까요? · Start over from the beginning?</div>
+    <div class="flagc-body" id="rstBody"></div>
+    <div class="flagc-row">
+      <button class="btn primary" id="rstYes">지우고 처음부터 · Erase everything</button>
+      <button class="btn" id="rstNo">아니요 · Keep my progress</button>
+    </div>
+  </div>
+</div>
+
+<div class="flagc" id="wallJoin" role="dialog" aria-modal="true" aria-labelledby="wjTitle">
+  <div class="flagc-box">
+    <div class="flagc-title" id="wjTitle">이름을 걸어요 · Put your name on the wall</div>
+    <div class="flagc-body">First name or nickname only — never a full name, never a
+    location. Or keep the name we drew for you; it's yours.</div>
+    <div class="wj-handle">
+      <input id="wjName" maxlength="24" autocomplete="off">
+      <button class="btn" id="wjSpin" title="Draw another name">↻</button>
+    </div>
+    <div class="wj-avatars" id="wjAvatars"></div>
+    <div class="flagc-row">
+      <button class="btn primary" id="wjYes">올리기 · Put me up</button>
+      <button class="btn" id="wjNo">Cancel</button>
+    </div>
+    <div class="wj-err" id="wjErr"></div>
+  </div>
+</div>
+
+<div class="flagc" id="flagConfirm" role="dialog" aria-modal="true" aria-labelledby="flagcTitle">
+  <div class="flagc-box">
+    <div class="flagc-title" id="flagcTitle">Flag this picture?</div>
+    <div class="flagc-body" id="flagcBody">You are flagging this picture because it does a <b>poor job of
+    illustrating the word</b> — that tells us to improve the card. It isn't a bookmark
+    for saving cards for later.</div>
+    <textarea class="flagc-note" id="flagcNote" maxlength="280" rows="3"
+      placeholder="What doesn&#39;t fit? Optional, but it helps us fix the picture — e.g. &#39;looks more like sleeping than resting&#39;"></textarea>
+    <div class="flagc-row">
+      <button class="btn primary" id="flagcYes">Yes, flag it</button>
+      <button class="btn" id="flagcNo">Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

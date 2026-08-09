@@ -1,0 +1,7 @@
+# North Alabama Korean School — robots.txt
+# Allow all search engines to index the whole site.
+User-agent: *
+Allow: /
+
+# The sitemap helps Google find every page, including Spotlight articles.
+Sitemap: https://northalabamakoreanschool.org/sitemap.xml

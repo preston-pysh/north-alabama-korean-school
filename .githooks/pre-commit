@@ -1,0 +1,40 @@
+#!/bin/sh
+# ============================================================
+#  Spotlight build guard
+#  ------------------------------------------------------------
+#  The live site serves the STATIC pages under spotlight/<slug>/,
+#  not spotlight-posts.js. Editing the data file without running
+#  the generator leaves the old page live and looking fine —
+#  a silent failure. This hook makes that impossible.
+#
+#  Runs automatically when spotlight-posts.js or content.js is
+#  part of a commit. You do not need to run the build by hand.
+# ============================================================
+set -e
+
+if ! git diff --cached --name-only | grep -qE '^(spotlight-posts\.js|content\.js|tools/build-spotlight\.mjs)$'; then
+  exit 0
+fi
+
+echo "→ Spotlight source changed. Rebuilding article pages…"
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "✗ node not found. The generated pages would go stale and the site would"
+  echo "  quietly serve the OLD article. Install Node, or run the build elsewhere"
+  echo "  and commit spotlight/ with it. To override: git commit --no-verify"
+  exit 1
+fi
+
+node tools/build-spotlight.mjs >/dev/null || {
+  echo "✗ build-spotlight.mjs failed. Commit stopped so the site cannot go stale."
+  exit 1
+}
+
+git add spotlight sitemap.xml
+
+if git diff --cached --quiet -- spotlight sitemap.xml; then
+  echo "  Pages already current — nothing to add."
+else
+  echo "  Rebuilt pages staged into this commit:"
+  git diff --cached --name-only -- spotlight sitemap.xml | sed 's/^/    /'
+fi

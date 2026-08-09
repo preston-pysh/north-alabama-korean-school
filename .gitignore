@@ -1,0 +1,85 @@
+.DS_Store
+node_modules/
+
+# Working-file originals — kept on disk, but not needed for the live
+# site, so they're left out of GitHub. The cleaned, optimized versions
+# are in assets/ and assets/silhouettes/.
+Gemini_Generated_Image_*.png
+School Photo.png
+
+# ─────────────────────────────────────────────────────────────
+# PRIVATE — never publish. These stay on your computer only.
+# ─────────────────────────────────────────────────────────────
+# Registration data / any spreadsheet with family or student info.
+*.xlsx
+*.xls
+*.xlsm
+*.csv
+
+# Internal drafts and personal images that are not part of the site.
+NAKS_22기_홍보간사_인사말_draft.md
+Gramma_Letter_BackCover.png
+NANO-BANANA-PROMPTS.md
+
+# Stray embedded git folder — not part of the website.
+NAKS Website/
+
+# Your private "do not publish" folder — excluded entirely.
+Secure items do not push to web as open source info/
+
+# Original full-size principal portrait (optimized copy is published instead).
+assets/Dongmi Moon Pysh.jpg
+assets/Lee Owen.jpeg
+
+# Curriculum reference screenshots (textbook tables of contents) — used to
+# build the curriculum text, kept on disk but not published.
+assets/Root1.png
+assets/Root2.png
+assets/Root3.png
+assets/Seed learning.png
+
+# Per-class curriculum reference material dropped into assets/<Class>/ folders,
+# plus stray phone photos and screenshots. Kept on disk, never published.
+assets/Seeds/
+assets/Roots/
+assets/Sprouts/
+assets/Leaves/
+assets/Flowers/
+assets/Fruits/
+assets/Mugunghwa/
+assets/Tree/
+assets/IMG_*.jpg
+assets/IMG_*.jpeg
+assets/**/Screenshot *.png
+
+# Full-resolution originals for the Traditions & Celebrations section.
+# The optimized web copies live in assets/traditions/ and ARE published.
+assets/Traditions and Celebration Pictures/
+
+# ─────────────────────────────────────────────────────────────
+# KOREAN LAB — only the player runtime is published (2026-08-09).
+# Research, prompts, pipelines, card sources, archives, and
+# backups stay on this computer. See korean-lab skill build log.
+# ─────────────────────────────────────────────────────────────
+korean-lab/*
+!korean-lab/04-player/
+korean-lab/04-player/*
+!korean-lab/04-player/korean-lab.html
+!korean-lab/04-player/korean-lab-landing.html
+!korean-lab/04-player/landing-assets/
+!korean-lab/04-player/cards/
+!korean-lab/04-player/audio/
+korean-lab/04-player/audio/Music/
+korean-lab/04-player/audio/_test/
+!korean-lab/04-player/videos/
+korean-lab/04-player/videos/_raw/
+!korean-lab/04-player/medals/
+!korean-lab/04-player/avatars/
+!korean-lab/04-player/sounds/
+!korean-lab/04-player/skyline.png
+
+# Working files at the site root that are not site content.
+_to_delete/
+Atlanta 2.pdf
+Atlanta Slides.pdf
+TalkMedia_i_c7736558ca32.jpg.jpeg

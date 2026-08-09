@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Korean Lab — Fifty words. Twenty-two percent of real Korean.</title>
+<meta name="description" content="A free picture-and-audio Korean course from North Alabama Korean School. The words people actually say, hardest-working first. No account, no romanization, no growing pile of review debt.">
+<style>
+:root{
+  --bg:#ffffff; --bg-alt:#fbfbfd; --cream:#faf6ee;
+  --ink:#1d1d1f; --ink-soft:#6e6e73; --ink-faint:#86868b; --line:#e3e3e6;
+  --accent:#1f4788; --accent-dk:#16345c; --accent-bg:#e9edf6;
+  --accent-blue:#1f4788; --accent-green:#9bc23a;
+  --radius:18px; --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--ink); word-break:keep-all;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; line-height:1.6}
+
+/* the city backdrop — page furniture, same rule as the player */
+body::after{
+  content:''; position:fixed; left:0; right:0; bottom:0;
+  height:min(38vh,320px);
+  background:url('landing-assets/skyline.png') no-repeat bottom center;
+  background-size:100% auto;
+  opacity:.30; filter:saturate(.55);
+  pointer-events:none; z-index:-1;
+  -webkit-mask-image:linear-gradient(to top,#000 24%,rgba(0,0,0,.35) 58%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 24%,rgba(0,0,0,.35) 58%,transparent 100%);
+}
+
+.wrap{max-width:1060px; margin:0 auto; padding:0 24px}
+
+/* ---------- header ---------- */
+header{display:flex; align-items:center; gap:12px; padding:22px 0}
+header img{width:34px; height:34px}
+.brand{font-size:16px; font-weight:600; letter-spacing:-.01em}
+.brand span{display:block; font-size:11.5px; font-weight:400; color:var(--ink-faint); letter-spacing:0}
+header .right{margin-left:auto; font-size:13px; color:var(--ink-faint); display:flex; align-items:center; gap:14px}
+.music-chip{font:inherit; font-size:12.5px; color:var(--ink-soft); background:none;
+  border:1px solid var(--line); border-radius:999px; padding:5px 14px; cursor:pointer;
+  transition:.2s var(--ease); white-space:nowrap}
+.music-chip:hover{border-color:var(--accent); color:var(--accent-dk)}
+.music-chip.off{color:var(--ink-faint); opacity:.75}
+
+/* ---------- hero ---------- */
+.hero{position:relative; border-radius:var(--radius); overflow:hidden;
+  background:var(--cream) url('landing-assets/hero.png') no-repeat right center;
+  background-size:cover; min-height:480px;
+  display:flex; align-items:center; margin-top:6px}
+.hero-inner{position:relative; z-index:1; padding:56px 48px; max-width:520px}
+.hero-inner::before{content:''; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(to right, rgba(250,246,238,.94) 55%, rgba(250,246,238,0));
+  border-radius:var(--radius)}
+h1{font-size:clamp(26px,4.2vw,40px); line-height:1.25; letter-spacing:-.02em; margin:0 0 6px; word-break:keep-all}
+h1 .ko{display:block; color:var(--accent-dk)}
+.sub{font-size:16.5px; color:var(--ink-soft); margin:16px 0 28px; max-width:430px}
+.cta{display:inline-block; background:var(--accent); color:#fff; text-decoration:none;
+  font-size:16.5px; font-weight:600; padding:14px 30px; border-radius:999px;
+  transition:.2s var(--ease); box-shadow:0 8px 24px rgba(31,71,136,.28)}
+.cta:hover{background:var(--accent-dk); transform:translateY(-1px)}
+.cta-note{display:block; margin-top:12px; font-size:13px; color:var(--ink-faint)}
+
+/* ---------- sections ---------- */
+section{padding:72px 0 0}
+.kicker{font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--accent-dk); margin-bottom:8px}
+h2{font-size:clamp(22px,3vw,30px); letter-spacing:-.015em; line-height:1.3; margin:0 0 10px}
+.lead{font-size:16px; color:var(--ink-soft); max-width:600px; margin:0}
+
+/* proof: copy + curve side by side */
+.proof{display:grid; grid-template-columns:minmax(260px,5fr) 7fr; gap:48px; align-items:center; margin-top:8px}
+.chart-card{background:var(--bg-alt); border:1px solid var(--line); border-radius:var(--radius);
+  padding:28px 26px 18px}
+.chart-title{font-size:13.5px; color:var(--ink-soft); margin:0 0 14px}
+.chart-note{font-size:12px; color:var(--ink-faint); margin:12px 0 0; line-height:1.55}
+svg text{font-family:inherit}
+
+/* three claims */
+.claims{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:26px}
+.claim{background:var(--bg-alt); border:1px solid var(--line); border-radius:var(--radius); padding:26px 24px}
+.claim h3{font-size:16.5px; margin:0 0 8px; letter-spacing:-.01em}
+.claim p{font-size:14px; color:var(--ink-soft); margin:0}
+.claim .ko{color:var(--accent-dk); font-weight:600; font-size:13px; display:block; margin-bottom:10px}
+
+/* medals */
+.medals{background:var(--cream); border-radius:var(--radius); padding:44px 48px; margin-top:26px;
+  display:grid; grid-template-columns:1fr auto; gap:36px; align-items:center}
+.medal-row{display:flex; gap:18px; align-items:center}
+.medal-row img{width:84px; height:84px; object-fit:contain; filter:drop-shadow(0 6px 14px rgba(0,0,0,.12))}
+.medal-row .gap{color:var(--ink-faint); font-size:20px; letter-spacing:.2em}
+.soon{display:inline-block; background:var(--accent-bg); color:var(--accent-dk); font-size:12px;
+  font-weight:600; padding:4px 12px; border-radius:999px; margin-bottom:12px}
+
+/* closing cta + footer */
+.closing{text-align:center; padding:84px 0 40px}
+footer{padding:28px 0 140px; font-size:13px; color:var(--ink-faint); text-align:center}
+footer b{color:var(--ink-soft); font-weight:600}
+
+@media (max-width:840px){
+  .proof{grid-template-columns:1fr}
+  .claims{grid-template-columns:1fr}
+  .medals{grid-template-columns:1fr; padding:32px 26px}
+  .hero{min-height:420px}
+  .hero-inner{padding:40px 26px}
+  .medal-row img{width:64px; height:64px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="landing-assets/mark.png" alt="">
+    <div class="brand">Korean Lab
+      <span>북알라바마 한국학교 · North Alabama Korean School</span>
+    </div>
+    <div class="right">
+      <button class="music-chip" id="musicBtn" aria-pressed="true" type="button">♪ 음악</button>
+      <span>Free · 무료</span>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <h1><span class="ko">쉰 개의 단어. 진짜 한국어의 22%.</span>
+        Fifty words. Twenty-two percent of real Korean.</h1>
+      <p class="sub">We ranked every word in millions of lines of real Korean conversation
+        and teach them hardest-working first. Not chapter one of a textbook.
+        The words people actually say.</p>
+      <a class="cta" href="korean-lab.html">시작하기 · Start with word one</a>
+      <span class="cta-note">Free. No account. Nothing to lose.</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="proof">
+      <div>
+        <div class="kicker">The proof</div>
+        <h2>The curve is steepest exactly where you start.</h2>
+        <p class="lead">Korean, like every language, leans hard on a small set of words.
+          Learn the fifty hardest-working ones and you already own 22% of the content words
+          in everyday spoken Korean. Three hundred takes you to 37%. Most courses never
+          show you this curve. We built the whole course around it.</p>
+      </div>
+      <div class="chart-card">
+        <p class="chart-title">Share of content words in everyday spoken Korean, by words learned</p>
+        <svg viewBox="0 0 520 300" role="img" aria-label="Coverage curve: 50 words cover 22 percent, 100 words 30 percent, 300 words 37 percent of content words in everyday spoken Korean">
+          <!-- axes -->
+          <line x1="52" y1="252" x2="500" y2="252" stroke="#e3e3e6" stroke-width="1"/>
+          <line x1="52" y1="252" x2="52" y2="28" stroke="#e3e3e6" stroke-width="1"/>
+          <!-- y ticks: 0,20,40% -->
+          <text x="44" y="256" font-size="11" fill="#86868b" text-anchor="end">0</text>
+          <text x="44" y="146" font-size="11" fill="#86868b" text-anchor="end">20%</text>
+          <text x="44" y="36" font-size="11" fill="#86868b" text-anchor="end">40%</text>
+          <!-- x ticks -->
+          <text x="52" y="272" font-size="11" fill="#86868b" text-anchor="middle">0</text>
+          <text x="126" y="272" font-size="11" fill="#86868b" text-anchor="middle">50</text>
+          <text x="201" y="272" font-size="11" fill="#86868b" text-anchor="middle">100</text>
+          <text x="350" y="272" font-size="11" fill="#86868b" text-anchor="middle">200</text>
+          <text x="505" y="272" font-size="11" fill="#86868b" text-anchor="end">300 words</text>
+          <!-- curve through (0,0) (20,11.5) (50,22) (100,30) (300,36.9); x: 52+1.4933/word, y: 252-5.6/pt -->
+          <path d="M 52 252 C 62 205, 70 190, 82 187.6 C 100 182, 108 133, 126 128.8
+                   C 150 123, 168 90, 201 84 C 260 74, 380 49.4, 500 45.4"
+                fill="none" stroke="#1f4788" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- marked points -->
+          <circle cx="126" cy="128.8" r="5" fill="#1f4788" stroke="#fbfbfd" stroke-width="2"/>
+          <circle cx="201" cy="84" r="5" fill="#1f4788" stroke="#fbfbfd" stroke-width="2"/>
+          <circle cx="500" cy="45.4" r="5" fill="#1f4788" stroke="#fbfbfd" stroke-width="2"/>
+          <!-- direct labels -->
+          <text x="134" y="150" font-size="13" font-weight="600" fill="#1d1d1f">22%</text>
+          <text x="134" y="166" font-size="11" fill="#6e6e73">at 50 words</text>
+          <text x="209" y="106" font-size="13" font-weight="600" fill="#1d1d1f">30%</text>
+          <text x="209" y="122" font-size="11" fill="#6e6e73">at 100</text>
+          <text x="494" y="34" font-size="13" font-weight="600" fill="#1d1d1f" text-anchor="end">37%</text>
+          <text x="494" y="58" font-size="11" fill="#6e6e73" text-anchor="end">at 300</text>
+        </svg>
+        <p class="chart-note">Measured on a multi-million-word corpus of spoken Korean,
+          cross-checked against the National Institute of Korean Language's official learner
+          list. The number the app shows you is this number — honest, and it only climbs.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">How it works</div>
+    <h2>One picture. One voice. One new thing at a time.</h2>
+    <div class="claims">
+      <div class="claim">
+        <span class="ko">한 번에 하나씩</span>
+        <h3>One new thing at a time.</h3>
+        <p>Every card is one picture and one spoken word. No sentence appears until you know
+          every word in it — so when sentences arrive, they're a reward, not a puzzle.</p>
+      </div>
+      <div class="claim">
+        <span class="ko">로마자 없음</span>
+        <h3>No romanization, ever.</h3>
+        <p>Tap the picture and hear the word — a different native-style voice on every tap,
+          four in all. You learn the sound, not a spelling of the sound.</p>
+      </div>
+      <div class="claim">
+        <span class="ko">덱이 줄어듭니다</span>
+        <h3>The deck shrinks.</h3>
+        <p>Say "I know this" and the card leaves the deck. There is no growing pile of review
+          debt, no guilt meter — just a number that climbs and a stack that gets smaller.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="medals">
+      <div>
+        <span class="soon">곧 만나요 · coming soon</span>
+        <h2>A medal every hundred words.</h2>
+        <p class="lead">From 씨앗 — a seed — at your first hundred, to the 무궁화 at 1,500.
+          The ladder is our school's own class ladder, and everyone who earns a medal goes on
+          the 명예의 전당, the Hall of Names — permanently. Nobody is ranked. Nobody is at the
+          bottom. Getting there is the achievement.</p>
+      </div>
+      <div class="medal-row">
+        <img src="landing-assets/medal-seed.png" alt="씨앗 Seed medal — 100 words">
+        <span class="gap">···</span>
+        <img src="landing-assets/medal-sprout.png" alt="새싹 Sprout medal — 500 words">
+        <span class="gap">···</span>
+        <img src="landing-assets/medal-bloom.png" alt="꽃 Bloom medal — 1,000 words">
+        <span class="gap">···</span>
+        <img src="landing-assets/medal-mugunghwa.png" alt="무궁화 Mugunghwa medal — 1,500 words">
+      </div>
+    </div>
+  </section>
+
+  <div class="closing">
+    <h2>The first word takes ten seconds.</h2>
+    <a class="cta" href="korean-lab.html">시작하기 · Start with word one</a>
+    <span class="cta-note">Works on your phone. Nothing to install.</span>
+  </div>
+
+  <footer>
+    <b>Korean Lab</b> is a free gift from the <b>North Alabama Korean School</b> —
+    북알라바마 한국학교, Huntsville, Alabama.<br>
+    A bridge between Huntsville and Seoul, built with 정성.
+  </footer>
+
+</div>
+
+<audio id="bgm" src="sounds/landing-song.mp3" loop preload="auto"></audio>
+<script>
+(function(){
+  // Soft background music — Cheerful Hanbok Hop, full song, looping quietly.
+  // Browsers block sound before the first interaction, so we try on load and
+  // otherwise start on the visitor's first tap/keypress. The chip remembers "off".
+  var a = document.getElementById('bgm');
+  var btn = document.getElementById('musicBtn');
+  var PREF = 'koreanLabMusicOff';
+  var off = false, started = false;
+  try { off = localStorage.getItem(PREF) === '1'; } catch(e) {}
+
+  function paint(){
+    btn.classList.toggle('off', off);
+    btn.textContent = off ? '♪ 음악 꺼짐' : '♪ 음악';
+    btn.setAttribute('aria-pressed', String(!off));
+    btn.title = off ? 'Turn the music on' : 'Turn the music off';
+  }
+  function fadeTo(target, ms){
+    var v0 = a.volume, t0 = null;
+    function step(ts){ if(t0===null) t0 = ts;
+      var p = Math.min(1, (ts - t0) / ms);
+      a.volume = v0 + (target - v0) * p;
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function start(){
+    if(off || started) return;
+    a.volume = 0;
+    a.play().then(function(){ started = true; fadeTo(0.55, 2000); }).catch(function(){});
+  }
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    off = !off;
+    try { localStorage.setItem(PREF, off ? '1' : '0'); } catch(e2) {}
+    if(off){ a.pause(); started = false; } else { start(); }
+    paint();
+  });
+  ['pointerdown','keydown','touchstart'].forEach(function(ev){
+    document.addEventListener(ev, start, {passive:true});
+  });
+  window.addEventListener('load', start);
+  paint();
+
+  // Hand the song off to the player: when a Start button is clicked mid-song,
+  // remember where the music was so korean-lab.html can pick it up at the same
+  // beat and fade it out gently over the first card (no aggressive stop).
+  document.querySelectorAll('a.cta').forEach(function(link){
+    link.addEventListener('click', function(){
+      try{
+        if(started && !off && !a.paused){
+          sessionStorage.setItem('klMusicHandoff',
+            JSON.stringify({ t: a.currentTime, at: Date.now() }));
+        }
+      }catch(e){}
+    });
+  });
+})();
+</script>
+</body>
+</html>

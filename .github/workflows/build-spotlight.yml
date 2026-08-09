@@ -1,0 +1,46 @@
+name: Rebuild Spotlight pages
+
+# Backstop for the local pre-commit hook. If article data ever lands on main
+# without regenerated pages — a commit made with --no-verify, an edit made in
+# the GitHub web UI, or a clone that never ran the core.hooksPath setup —
+# this rebuilds and commits the pages so the live site can never serve a
+# stale article.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'spotlight-posts.js'
+      - 'content.js'
+      - 'tools/build-spotlight.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Generate article pages
+        run: node tools/build-spotlight.mjs
+
+      - name: Commit regenerated pages if they drifted
+        run: |
+          if git diff --quiet -- spotlight sitemap.xml; then
+            echo "Pages already current — nothing to do."
+            exit 0
+          fi
+          echo "Stale pages detected. Committing rebuild:"
+          git diff --name-only -- spotlight sitemap.xml
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add spotlight sitemap.xml
+          git commit -m "Rebuild Spotlight pages from spotlight-posts.js [auto]"
+          git push
