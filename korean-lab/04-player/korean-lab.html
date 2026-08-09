@@ -2710,21 +2710,9 @@ function paintMusicChip(){
    you name yourself once you've earned the wall. Firestore: wall/{uid},
    owner-write public-read (rules in FIREBASE-SETUP.md Part 4).
    ============================================================ */
-/* LAUNCH GATE (Preston, Aug 2026): the main-screen Hall of Names link currently
-   opens THIS mock-up so the wall can be felt before the backend is on. Before
-   the site goes live: (1) publish the Part 4 rules, (2) change the wallLink
-   handler below from openWall(DEMO_WALL) to openWall(), (3) delete DEMO_WALL.
-   Real accounts then populate the wall and the demo names never ship. */
-const DEMO_WALL_DAY = 864e5;
-const DEMO_WALL = () => { const now = Date.now(); return [
-  { n: '웃는 진돗개',  a: 2,  m: 3, w: 327, j: now - 2*DEMO_WALL_DAY,  mu: now - 2*DEMO_WALL_DAY },
-  { n: '조용한 호랑이', a: 0,  m: 1, w: 114, j: now - 4*DEMO_WALL_DAY,  mu: now - 4*DEMO_WALL_DAY, me: true },
-  { n: 'Demi',        a: 1,  m: 5, w: 568, j: now - 6*DEMO_WALL_DAY,  mu: now - 12*DEMO_WALL_DAY },
-  { n: '빠른 까치',    a: 1,  m: 2, w: 231, j: now - 15*DEMO_WALL_DAY, mu: now - 44*DEMO_WALL_DAY },
-  { n: '용감한 곰',    a: 3,  m: 1, w: 187, j: now - 21*DEMO_WALL_DAY, mu: now - 21*DEMO_WALL_DAY },
-  { n: '다정한 토끼',  a: 4,  m: 4, w: 402, j: now - 33*DEMO_WALL_DAY, mu: now - 60*DEMO_WALL_DAY },
-  { n: '반짝이는 용',  a: 11, m: 8, w: 856, j: now - 50*DEMO_WALL_DAY, mu: now - 35*DEMO_WALL_DAY }
-]; };
+/* LAUNCH GATES FLIPPED 2026-08-09 (player v27): the Part 4 rules are published
+   and both wall entry points open the REAL wall. DEMO_WALL and its demo names
+   are gone — the wall belongs to real learners from day one. */
 
 const AVATARS = [['tiger','호랑이'],['magpie','까치'],['jindo-dog','진돗개'],['bear','곰'],
   ['rabbit','토끼'],['turtle','거북이'],['carp','잉어'],['sparrow','참새'],
@@ -2894,7 +2882,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 document.addEventListener('DOMContentLoaded', ()=>{
   const d = new URLSearchParams(location.search).get('demo');
   if(!d) return;
-  if(d === 'wall'){ openWall(DEMO_WALL()); return; }
+  if(d === 'wall'){ openWall(); return; }
   const m = d.match(/^medal(?:-(\d+))?$/);
   if(!m) return;
   const tier = Math.min(15, Math.max(1, parseInt(m[1] || '1', 10)));
@@ -3002,9 +2990,7 @@ $('gMusic').addEventListener('click', ()=>{
   if(mem.musicOff) bgmStop(); else bgmStart('browse');
   paintMusicChip();
 });
-/* LAUNCH GATE: BOTH wall entry points open the mock-up until the backend is
-   on — switch BOTH to openWall() at launch. See the note above DEMO_WALL. */
-$('gWall').addEventListener('click', ()=>openWall(DEMO_WALL()));
+$('gWall').addEventListener('click', ()=>openWall());
 $('idChip').addEventListener('click', ()=>{
   if($('progress').classList.contains('show')) return;
   bgmStop();
@@ -3056,7 +3042,7 @@ $('studyTop').addEventListener('click', ()=>{
     .slice(0, 10);
   enterFocus(top);
 });
-$('wallLink').addEventListener('click', ()=>openWall(DEMO_WALL()));
+$('wallLink').addEventListener('click', ()=>openWall());
 $('wallBack').addEventListener('click', ()=>{
   bgmDrift();
   show('cards');
