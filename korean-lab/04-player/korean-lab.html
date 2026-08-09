@@ -2151,19 +2151,40 @@ let cloudTimer = null;
 
 const authOn = () => (AUTH.enabled && AUTH.firebase) || AUTH_PREVIEW;
 
+/* SINGLE-FLIGHT (v28, found live 2026-08-09): two concurrent fbReady calls —
+   the auth bootstrap and the wall — each injected their own copy of all three
+   SDK scripts and raced each other's initializeApp. Dynamically-inserted
+   scripts also execute in ARRIVAL order, not insertion order, so
+   firestore-compat could run before app-compat and silently fail to register:
+   firebase.firestore was never a function on the live domain. Now: exactly one
+   injection ever (fbLoad), s.async=false to force in-order execution, init
+   guarded, and a load failure still resolves so callers can show their own
+   error state instead of hanging on "loading…". */
+let fbLoad = null;
 function fbReady(cb){
-  if(window.firebase && firebase.apps.length){ cb(); return; }
-  const srcs = [
-    'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
-    'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
-    'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js'];
-  let left = srcs.length;
-  srcs.forEach(src => {
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = ()=>{ if(--left === 0){ firebase.initializeApp(AUTH.firebase); cb(); } };
-    document.head.appendChild(s);
-  });
+  if(window.firebase && firebase.apps.length && typeof firebase.firestore === 'function'){ cb(); return; }
+  if(!fbLoad){
+    fbLoad = new Promise(done => {
+      const srcs = [
+        'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+        'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
+        'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js'];
+      let left = srcs.length;
+      srcs.forEach(src => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = false;                 // execute in insertion order: app -> auth -> firestore
+        s.onload = s.onerror = ()=>{
+          if(--left === 0){
+            try{ if(window.firebase && !firebase.apps.length) firebase.initializeApp(AUTH.firebase); }catch(e){}
+            done();
+          }
+        };
+        document.head.appendChild(s);
+      });
+    });
+  }
+  fbLoad.then(cb);
 }
 
 /* union-merge: local and cloud can only grow. Counters take the max, sets take
@@ -2253,6 +2274,9 @@ function signIn(which){
     return;
   }
   fbReady(()=>{
+    if(!window.firebase || !firebase.apps.length){
+      flagToast('연결할 수 없어요 — check your connection and try again'); return;
+    }
     const p = which === 'google' ? new firebase.auth.GoogleAuthProvider()
             : which === 'kakao'  ? new firebase.auth.OAuthProvider(AUTH.kakaoProviderId)
             : null;               /* naver: custom-token Cloud Function, post-deploy */
@@ -2329,6 +2353,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 if(authOn() && AUTH.enabled){
   fbReady(()=>{
+    if(!window.firebase || !firebase.apps.length){ return; }   // SDK never loaded: local-only mode
     firebase.auth().onAuthStateChanged(u => {
       authUser = u;
       paintAuth();
@@ -2832,10 +2857,16 @@ function openWall(demoRows){
     return;
   }
   fbReady(()=>{
-    firebase.firestore().collection('wall').orderBy('j', 'desc').limit(500).get()
-      .then(q => renderWall(q.docs.map(d => Object.assign({ id: d.id }, d.data()))))
-      .catch(()=>{ $('wallList').innerHTML =
-        '<p class="note" style="text-align:center">The wall couldn’t load — try again in a moment.</p>'; });
+    try{
+      firebase.firestore().collection('wall').orderBy('j', 'desc').limit(500).get()
+        .then(q => renderWall(q.docs.map(d => Object.assign({ id: d.id }, d.data()))))
+        .catch(()=>{ $('wallList').innerHTML =
+          '<p class="note" style="text-align:center">The wall couldn’t load — try again in a moment.</p>'; });
+    }catch(e){
+      /* SDK failed to load entirely (offline, blocked CDN): fail soft, never hang */
+      $('wallList').innerHTML =
+        '<p class="note" style="text-align:center">The wall couldn’t load — try again in a moment.</p>';
+    }
   });
 }
 
