@@ -470,6 +470,15 @@ body.dripping #controls{opacity:.4; pointer-events:none}
 .id-chip img{width:100%; height:100%; object-fit:cover; display:block}
 .id-chip.in{border-color:var(--accent-green-mid); border-width:2px}
 .id-chip.empty img{opacity:.35}
+/* the display name rides under the avatar on EVERY surface (Preston,
+   2026-08-10) — the rail is the one place identity lives, so the name belongs
+   with the face, not buried in Settings. Right-aligned to keep the rail's end
+   flush with the card's edge; clipped rather than wrapped so it can never
+   push the rail taller and shove the card down. */
+.id-name{max-width:132px; font-size:11px; line-height:1.3; color:var(--ink-faint);
+  text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  margin-top:-3px}
+.id-name:empty{display:none}
 /* settings lives under the avatar, and only while the growth page is open —
    it is that page's control, so it appears where that page's owner is */
 .setbtn{display:none; align-items:center; gap:6px; border:0; background:none; cursor:pointer;
@@ -583,6 +592,7 @@ body::after{
     <div class="topright">
       <button class="id-chip" id="idChip" aria-label="내 성장 · Your progress">
         <img id="idChipImg" alt=""></button>
+      <span class="id-name" id="idName"></span>
       <button class="setbtn" id="gearBtn" aria-label="설정 · Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
           <line x1="3.5" y1="8.5" x2="20.5" y2="8.5"/><circle cx="15" cy="8.5" r="2.6" fill="var(--bg)"/>
@@ -788,7 +798,14 @@ const STAGE_TOTAL = DECK.reduce((s,c)=>s+c.w,0);
    high recycle count is either genuinely hard OR has a picture that is not doing
    its job, and the second case is a bug report about the artwork that only the
    learner can file. */
-const mem = { retired:new Set(), met:new Set(), stats:{}, sinceCheck:0, pending:[], queue:null, qi:0, back:[], flags:{}, flagAck:false, moved:{}, chkN:0, hw:0, hist:{}, miles:[], mute:false, musicOff:false, latBase:[], wall:null, avatar:undefined, dripA:undefined, dripAn:0, dripNote:false };
+/* mem.name is THE display name and the single source of truth for it (2026-08-10).
+   It rides under the avatar on every surface, it is what the Hall of Names
+   publishes, and it is settable at any time — signed in or not, medal or not.
+   mem.wall is now only the WALL RECORD (a/j/m/mu + a mirrored copy of the name);
+   its existence means "this learner has joined the wall", which still requires a
+   medal and still requires them to say yes. Naming yourself is free; being on
+   the wall is earned. */
+const mem = { retired:new Set(), met:new Set(), stats:{}, sinceCheck:0, pending:[], queue:null, qi:0, back:[], flags:{}, flagAck:false, moved:{}, chkN:0, hw:0, hist:{}, miles:[], mute:false, musicOff:false, latBase:[], name:null, wall:null, avatar:undefined, dripA:undefined, dripAn:0, dripNote:false };
 const stat = k => {
   const s = (mem.stats[k] = mem.stats[k] || {p:0, r:0, t:0, n:0});
   if(s.n === undefined) s.n = 0;          // upgrade older saves
@@ -814,7 +831,8 @@ const Store = {
       stats: mem.stats, sinceCheck: mem.sinceCheck, pending: mem.pending,
       flags: mem.flags, flagAck: !!mem.flagAck, moved: mem.moved, chkN: mem.chkN,
       hw: mem.hw, hist: mem.hist, miles: mem.miles, mute: !!mem.mute, musicOff: !!mem.musicOff,
-      latBase: mem.latBase, wall: mem.wall || undefined, hwV2: true,
+      latBase: mem.latBase, name: mem.name || undefined,
+      wall: mem.wall || undefined, hwV2: true,
       avatar: mem.avatar, dripA: mem.dripA, dripAn: mem.dripAn || 0,
       dripNote: mem.dripNote || undefined,
       /* AN UNFINISHED CHECK IS STATE (Preston, 2026-08-09). The check is no
@@ -845,6 +863,10 @@ function restore(){
   if(s.musicOff) mem.musicOff = true;
   if(Array.isArray(s.latBase)) mem.latBase = s.latBase;
   if(s.wall && s.wall.n) mem.wall = s.wall;
+  /* the name used to live only inside the wall record; older saves carry it
+     there, so it migrates out on first load and the wall keeps a mirror. */
+  if(typeof s.name === 'string' && s.name) mem.name = s.name;
+  else if(s.wall && s.wall.n) mem.name = s.wall.n;
   if(typeof s.avatar === 'number') mem.avatar = s.avatar;
   if(typeof s.dripA === 'number') mem.dripA = s.dripA;
   if(typeof s.dripAn === 'number') mem.dripAn = s.dripAn;
@@ -2570,6 +2592,10 @@ function mergeCloud(remote){
   }
   if(remote.flagAck) mem.flagAck = true;
   if(remote.wall && remote.wall.n && !mem.wall) mem.wall = remote.wall;
+  /* the name a learner typed on THIS device wins; the cloud only fills a blank.
+     (There is no per-field timestamp, so a rename made on another device
+     arrives on the next fresh install rather than overwriting live input.) */
+  if(!mem.name) mem.name = remote.name || (remote.wall && remote.wall.n) || null;
   if(typeof remote.avatar === 'number' && mem.avatar === undefined) mem.avatar = remote.avatar;
 }
 
@@ -2598,6 +2624,7 @@ function cloudPush(){
         retired: [...mem.retired], met: [...mem.met], hw: mem.hw, hist: mem.hist, miles: mem.miles,
         stats: mem.stats, flags: mem.flags, chkN: mem.chkN, flagAck: !!mem.flagAck
       };
+      if(mem.name) doc.name = mem.name;
       if(mem.wall) doc.wall = pruneU(mem.wall);
       if(mem.avatar !== undefined) doc.avatar = mem.avatar;
       if(mem.dripA !== undefined){ doc.dripA = mem.dripA; doc.dripAn = mem.dripAn || 0; }
@@ -2646,6 +2673,8 @@ const BLANK_FACE = 'data:image/svg+xml;utf8,' + encodeURIComponent(
 function paintIdChip(){
   const img = $('idChipImg'), chip = $('idChip');
   if(!img || !chip) return;
+  const nm = $('idName');
+  if(nm) nm.textContent = mem.name || '';
   const av = mem.avatar !== undefined ? mem.avatar
            : (mem.wall && mem.wall.n ? (mem.wall.a || 0) : undefined);
   /* your character shows whenever you've chosen one; the GREEN RING is the
@@ -2704,7 +2733,14 @@ if(authOn() && AUTH.enabled){
       authUser = u;
       paintAuth();
       if(u) firebase.firestore().collection('users').doc(u.uid).get()
-        .then(d => { mergeCloud(d.exists ? d.data() : null); Store.write(); paint(); });
+        .then(d => {
+          mergeCloud(d.exists ? d.data() : null);
+          /* AFTER the merge, so a name already saved in the cloud wins over
+             the Google default — signing in on a second device must not
+             silently rename you. */
+          ensureName();
+          Store.write(); paintIdChip(); paintWallMine(); paint();
+        });
     });
   });
 }
@@ -2849,15 +2885,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('setSounds').addEventListener('click', ()=>{
     mem.mute = !mem.mute; Store.write(); paintSettings();
   });
+  /* NO GATES (2026-08-10). This used to require an account AND a medal, and
+     answered a click with a Korean-first toast that flashed past — so a button
+     labelled "Change" did nothing and read as broken. Naming yourself is free
+     now; the WALL is what stays earned. */
   $('setName').addEventListener('click', ()=>{
-    if(!authOn() || !authUser){
-      flagToast('로그인 먼저 — sign in first, in Account above'); return;
-    }
-    if(Math.floor((mem.hw || 0) / 100) < 1){
-      flagToast('첫 메달부터 — your first medal unlocks your name'); return;
-    }
     $('settings').classList.remove('show');
-    openJoin();
+    openJoin('name');
   });
 
   /* wall-join dialog also lives after this script — same standing rule */
@@ -2865,22 +2899,29 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const raw = $('wjName').value;
     const bad = nameProblem(raw);
     if(bad){ $('wjErr').textContent = bad; return; }
-    const prev = mem.wall || {};
-    /* copy only what EXISTS. `j: prev.j` on a first join wrote undefined into
-       mem.wall, which rode into the cloud document and made Firestore's set()
-       throw — inside cloudPush's try, so pushWall never ran and the wall entry
-       (and every later progress sync) died silently. 2026-08-10. */
-    const w = { n: raw.trim().replace(/\s+/g, ' '), a: wjSel };
-    if(prev.j  !== undefined) w.j  = prev.j;
-    if(prev.m  !== undefined) w.m  = prev.m;
-    if(prev.mu !== undefined) w.mu = prev.mu;
-    mem.wall = w;
+    const clean = raw.trim().replace(/\s+/g, ' ');
     mem.avatar = wjSel;
+    if(wjMode === 'wall' && !mem.wall){
+      /* joining: copy only what EXISTS. `j: prev.j` on a first join wrote
+         undefined into mem.wall, which rode into the cloud document and made
+         Firestore's set() throw — inside cloudPush's try, so pushWall never ran
+         and the wall entry (and every later progress sync) died silently. */
+      mem.wall = { n: clean, a: wjSel };
+    }
+    setName(clean);                       // one source of truth, wall mirrors it
+    if(mem.wall) mem.wall.a = wjSel;
     $('wallJoin').classList.remove('show');
     Store.write();
+    paintIdChip();
     paintWallMine();
-    flagToast('올랐어요 — your name is on the wall');
-    openWall();
+    if(!mem.wall){
+      /* no wall entry yet — this was purely a rename, so stay where they are */
+      flagToast('저장했어요 — saved, that is your name now');
+      return;
+    }
+    flagToast(wjMode === 'wall' ? '올랐어요 — your name is on the wall'
+                                : '저장했어요 — saved, that is your name now');
+    if(wjMode === 'wall') openWall();
     /* NOW, not on the 2 s debounce: the wall the learner is looking at has to
        show the name they just chose. Repaint from the server once it lands. */
     pushWall().then(ok => { Store.write(); if(ok) loadWallList(); });
@@ -3119,12 +3160,48 @@ function nameProblem(raw){
 }
 const escName = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+/* FIRST NAME ONLY from the Google account (Preston, 2026-08-10). A Google
+   display name is usually a full legal name and sometimes more — his comes back
+   as "Preston Pysh (We Study Billionaires)", 34 characters. This site serves
+   CHILDREN and the wall is world-readable, so the default takes the first name
+   and nothing else; anyone who wants their full name can type it deliberately.
+   Returns null if nothing usable survives, and the caller falls back to a drawn
+   Korean handle. */
+function firstNameFrom(raw){
+  if(!raw) return null;
+  let n = String(raw)
+    .replace(/[（(\[{].*?[)\]}）]/g, ' ')      // "(We Study Billionaires)"
+    .replace(/[,·|@].*$/, ' ')                // "Pysh, Preston" / handles
+    .replace(/\s+/g, ' ')
+    .trim();
+  n = n.split(' ')[0].slice(0, 24).trim();
+  return (n && !nameProblem(n)) ? n : null;
+}
+/* every learner gets a name the moment there is anything to base one on:
+   the Google first name, else a drawn Korean handle. Never overwrites a name
+   the learner chose. */
+function ensureName(){
+  if(mem.name) return false;
+  const g = authUser ? firstNameFrom(authUser.displayName) : null;
+  const h = drawHandle();
+  mem.name = g || h.name;
+  if(mem.avatar === undefined) mem.avatar = h.av;
+  return true;
+}
+/* the name lives in one place; the wall record only mirrors it */
+function setName(n){
+  mem.name = n;
+  if(mem.wall) mem.wall.n = n;
+}
+
 /* Returns a promise that always RESOLVES — true if the wall doc landed, false
    if it could not. Callers that need the wall repainted (rename) chain on it;
    callers that don't (the debounce) ignore it. It never rejects, so it can
    never leave an unhandled rejection behind. */
 function pushWall(){
-  if(!authUser || !mem.wall || !mem.wall.n) return Promise.resolve(false);
+  if(!authUser || !mem.wall) return Promise.resolve(false);
+  if(mem.name) mem.wall.n = mem.name;          // the wall always mirrors the name
+  if(!mem.wall.n) return Promise.resolve(false);
   const medal = Math.min(15, Math.floor((mem.hw || 0) / 100));
   if(medal < 1) return Promise.resolve(false);
   if(!mem.wall.j) mem.wall.j = Date.now();
@@ -3133,7 +3210,7 @@ function pushWall(){
      or already >= medal >= 1, w is hw which medal>=1 proves is >= 100. */
   try{
     return firebase.firestore().collection('wall').doc(authUser.uid).set({
-      n: mem.wall.n, a: mem.wall.a || 0, m: mem.wall.m || medal, w: mem.hw || 0,
+      n: mem.name || mem.wall.n, a: mem.wall.a || 0, m: mem.wall.m || medal, w: mem.hw || 0,
       j: mem.wall.j, mu: mem.wall.mu || mem.wall.j, u: Date.now()
     }).then(()=>true, ()=>false);
   }catch(e){ return Promise.resolve(false); }
@@ -3177,25 +3254,41 @@ function paintWallMine(){
   if(mem.wall && mem.wall.n){
     el.innerHTML = `You're on the wall as <b>${escName(mem.wall.n)}</b>.<br>`
       + `<button class="btn" id="wallEdit">이름 바꾸기 · Change my name</button>`;
-    $('wallEdit').addEventListener('click', ()=>openJoin());
+    $('wallEdit').addEventListener('click', ()=>openJoin('name'));
   }else if(!authUser){
     el.innerHTML = `Your first medal puts your name here — forever.<br>`
       + `<button class="btn" id="wallSignIn">로그인 · Sign in to join</button>`;
     $('wallSignIn').addEventListener('click', ()=>$('authSheet').classList.add('show'));
   }else if(medal < 1){
-    const left = 100 - (mem.hw || 0);
+    const left = Math.max(0, 100 - (mem.hw || 0));
     el.innerHTML = `Your first medal — at 100 words — puts your name here forever. `
       + `<b>${left} word${left === 1 ? '' : 's'} to go.</b>`;
   }else{
     el.innerHTML = `You've earned your place.<br>`
       + `<button class="btn primary" id="wallAdd">이름 올리기 · Put your name on the wall</button>`;
-    $('wallAdd').addEventListener('click', ()=>openJoin());
+    $('wallAdd').addEventListener('click', ()=>openJoin('wall'));
   }
 }
 let wjSel = 0;
-function openJoin(){
-  const seed = (mem.wall && mem.wall.n) ? { name: mem.wall.n, av: mem.wall.a || 0 }
-             : Object.assign(drawHandle(), mem.avatar !== undefined ? { av: mem.avatar } : {});
+let wjMode = 'name';        // 'name' = just my display name · 'wall' = joining the wall
+/* ONE dialog, two jobs, and it must say which one it is doing. Calling a plain
+   rename "이름을 걸어요 · Put your name on the wall" was part of why the control
+   read as broken — the words promised something the click didn't do. */
+function openJoin(mode){
+  wjMode = mode === 'wall' ? 'wall' : 'name';
+  if(!mem.name) ensureName();
+  const seed = { name: mem.name || drawHandle().name,
+                 av: mem.avatar !== undefined ? mem.avatar
+                   : (mem.wall ? (mem.wall.a || 0) : 0) };
+  $('wjTitle').textContent = wjMode === 'wall'
+    ? '이름을 걸어요 · Put your name on the wall'
+    : '이름 · Your display name';
+  $('wjBody').textContent = wjMode === 'wall'
+    ? 'This is the name and character that will appear on the Hall of Names. '
+      + 'First name or nickname only — never a full name, never a location.'
+    : 'Shows under your character, and on the Hall of Names when you join. '
+      + 'First name or nickname only — never a full name, never a location.';
+  $('wjYes').textContent = wjMode === 'wall' ? '올리기 · Put me up' : '저장 · Save';
   $('wjName').value = seed.name;
   wjSel = seed.av;
   $('wjAvatars').innerHTML = AVATARS.map((a, i) =>
@@ -3470,6 +3563,12 @@ function paintSettings(){
     [...$('setAvatars').children].forEach(x => x.classList.toggle('sel', +x.dataset.i === mem.avatar));
     paintIdChip();
   }));
+  /* show the name the button changes — a control with no visible subject is
+     half a control (this row is what read as broken before 2026-08-10). */
+  const nameCur = $('setNameCur');
+  if(nameCur) nameCur.textContent = mem.name
+    ? mem.name + ' — shows under your character, and on the Hall of Names'
+    : 'shows under your character — and on the Hall of Names';
   $('setMusic').textContent  = mem.musicOff ? '꺼짐 · Off' : '켜짐 · On';
   $('setSounds').textContent = mem.mute ? '꺼짐 · Off' : '켜짐 · On';
   const acc = $('setAccount');
@@ -3685,7 +3784,7 @@ if(mem.queue && mem.queue.length && mem.qi < mem.queue.length){
       <small>shows in the corner — and on the Hall of Names when you join</small></span>
       <div class="wj-avatars" id="setAvatars" style="margin-bottom:0"></div></div>
     <div class="set-row"><span>이름 · Display name<br>
-      <small>how you appear on the Hall of Names</small></span>
+      <small id="setNameCur">shows under your character — and on the Hall of Names</small></span>
       <button class="btn" id="setName">바꾸기 · Change</button></div>
     <div class="set-row"><span>배경 음악 · Background music<br>
       <small>off = only the Korean voices, everywhere</small></span>
@@ -3713,9 +3812,10 @@ if(mem.queue && mem.queue.length && mem.qi < mem.queue.length){
 
 <div class="flagc" id="wallJoin" role="dialog" aria-modal="true" aria-labelledby="wjTitle">
   <div class="flagc-box">
-    <div class="flagc-title" id="wjTitle">이름을 걸어요 · Put your name on the wall</div>
-    <div class="flagc-body">First name or nickname only — never a full name, never a
-    location. Or keep the name we drew for you; it's yours.</div>
+    <div class="flagc-title" id="wjTitle">이름 · Your display name</div>
+    <div class="flagc-body" id="wjBody">Shows under your character, and on the Hall of
+    Names when you join. First name or nickname only — never a full name, never a
+    location.</div>
     <div class="wj-handle">
       <input id="wjName" maxlength="24" autocomplete="off">
       <button class="btn" id="wjSpin" title="Draw another name">↻</button>
