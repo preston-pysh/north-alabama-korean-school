@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Korean Lab</title>
+<meta name="description" content="Korean Lab — learn the words Korean speakers actually use, from pictures and sound. North Alabama Korean School.">
+<meta name="theme-color" content="#ffffff">
+<!-- Home-screen icon. iOS renders any transparency in an apple-touch-icon as
+     BLACK, so these files are flat RGB (the emblem composited on white) with no
+     alpha channel at all. iOS applies its own squircle mask; the 6% padding
+     keeps the emblem clear of the rounded corners. Deliberately NOT setting
+     apple-mobile-web-app-capable: true standalone mode breaks Google's
+     signInWithPopup on iOS, which would cost accounts to buy an app frame. -->
+<link rel="apple-touch-icon" sizes="180x180" href="landing-assets/naks-icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="landing-assets/naks-icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="landing-assets/naks-icon-32.png">
+<meta name="apple-mobile-web-app-title" content="Korean Lab">
 <style>
 :root{
   --bg:#ffffff; --bg-alt:#fbfbfd;
@@ -13,7 +25,15 @@
      the mugunghwa petals and the medal art. --accent IS the brand blue. */
   --accent:#1f4788; --accent-dk:#16345c; --accent-bg:#e9edf6;
   --accent-blue:#1f4788; --accent-blue-bg:#e9edf6;
-  --accent-green:#9bc23a; --accent-green-dk:#6e8f1f; --accent-green-bg:#f0f6e2;
+  /* THE BRAND GREEN IS THE LOGO'S GREEN (corrected 2026-08-09). #9bc23a was a
+     grass green at hue 77 degrees; sampling the NAKS emblem itself
+     (assets/logo-emblem.png, 13,690 px of it) gives #d8e864 — hue 67, lighter
+     and distinctly more chartreuse. Preston saw the mismatch on the button.
+     The whole green family now derives from the logo: -mid is a deepened
+     version of the same hue for edges and hover, -dk carries text weight. */
+  --accent-green:#d8e864; --accent-green-mid:#bcd043;
+  --accent-green-dk:#5f6d12; --accent-green-bg:#f5f8dd;
+  --accent-green-ink:#36420a;
   --warn:#a8781f;
   --radius:18px; --ease:cubic-bezier(.22,.61,.36,1);
 }
@@ -34,9 +54,21 @@ body{
 }
 .wrap{width:100%; max-width:720px; display:flex; flex-direction:column; align-items:center}
 
-.cov{text-align:center; margin-bottom:40px}
-.cov-num{font-size:64px; font-weight:300; letter-spacing:-.03em; line-height:1; font-variant-numeric:tabular-nums}
-.cov-lbl{font-size:13.5px; color:var(--ink-faint); margin-top:10px}
+/* THE HEADER RAIL — progress on the left, identity on the right, both flush
+   with the content column's edges (the same lines the arrows sit on). */
+/* the rail is inset by exactly one arrow + gap on each side, so its two ends
+   land on the CARD's vertical edges — the strongest lines on the screen */
+.topbar{width:100%; max-width:568px; padding:0 64px; display:flex;
+  align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:34px}
+.cov{display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+  border:0; background:none; padding:4px 8px 4px 0; margin:0; cursor:pointer;
+  text-align:left; font:inherit; border-radius:12px; transition:.2s var(--ease)}
+.cov:hover{opacity:.72}
+.cov-num{font-size:30px; font-weight:300; letter-spacing:-.02em; line-height:1.05;
+  font-variant-numeric:tabular-nums; color:var(--ink)}
+.cov-lbl{font-size:10.5px; line-height:1.45; color:var(--ink-faint);
+  letter-spacing:.04em; text-transform:uppercase}
+.topright{display:flex; flex-direction:column; align-items:flex-end; gap:8px}
 
 .stage{display:flex; align-items:center; gap:20px; width:100%; justify-content:center}
 .arrow{flex:0 0 auto; width:44px; height:44px; border:0; background:none; cursor:pointer;
@@ -185,9 +217,15 @@ body{
   background:var(--warmDD,#b9b1a4); background:#cfc9bf}
 .arcticks i.hit{background:var(--accent-dk)}
 .arcnote{font-size:12px; color:var(--ink-faint); text-align:center; margin-top:2px}
-.growth-cov{font-size:13px; color:var(--ink-soft); text-align:center; line-height:1.7;
-  margin-top:4px}
-.growth-cov b{color:var(--ink)}
+/* The coverage pair that used to sit here (X% of everyday speech · Y% of what
+   pictures can teach, + the phrase-track note) was REMOVED 2026-08-10 at
+   Preston's call: the % in the top-left rail is on every screen and its
+   write-up explains the same arithmetic in far more detail, so restating it
+   under the medal shelf was noise. The header % and its explainer are the one
+   home for this number. */
+@media (hover:hover) and (pointer:fine){
+  .cov{cursor:pointer}
+}
 
 /* REVIEW MODE — browsing words already known. Same sacred card, visibly
    different dress so it can never be mistaken for learning. Since the brand
@@ -197,12 +235,24 @@ body{
   padding:8px 10px 8px 22px; margin:0 auto 22px; width:fit-content;
   font-size:13.5px; font-weight:600}
 body.reviewing .review-banner{display:flex}
+/* focus study wears the ORDINARY learning dress on purpose (Preston): same
+   card, same green commit, no banner — only the meta line and the Leave
+   button say you are in the ten. */
+body.focusing .review-banner{display:none}
 .review-banner .btn{color:var(--accent-green-dk); font-size:13px; padding:6px 14px}
 .review-banner .btn:hover{background:rgba(255,255,255,.7)}
 body.reviewing .card{border-color:var(--accent-green-dk); box-shadow:0 0 0 1px var(--accent-green-bg)}
 body.reviewing .btn.primary{color:var(--accent-green-dk); background:var(--accent-green-bg)}
-body.reviewing #testBtn, body.reviewing #reviewBtn{display:none}
-body.reviewing .controls .dot{display:none}
+/* in review mode #retire is a DEMOTE ("잘 몰라요"), so it sheds the green —
+   the commit colour is reserved for forward progress */
+/* REVIEW KNOWN IS A PURE BROWSE (Preston, 2026-08-09). The commit button used
+   to become "잘 몰라요 · Not solid yet" here and demote the word out of the
+   known pile. Removed: browsing what you own should not be a place where you
+   can lose it by accident. Words come back through the drip and the check,
+   which is where a real miss is measured anyway. */
+body.reviewing #controls{display:none}
+body.reviewing #reviewBtn{display:none}
+body.reviewing .subcontrols .dot{display:none}
 
 /* ACCOUNTS — the save-progress moment. Hidden entirely until AUTH.enabled
    (or ?auth=preview). Never a wall, never a nag: a ghost link under the
@@ -213,7 +263,7 @@ body.reviewing .controls .dot{display:none}
   border-radius:999px; transition:.2s var(--ease)}
 .savelink.show{display:inline-block}
 .savelink:hover{background:var(--bg-alt); color:var(--ink-soft)}
-.savelink.saved{color:var(--accent-green); cursor:default}
+.savelink.saved{color:var(--accent-green-dk); cursor:default}
 .savelink.saved:hover{background:none}
 .auth-sheet{position:fixed; inset:0; background:rgba(29,29,31,.34); backdrop-filter:blur(4px);
   display:none; align-items:flex-end; justify-content:center; z-index:70}
@@ -263,6 +313,36 @@ body.reviewing .controls .dot{display:none}
 .flagc-note::placeholder{color:var(--ink-faint)}
 .flagc-row{display:flex; gap:10px; justify-content:center}
 
+/* ── "WHERE DOES THIS NUMBER COME FROM?" ─────────────────────────────────
+   A coverage percentage invites exactly one reaction from a thoughtful
+   reader — "yeah, right" — and they deserve the arithmetic rather than a
+   marketing voice. One shared panel serves every place the number is
+   published. DESKTOP ONLY (Preston): it is a long read that belongs on a
+   screen with a pointer; phones never see the affordance. */
+.whybtn{display:none; align-items:center; justify-content:center;
+  width:17px; height:17px; flex:0 0 auto; padding:0; margin-left:7px;
+  border:1px solid var(--line); background:none; border-radius:50%;
+  color:var(--ink-faint); font:inherit; font-size:10.5px; font-weight:600;
+  line-height:1; cursor:pointer; vertical-align:middle; transition:.2s var(--ease)}
+@media (hover:hover) and (pointer:fine){ .whybtn{display:inline-flex} }
+.whybtn:hover{color:var(--accent-dk); border-color:var(--accent); background:var(--accent-bg)}
+.whybox{max-width:600px; text-align:left; padding:30px 32px 24px;
+  max-height:82vh; overflow-y:auto; -webkit-overflow-scrolling:touch}
+.whybox h3{font-size:17px; font-weight:600; margin:0 0 4px; color:var(--ink)}
+.whybox .whysub{font-size:12.5px; color:var(--ink-faint); margin-bottom:20px}
+.whybox h4{font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-faint); margin:22px 0 7px}
+.whybox p{font-size:14px; line-height:1.68; color:var(--ink-soft); margin:0 0 11px}
+.whybox b{color:var(--ink); font-weight:600}
+.whytable{width:100%; border-collapse:collapse; margin:6px 0 4px;
+  font-size:13.5px; font-variant-numeric:tabular-nums}
+.whytable td{padding:5px 0; border-bottom:1px solid var(--line); color:var(--ink-soft)}
+.whytable td:last-child{text-align:right; color:var(--ink); font-weight:600}
+.whytable tr:last-child td{border-bottom:0}
+.whycaveat{background:var(--bg-alt); border-radius:12px; padding:14px 16px; margin:6px 0 4px}
+.whycaveat p{margin:0 0 8px}
+.whycaveat p:last-child{margin:0}
+
 /* ---------- the Hall of Names — a wall, not a ladder ---------- */
 .wall-mine{background:var(--cream); border-radius:var(--radius); padding:18px 22px;
   margin:6px 0 22px; font-size:14px; color:var(--ink-soft); text-align:center; line-height:1.6}
@@ -300,6 +380,21 @@ body.reviewing .controls .dot{display:none}
 .btn:hover{background:var(--bg-alt); color:var(--ink)}
 .btn.primary{color:var(--accent-dk); background:var(--accent-bg)}
 .btn.primary:hover{filter:brightness(.97)}
+/* THE COMMIT BUTTON — brand green, filled, alone. Deep-green text rather than
+   white: #9bc23a is a bright spring green and white on it reads at ~2:1, which
+   fails anyone in sunlight; the deep green reads at ~5:1 and keeps the colour. */
+.btn.commit{background:var(--accent-green); color:var(--accent-green-ink); font-weight:600;
+  font-size:15px; padding:13px 40px; min-width:220px;
+  border:1px solid var(--accent-green-mid);
+  box-shadow:0 2px 10px rgba(188,208,67,.35)}
+.btn.commit:hover{background:var(--accent-green-mid); border-color:var(--accent-green-mid);
+  box-shadow:0 4px 16px rgba(188,208,67,.45)}
+.btn.commit:active{transform:translateY(1px)}
+.subcontrols{display:flex; align-items:center; gap:8px; margin-top:14px;
+  flex-wrap:wrap; justify-content:center}
+.btn.ghost{font-size:13px; color:var(--ink-faint); padding:7px 14px}
+.btn.ghost:hover{color:var(--ink-soft)}
+body.dripping #subControls{opacity:.4; pointer-events:none}
 .dot{width:3px;height:3px;border-radius:50%;background:var(--line)}
 
 .voices{display:flex; align-items:center; gap:7px; margin-top:20px; opacity:.6; transition:opacity .22s var(--ease)}
@@ -322,7 +417,7 @@ body.reviewing .controls .dot{display:none}
 
 .test{display:none; width:100%; flex-direction:column; align-items:center}
 .test.show{display:flex}
-.stage.hidden,.controls.hidden,.voices.hidden,.statwrap.hidden,.meta.hidden{display:none}
+.stage.hidden,.controls.hidden,.subcontrols.hidden,.voices.hidden,.statwrap.hidden,.meta.hidden{display:none}
 .test-q{font-size:14px; color:var(--ink-soft); margin-bottom:8px}
 .test-play{border:0; background:var(--accent-bg); color:var(--accent-dk); cursor:pointer;
   border-radius:999px; padding:12px 26px; font:inherit; font-size:15px; font-weight:500;
@@ -332,7 +427,7 @@ body.reviewing .controls .dot{display:none}
   overflow:hidden; cursor:pointer; padding:0; transition:.2s var(--ease)}
 .opt:hover{box-shadow:0 8px 26px rgba(0,0,0,.06)}
 .opt img{display:block;width:100%;height:100%;object-fit:cover}
-.opt.right{border-color:var(--accent-green); box-shadow:0 0 0 2px rgba(155,194,58,.25)}
+.opt.right{border-color:var(--accent-green-mid); box-shadow:0 0 0 2px rgba(188,208,67,.3)}
 .opt.wrong{opacity:.35}
 
 /* THE DRIP — a single review question living INSIDE the card stream
@@ -355,26 +450,34 @@ body.dripping .card{display:none}
 .card video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
   opacity:0; transition:opacity .3s var(--ease); pointer-events:none}
 .card.clipping video{opacity:1}
-/* while a drip is up, the card-level controls point at a hidden card — freeze
-   them rather than let "I know this" retire something invisible */
-body.dripping .controls{opacity:.4; pointer-events:none}
+/* While a drip is up, the CARD-SCREEN controls point at a hidden card — freeze
+   them rather than let "I know this" retire something invisible.
+   SCOPED BY ID, and that matters (Preston, 2026-08-09): as `.controls` this
+   also froze every other control block in the app, because Progress, the Hall
+   of Names and the score screen all use the same class. Walking to Progress
+   during a drip left its buttons at 40% opacity with pointer-events:none —
+   visibly there, completely unclickable. A state class that describes ONE
+   surface must never be written against a class other surfaces share. */
+body.dripping #controls{opacity:.4; pointer-events:none}
 
 .check{display:none; width:100%; flex-direction:column; align-items:center; position:relative}
 /* the identity chip — always in the top right corner: your character when
    signed in, a blank face when not. Tap = the Progress page. */
-.id-chip{position:fixed; top:16px; right:16px; z-index:40; width:44px; height:44px;
-  border-radius:50%; border:1.5px solid var(--line); background:var(--cream); padding:0;
-  cursor:pointer; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.06);
-  transition:.2s var(--ease)}
-.id-chip:hover{transform:scale(1.05); box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.id-chip{width:38px; height:38px; flex:0 0 auto;
+  border-radius:50%; border:1px solid var(--line); background:var(--bg-alt); padding:0;
+  cursor:pointer; overflow:hidden; transition:.2s var(--ease)}
+.id-chip:hover{border-color:var(--ink-faint); box-shadow:0 3px 12px rgba(0,0,0,.07)}
 .id-chip img{width:100%; height:100%; object-fit:cover; display:block}
-.id-chip.in{border-color:var(--accent-green); border-width:2px}
-.id-chip.empty{border-style:dashed}
-.gear{position:absolute; top:4px; right:8px; z-index:5; line-height:0;
-  background:none; border:none; cursor:pointer; color:var(--ink-faint);
-  padding:9px; border-radius:50%; transition:.2s var(--ease)}
-.gear:hover{color:var(--accent-dk); background:var(--bg-alt)}
-.gear svg{width:20px; height:20px}
+.id-chip.in{border-color:var(--accent-green-mid); border-width:2px}
+.id-chip.empty img{opacity:.35}
+/* settings lives under the avatar, and only while the growth page is open —
+   it is that page's control, so it appears where that page's owner is */
+.setbtn{display:none; align-items:center; gap:6px; border:0; background:none; cursor:pointer;
+  font:inherit; font-size:11.5px; color:var(--ink-faint); padding:5px 9px;
+  border-radius:999px; white-space:nowrap; transition:.2s var(--ease)}
+body.on-progress .setbtn{display:inline-flex}
+.setbtn:hover{color:var(--accent-dk); background:var(--bg-alt)}
+.setbtn svg{width:16px; height:16px; flex:0 0 auto}
 .set-row{display:flex; justify-content:space-between; align-items:center; gap:14px;
   padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; text-align:left}
 .set-row small{color:var(--ink-faint); font-size:12px}
@@ -385,7 +488,7 @@ body.dripping .controls{opacity:.4; pointer-events:none}
 .chk-sub{font-size:13.5px; color:var(--ink-faint); margin-top:7px; line-height:1.5}
 .chk-dots{display:flex; gap:6px; margin-top:26px}
 .chk-dots i{width:6px; height:6px; border-radius:50%; background:var(--line); transition:.25s var(--ease)}
-.chk-dots i.done{background:var(--accent-green)}
+.chk-dots i.done{background:var(--accent-green-mid)}
 .chk-dots i.miss{background:var(--accent)}
 .chk-dots i.now{background:var(--ink-faint); transform:scale(1.5)}
 .backlist{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:520px; margin:22px 0 4px}
@@ -402,14 +505,32 @@ body.dripping .controls{opacity:.4; pointer-events:none}
 .stats td:last-child{text-align:right; color:var(--ink-faint)}
 .stats td.vcell{width:42px; text-align:right; padding-right:14px;
   color:var(--accent-dk); font-weight:600}
-.stats td.rcell{width:46px; text-align:center; color:var(--ink-faint); font-weight:600}
+.stats td.rcell{width:74px; text-align:center; padding-right:16px;
+  color:var(--ink-faint); font-weight:600}
 .stats td.tcell{width:64px; text-align:right; padding-right:14px; color:var(--ink-soft);
   white-space:nowrap}
-.stats tr.hdr td{font-size:10.5px; font-weight:600; letter-spacing:.06em;
+.stats tr.hdr td{font-size:10px; font-weight:600; letter-spacing:.05em;
   text-transform:uppercase; color:var(--ink-faint); line-height:1.35;
-  border-bottom:2px solid var(--line); padding-bottom:7px}
+  border-bottom:2px solid var(--line); padding-bottom:7px; vertical-align:bottom}
+.stats tr.hdr td.rcell{padding-right:16px}
 .stats tr.hdr td:last-child, .stats tr.hdr td.vcell{color:var(--ink-faint)}
-.stats .warn{color:var(--warn); font-weight:500}
+.stats td.ccell{width:74px; text-align:right; color:var(--ink-soft)}
+.stats td.ccell .untested{color:var(--ink-faint)}
+/* the hover card — desktop only; touch devices never see (or need) it */
+.hoveronly{display:none}
+@media (hover:hover) and (pointer:fine){
+  .hoveronly{display:inline}
+  .stats tr[data-k]:hover{background:var(--bg-alt)}
+}
+.histtip{position:absolute; z-index:60; max-width:250px; pointer-events:none;
+  background:var(--bg); border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 10px 34px rgba(0,0,0,.11); padding:11px 14px;
+  font-size:12.5px; line-height:1.6; color:var(--ink-soft);
+  opacity:0; transform:translateY(3px); transition:.14s var(--ease)}
+.histtip.show{opacity:1; transform:none}
+.histtip b{color:var(--ink)}
+.histtip .ht-en{color:var(--ink-faint)}
+.histtip .ht-row{display:block; margin-top:5px}
 .stats .note{color:var(--ink-faint); font-size:12.5px; margin:12px 0 0; line-height:1.55}
 
 /* the city backdrop — Huntsville on the left, Seoul on the right. PAGE furniture,
@@ -432,24 +553,44 @@ body::after{
 @media (max-width:640px){ body::after{ height:26vh; opacity:.26 } }
 
 @media (max-width:640px){
-  body{padding:28px 16px 44px}
-  .cov-num{font-size:52px}
+  body{padding:24px 16px 44px}
+  .topbar{margin-bottom:24px; padding:0 44px}
+  .cov-num{font-size:26px}
+  .cov-lbl{font-size:10px}
   .stage{gap:6px}
   .arrow{width:38px;height:38px}
+  .btn.commit{width:100%; max-width:340px; min-width:0}
 }
 </style>
 </head>
 <body>
-<button class="id-chip" id="idChip" aria-label="내 성장 · Your progress">
-  <img id="idChipImg" alt=""></button>
 <div class="wrap">
   <div class="notice" id="notice"></div>
 
-  <div class="cov">
-    <div class="cov-num" id="covNum">0.0%</div>
-    <div class="cov-lbl">of the content words in everyday spoken Korean</div>
-    <button class="savelink" id="saveLink">저장 · Save progress</button>
-  </div>
+  <!-- THE HEADER LINE (2026-08-09). Was: a 64px coverage number as the page's
+       hero with a long grey caption under it, plus an avatar floating in the
+       viewport's corner attached to nothing. Preston: "an engineer with no
+       design sense put it there." Now both sit on one quiet header rail
+       aligned to the content column — the same vertical lines the arrows and
+       the card use — so the CARD is the hero of the screen and the numbers
+       are reference. The honest wording is unchanged; only its scale is. -->
+  <header class="topbar">
+    <button class="cov" id="covBtn" aria-label="이 숫자는 어디서 왔나 · Where this number comes from">
+      <span class="cov-num" id="covNum">0.0%</span>
+      <span class="cov-lbl">content words in<br>everyday spoken Korean</span>
+    </button><button class="whybtn" data-why="1" aria-label="Where this number comes from"
+      title="Where this number comes from" style="margin-top:9px">?</button>
+    <div class="topright">
+      <button class="id-chip" id="idChip" aria-label="내 성장 · Your progress">
+        <img id="idChipImg" alt=""></button>
+      <button class="setbtn" id="gearBtn" aria-label="설정 · Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <line x1="3.5" y1="8.5" x2="20.5" y2="8.5"/><circle cx="15" cy="8.5" r="2.6" fill="var(--bg)"/>
+          <line x1="3.5" y1="15.5" x2="20.5" y2="15.5"/><circle cx="9" cy="15.5" r="2.6" fill="var(--bg)"/>
+        </svg><span>설정 · Settings</span></button>
+    </div>
+  </header>
+  <button class="savelink" id="saveLink">저장 · Save progress</button>
 
   <div class="review-banner" id="reviewBanner">
     <span id="rvLabel">복습 · Reviewing words you already know</span>
@@ -479,14 +620,20 @@ body::after{
     </button>
   </div>
 
+  <!-- THE COMMIT (2026-08-09). "I know this" used to be one of four peers in a
+       dotted row, which read as four site tools of equal weight — but it is the
+       only control here with a consequence: it shrinks the deck and grows the
+       number. It now stands alone directly under the card in the brand green
+       (isolation + colour = the reward moment), with the two mode toggles set
+       small and quiet below it. In review mode the same button becomes a
+       demote, so the green is dropped there — green means progress only. -->
   <div class="controls" id="controls">
-    <button class="btn primary" id="retire">I know this</button>
-    <div class="dot"></div>
-    <button class="btn" id="showBtn">Hide English</button>
-    <div class="dot"></div>
-    <button class="btn" id="testBtn">Test me</button>
-    <div class="dot"></div>
-    <button class="btn" id="reviewBtn">복습 · Review known</button>
+    <button class="btn commit" id="retire">I know this</button>
+  </div>
+  <div class="subcontrols" id="subControls">
+    <button class="btn ghost" id="showBtn">Hide English</button>
+    <div class="dot" id="subDot"></div>
+    <button class="btn ghost" id="reviewBtn">복습 · Review known</button>
   </div>
 
   <div class="check" id="check">
@@ -512,15 +659,12 @@ body::after{
   </div>
 
   <div class="check" id="progress">
-    <button class="gear" id="gearBtn" aria-label="설정 · Settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <line x1="4" y1="6.5" x2="20" y2="6.5"/><circle cx="14.5" cy="6.5" r="2.5" fill="#fff"/>
-        <line x1="4" y1="12" x2="20" y2="12"/><circle cx="8.5" cy="12" r="2.5" fill="#fff"/>
-        <line x1="4" y1="17.5" x2="20" y2="17.5"/><circle cx="16.5" cy="17.5" r="2.5" fill="#fff"/>
-      </svg></button>
+    <!-- the settings control moved OUT of this corner (2026-08-09) and up into
+         the header rail, directly beneath the avatar it belongs to -->
     <div class="chk-head">
       <div class="chk-title">나의 성장 · Your growth</div>
-      <div class="chk-sub">Every word you've proven on a test, counted honestly. This number never goes down.</div>
+      <div class="chk-sub">Every word you have proven on a test at least once — a record of how
+        far you have come.</div>
     </div>
     <div class="growth-hero"><div class="gnum" id="gNum">0</div>
       <div class="glbl">단어 · words proven on tests</div></div>
@@ -534,13 +678,12 @@ body::after{
       <div class="arcticks" id="gTicks"></div>
       <div class="arcnote" id="gArcNote"></div>
     </div>
-    <div class="growth-cov" id="gCov"></div>
-    <div class="controls" style="margin-top:26px"><button class="btn primary" id="gBackTop">계속 · Back to the cards</button></div>
+    <div class="controls" style="margin-top:26px"><button class="btn commit" id="gBackTop">계속 · Back to the cards</button></div>
     <div class="wall-sect" style="margin-top:30px">단어 기록 · Word history</div>
     <div class="controls" style="margin-top:2px; margin-bottom:6px">
       <button class="btn" id="studyTop">상위 10 공부 · Study my top ten</button></div>
     <div class="stats show" id="gHist"></div>
-    <div class="controls"><button class="btn primary" id="gBack">계속 · Back to the cards</button>
+    <div class="controls"><button class="btn commit" id="gBack">계속 · Back to the cards</button>
       <button class="btn" id="gWall">명예의 전당 · Hall of Names</button>
       <button class="btn" id="gMusic">♪ 음악</button></div>
   </div>
@@ -572,12 +715,11 @@ body::after{
     </div>
   </div>
 
-  <div class="test" id="test">
-    <div class="test-q">Which one?</div>
-    <button class="test-play" id="testPlay">&#9656; Play again</button>
-    <div class="grid" id="testGrid"></div>
-    <div class="controls"><button class="btn" id="testExit">Back to cards</button></div>
-  </div>
+  <!-- "Test me" lived here until 2026-08-09. Retired, not lost: it drew a
+       RANDOM card from the whole deck — including words never met — while the
+       drip and the ten-card check both serve items chosen by priority, on
+       their own, continuously. A manual quiz button on top of that is a fourth
+       way to be tested that tests worse. `startTest()` went with it. -->
 
   <div class="voices" id="voices">
     <span class="vlbl">Voice</span>
@@ -674,7 +816,15 @@ const Store = {
       hw: mem.hw, hist: mem.hist, miles: mem.miles, mute: !!mem.mute, musicOff: !!mem.musicOff,
       latBase: mem.latBase, wall: mem.wall || undefined, hwV2: true,
       avatar: mem.avatar, dripA: mem.dripA, dripAn: mem.dripAn || 0,
-      dripNote: mem.dripNote || undefined })); }catch(e){} }
+      dripNote: mem.dripNote || undefined,
+      /* AN UNFINISHED CHECK IS STATE (Preston, 2026-08-09). The check is no
+         longer offered — it flows in like any other card — so walking away
+         mid-check must not lose it or silently re-ask the same ten later.
+         Queue, position and the missed list ride along; endCheck() clears
+         them, so only a genuinely unfinished check is ever restored. */
+      chk: mem.queue ? { q: mem.queue, i: mem.qi, back: mem.back || [],
+                         mode: mem.offerMode || undefined } : undefined
+    })); }catch(e){} }
 };
 function restore(){
   const s = Store.read(); if(!s) return;
@@ -699,6 +849,11 @@ function restore(){
   if(typeof s.dripA === 'number') mem.dripA = s.dripA;
   if(typeof s.dripAn === 'number') mem.dripAn = s.dripAn;
   if(s.dripNote) mem.dripNote = true;
+  if(s.chk && Array.isArray(s.chk.q) && s.chk.q.length && s.chk.i < s.chk.q.length){
+    mem.queue = s.chk.q; mem.qi = s.chk.i || 0;
+    mem.back = Array.isArray(s.chk.back) ? s.chk.back : [];
+    if(s.chk.mode) mem.offerMode = s.chk.mode;
+  }
   /* one-time migration to VERIFIED counting: old saves carry an hw built from
      "I know this" clicks. Recompute from test passes, cap the history curve,
      and revoke any medal the old counting handed out early — it will be
@@ -707,7 +862,10 @@ function restore(){
     mem.hw = verifiedCount();
     Object.keys(mem.hist).forEach(d => { mem.hist[d] = Math.min(mem.hist[d], mem.hw); });
     mem.miles = mem.miles.filter(m => m <= Math.floor(mem.hw / 100));
-    if(mem.wall) mem.wall.m = Math.min(mem.wall.m || 0, Math.floor(mem.hw / 100)) || undefined;
+    if(mem.wall){
+      const m0 = Math.min(mem.wall.m || 0, Math.floor(mem.hw / 100));
+      if(m0) mem.wall.m = m0; else delete mem.wall.m;  // DELETE — never store undefined (see pruneU)
+    }
   }
   mem.hwV2 = true;
 }
@@ -739,11 +897,20 @@ const learnList = () => {
   }
   return base;
 };
-let focusList = null;   // when set, review mode walks THESE words instead
-const reviewList = () => focusList
-  ? DECK.filter(c => focusList.includes(c.k))
-  : DECK.filter(c => mem.retired.has(c.k));
-const active = () => reviewMode ? reviewList() : learnList();
+/* FOCUS STUDY — its own mode, not a flavour of review (rebuilt 2026-08-09).
+   It used to ride reviewMode, which made the green button run demote() — so
+   "studying your ten most important words" literally threw them OUT of your
+   known pile. Now: the screen is the ordinary learning screen; "I know this"
+   means "refreshed, test me on it" and removes the card from the ten; when the
+   ten are gone the focus test starts by itself. Preston's design, 2026-08-09. */
+let focusMode = false;
+let focusDone = new Set();
+let focusList = null;   // the ten keys; also used by reviewList() when browsing
+const reviewList = () => DECK.filter(c => mem.retired.has(c.k));
+/* the focus walk SHRINKS as cards are marked — the same "deck shrinks" feel as
+   learning, and it gives the loop a visible end without any wrap-around logic */
+const focusWalk = () => DECK.filter(c => focusList && focusList.includes(c.k) && !focusDone.has(c.k));
+const active = () => focusMode ? focusWalk() : reviewMode ? reviewList() : learnList();
 /* CARD ART LIVES IN FILES NOW (perf audit 2026-08-08): the 6 MB of base64
    embeds made first load ~36 s on school wifi. Art loads per-card from
    cards/{word}.webp — same sibling-folder contract as audio/ and videos/.
@@ -952,7 +1119,7 @@ function tapCard(){
      life of learning a card, I can also learn something about that person's
      struggle with that word." Only deliberate taps count — arriving at a card
      auto-plays it, and that is not the learner asking for another listen. */
-  stat(d[idx].k).n++; Store.write();
+  if(!focusMode){ stat(d[idx].k).n++; Store.write(); }   // sealed room: no tally
   taps++;
   /* Advance BEFORE speaking, so tap 1 is a different speaker from the auto-play
      that greeted the card. Otherwise the first tap just repeats what was already
@@ -1031,7 +1198,7 @@ function stopCardClip(){
    drip, or a hard stop kills the cycle via the generation token. The file
    stays loaded between cycles (no re-fetch, no flash). Tapping the card is
    AUDIO-ONLY and never touches the cycle. */
-const CLIP_REST_MS = 1500;
+const CLIP_REST_MS = 750;      // Preston, 2026-08-09: 1.5 s read as a stall; 0.75 s keeps the beat
 function armClipEnd(word, v){
   v.onended = ()=>{ clearTimeout(clipTimer); restCardClip(word); };
   clearTimeout(clipTimer);
@@ -1106,9 +1273,21 @@ const coverage = () => DECK.reduce((s,c)=>s + (mem.retired.has(c.k) ? c.w : 0), 
 
 function paint(){
   paintAuth();
-  document.body.classList.toggle('reviewing', reviewMode);
-  $('retire').textContent = reviewMode ? '잘 몰라요 · Not solid yet' : 'I know this';
-  $('reviewBtn').style.display = (!reviewMode && mem.retired.size) ? '' : 'none';
+  document.body.classList.toggle('reviewing', reviewMode && !focusMode);
+  document.body.classList.toggle('focusing', focusMode);
+  if(focusMode){
+    $('reviewBtn').textContent = '나가기 · Leave the ten';
+    $('reviewBtn').style.display = '';
+    $('subDot').style.display = '';
+  }else{
+    $('reviewBtn').textContent = '복습 · Review known';
+  }
+  $('retire').textContent = 'I know this';   // hidden entirely in review mode
+  if(!focusMode){
+    const showRev = (!reviewMode && mem.retired.size) ? '' : 'none';
+    $('reviewBtn').style.display = showRev;
+    $('subDot').style.display = showRev;    // no separator with nothing after it
+  }
   const deck = active();
   if(deck.length === 0){
     $('stage').innerHTML = '<div style="text-align:center;padding:64px 24px">'
@@ -1155,12 +1334,19 @@ function paint(){
   $('prev').disabled = idx===0;
   $('next').disabled = idx===deck.length-1;
   $('covNum').textContent = coverage().toFixed(1)+'%';
-  const cf = reviewMode ? confidence(c.k) : null;
+  const cf = (reviewMode || focusMode) ? confidence(c.k) : null;
+  if(focusMode){
+    const tot = (focusList || []).length, done = focusDone.size;
+    $('meta').innerHTML = '상위 10 공부 · <b>' + done + ' of ' + tot + '</b> refreshed'
+      + '<span>·</span>' + (cf === null ? '자신감 · not yet tested'
+                                        : '자신감 · <b>' + cf + '%</b> confident')
+      + '<span>·</span>연습만 · practice only — nothing here changes your record';
+    return;
+  }
   $('meta').innerHTML = reviewMode
     ? 'reviewing ' + (idx+1) + ' of ' + deck.length + ' words you know'
       + '<span>·</span>' + (cf === null ? '자신감 · not yet tested'
                                         : '자신감 · <b>' + cf + '%</b> confident')
-      + '<span>·</span>\u201c잘 몰라요\u201d puts a word back in the deck, a few cards ahead'
     : 'card ' + (idx+1) + ' of ' + deck.length
       + '<span>·</span>' + mem.retired.size + ' of ' + DECK.length + ' retired'
       + '<span>·</span>these ' + DECK.length + ' top out at ' + STAGE_TOTAL.toFixed(1) + '%';
@@ -1171,7 +1357,7 @@ function go(n){
   const deck = active();
   const t = idx + n;
   if(t < 0 || t >= deck.length) return;
-  if(n === 1 && !reviewMode){
+  if(n === 1 && !reviewMode && !focusMode){
     sinceDrip++;
     if(postCheckQuiet > 0) postCheckQuiet--;
     if(maybeDrip('advance')){ dripAfter = t; return; }   // land on t when it ends
@@ -1198,30 +1384,20 @@ document.addEventListener('keydown', e=>{
   const t = e.target;
   if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
   if(document.querySelector('.flagc.show, .auth-sheet.show')) return;
-  if($('test').classList.contains('show')) return;
   if(e.key==='ArrowLeft'){ e.preventDefault(); go(-1); }
   else if(e.key==='ArrowRight'){ e.preventDefault(); go(1); }
   else if(e.key===' '){ e.preventDefault(); tapCard(); }
   else if(['1','2','3','4'].includes(e.key)) setVoice(+e.key-1);
 });
 
-function demote(k){
-  /* His own call that a "known" word is not solid. It counts as a comeback
-     (r++) so the recheck weighting watches it, but it does NOT sit out a
-     check — a self-demote is honesty, not a failed audit. Re-enters the
-     LEARNING deck a few cards ahead of where learning left off. */
-  const s = stat(k); s.r++;
-  const ll = learnList();
-  const anchor = ll[Math.min(Math.max(0, ll.length - 1), savedIdx + 3)];
-  if(anchor && anchor.k !== k) mem.moved[k] = anchor.k;
-  mem.retired.delete(k);
-  Store.write();
-  flagToast('\ub355\uc73c\ub85c \ub3cc\uc544\uac11\ub2c8\ub2e4 \u2014 back in the deck, a few cards ahead');
-  const rl = reviewList();
-  if(!rl.length){ exitReview(); return; }
-  if(idx >= rl.length) idx = rl.length - 1;
-  paint(); playCurrent();
-}
+/* `demote()` lived here until 2026-08-09 — the self-demote behind review
+   mode's "잘 몰라요 · Not solid yet" button. Both are gone: browsing the words
+   you own is no longer a place you can lose one by accident. A word that has
+   genuinely slipped comes back through the drip or the check, where the miss
+   is measured rather than self-reported. If a learner-driven "put this back"
+   is ever wanted again, it belongs somewhere deliberate, not on the browse
+   screen's primary button. */
+
 function enterReview(){
   if(!mem.retired.size) return;
   savedIdx = idx;
@@ -1232,13 +1408,57 @@ function enterReview(){
    straight off the history's priority ranking, browsed in review dress. */
 function enterFocus(keys){
   if(!keys.length) return;
-  focusList = keys;
-  $('rvLabel').textContent = '상위 10 · Studying your most important words';
+  focusList = keys.slice();
+  focusDone = new Set();
+  /* THE ONLY THING FOCUS STUDY EVER WRITES: a bare count of sessions per word.
+     No outcome, no timing, nothing that touches confidence or the priority
+     ranking — it exists purely so that months from now we can ask "did the
+     ten-word drill actually move these words down the list?" against the cold
+     data we DO trust. Unanswerable later if we don't log the event now. */
+  focusList.forEach(k => { const s = stat(k); s.fs = (s.fs || 0) + 1; });
   savedIdx = idx;
-  reviewMode = true; idx = 0; taps = 0;
+  focusMode = true; reviewMode = false; idx = 0; taps = 0;
   bgmStop();
   show('cards');
+  Store.write();
   paint(); playCurrent();
+}
+function exitFocus(toTest){
+  focusMode = false;
+  const keys = focusList ? focusList.slice() : [];
+  focusList = null; focusDone = new Set();
+  idx = Math.min(savedIdx, Math.max(0, learnList().length - 1));
+  taps = 0;
+  if(!toTest){ paint(); }
+  return keys;
+}
+/* "I know this" inside focus study = "refreshed, test me on it". The word is
+   ALREADY retired, so this must never touch mem.retired, mem.pending or
+   sinceCheck — those belong to the new-ten claim audit and this is not a
+   claim. It only shrinks the ten. */
+function markFocusReady(k){
+  focusDone.add(k);
+  if(focusDone.size >= (focusList || []).length){ startFocusCheck(); return; }
+  if(idx >= active().length) idx = Math.max(0, active().length - 1);
+  taps = 0; paint(); playCurrent();
+}
+/* the ten are refreshed -> the test starts by itself, the same way the
+   ten-card check does. Distractors come from the SAME ten (buildOptions'
+   batch mode): if they came from outside it, "the answer is the one I just
+   saw this session" would answer every item without knowing the word — the
+   mirror image of the claim leak closed in v24.1. */
+function startFocusCheck(){
+  const keys = exitFocus(true);
+  if(!keys.length){ paint(); return; }
+  /* deliberately does NOT advance mem.chkN: the check counter governs when a
+     missed word becomes eligible again (s.hc), so burning a number here would
+     reach outside the sealed room and change the real schedule. */
+  const order = keys.slice().sort(() => Math.random() - 0.5);
+  mem.queue = order.map(k => ({ k, part: 'focus' }));
+  mem.qi = 0; mem.back = [];
+  prefetchConfusions(order);
+  Store.write();
+  show('check'); askItem();
 }
 function exitReview(){
   reviewMode = false;
@@ -1247,14 +1467,14 @@ function exitReview(){
   idx = Math.min(savedIdx, Math.max(0, learnList().length - 1));
   taps = 0; paint();
 }
-$('reviewBtn').addEventListener('click', enterReview);
+$('reviewBtn').addEventListener('click', ()=>{ if(focusMode){ exitFocus(false); return; } enterReview(); });
 $('reviewExit').addEventListener('click', exitReview);
 
 $('retire').addEventListener('click', ()=>{
   if(dripState) return;                    // controls are frozen during a drip
   const deck = active(); if(!deck[idx]) return;
   const k = deck[idx].k;
-  if(reviewMode){ demote(k); return; }
+  if(focusMode){ markFocusReady(k); return; }   // refreshed, not claimed
   mem.retired.add(k);
   recordGrowth();
   delete mem.moved[k];           // it has a home again: the retired set
@@ -1264,7 +1484,7 @@ $('retire').addEventListener('click', ()=>{
   if(idx >= active().length) idx = Math.max(0, active().length-1);
   taps = 0; paint();
   if(mileQueue.length){ showMilestone(); return; }   // the medal outranks the check
-  if(mem.sinceCheck >= CHECK_EVERY){ offerCheck(); return; }
+  if(mem.sinceCheck >= CHECK_EVERY){ if(startClaimCheck()) return; }
   if(maybeDrip('retire')){ dripAfter = idx; return; }  // a retirement is a seam
   playCurrent();
 });
@@ -1469,7 +1689,11 @@ function flushCardTime(){
   }
   cardT0 = cardKey ? performance.now() : 0;
 }
+/* time-on-card is a learning statistic, so the sealed room does not feed it:
+   watching a card during a private drill is not comparable to meeting it in
+   the stream, and mixing the two would quietly corrupt the Word history. */
 function watchCard(k){
+  if(focusMode){ flushCardTime(); cardKey = null; cardT0 = 0; return; }
   flushCardTime();
   cardKey = k || null;
   cardT0 = cardKey && !document.hidden ? performance.now() : 0;
@@ -1687,18 +1911,29 @@ function buildOptions(target, batch){
 }
 
 function askItem(){
+  /* A feedback timer from the LAST answered item can still be in flight when
+     endCheck() has already retired the queue (advanceAfterClip's safety timer
+     outlives the item it belongs to). Landing here with no queue is normal —
+     it must be a no-op, not a crash. Same guard on endCheck below. */
+  if(!mem.queue){ return; }
   if(mem.qi >= mem.queue.length){ endCheck(); return; }
   const q = mem.queue[mem.qi];
   const target = byWord(q.k);
   if(!target){ mem.qi++; askItem(); return; }
-  const opts = buildOptions(target, q.part === 'claim'
-    ? mem.queue.filter(x => x.part === 'claim').map(x => x.k) : null);
+  const opts = buildOptions(target,
+    (q.part === 'claim' || q.part === 'focus')
+      ? mem.queue.filter(x => x.part === q.part).map(x => x.k) : null);
 
   const claimN = mem.queue.filter(x => x.part === 'claim').length;
-  $('chkTitle').textContent = q.part === 'claim' ? 'Your new ten' : 'A look back';
-  $('chkSub').textContent = q.part === 'claim'
-    ? `${mem.qi + 1} of ${claimN}`
-    : `${mem.qi - claimN + 1} of ${mem.queue.length - claimN} — words you already know`;
+  if(q.part === 'focus'){
+    $('chkTitle').textContent = '상위 10 · The ten you just worked';
+    $('chkSub').textContent = `${mem.qi + 1} of ${mem.queue.length}`;
+  }else{
+    $('chkTitle').textContent = q.part === 'claim' ? 'Your new ten' : 'A look back';
+    $('chkSub').textContent = q.part === 'claim'
+      ? `${mem.qi + 1} of ${claimN}`
+      : `${mem.qi - claimN + 1} of ${mem.queue.length - claimN} — words you already know`;
+  }
   renderDots();
 
   $('chkGrid').innerHTML = opts.map(o =>
@@ -1706,6 +1941,25 @@ function askItem(){
   [...$('chkGrid').children].forEach(b => {
     b.addEventListener('click', () => {
       const right = b.dataset.k === target.k;
+      /* ── THE SEALED ROOM (Preston, 2026-08-09) ────────────────────────────
+         A focus round is the learner's private space. The answer still shows
+         green/red and still plays the word — the RETRIEVAL is what teaches,
+         and that benefit does not depend on us keeping score. But nothing
+         here is written: no p/r, no fluency, no time, no picks, no confusion
+         report, no demotion, no growth, no milestone. The learner leaves with
+         exactly the record they walked in with. Those words are still their
+         worst words, so the drip will meet them COLD later — and that is the
+         only measurement anyone should trust. */
+      if(q.part === 'focus'){
+        q.missed = !right;                       // session-local, never persisted
+        [...$('chkGrid').children].forEach(x =>
+          x.classList.add(x.dataset.k === target.k ? 'right' : 'wrong'));
+        say(target.k);
+        mem.qi++;
+        renderDots();
+        advanceAfterClip(right ? 850 : 1700, askItem);
+        return;
+      }
       const s = stat(target.k);
       s.t = Date.now();
       decayOutcome(s, right);                  // trend first: the past fades 20%
@@ -1800,6 +2054,31 @@ function endCheck(){
      at least 2 AND at least half — 2 of 4, 3 of 5, 5 of 10 trigger; 1 of 4 is
      one bad card, not a rotten foundation. Only a REGULAR check (one with claim
      items) can trigger it, so the audit never chains into another audit. */
+  if(!mem.queue) return;                 // already ended (see askItem's note)
+  /* THE PRIVATE ROUND ends here, before any of the scoring machinery below
+     runs: it has no misses to re-insert, no batch to spend, no medal to fire,
+     no foundation audit to trigger. A count, a line about what happens next,
+     and back to the cards — if they want another round they enter it the same
+     way they did the first time (Preston: don't offer a re-run door). */
+  const fx = mem.queue.filter(q => q.part === 'focus');
+  if(fx.length){
+    const got = fx.filter(q => !q.missed).length;
+    mem.queue = null;
+    postCheckQuiet = 5;
+    show('chkDone');
+    const pan = $('chkDone');
+    pan.classList.remove('done-perfect','done-great','done-good','done-steady','done-pop','done-glow');
+    void pan.offsetWidth;
+    pan.classList.add('done-pop');
+    $('doneTitle').textContent = '연습 끝 · Practice done';
+    $('doneSub').textContent = got + ' of ' + fx.length + ' this time. Nothing here changed your '
+      + 'record — this was practice. These are still your hardest words, so they will come back '
+      + 'to you cold in the stream, and that is where they count.';
+    $('doneWordsWrap').style.display = 'none';
+    $('backList').innerHTML = '';
+    $('doneSave').classList.remove('show');
+    return;
+  }
   const recheckItems = mem.queue.filter(q => q.part === 'recheck');
   const recheckMiss  = recheckItems.filter(q => q.missed).length;
   const hadClaim     = mem.queue.some(q => q.part === 'claim');
@@ -1875,29 +2154,59 @@ function endCheck(){
     const c = byWord(k); return `<span><b>${c.k}</b>${c.en}</span>`;
   }).join('');
   postCheckQuiet = 5;          // no drips in the 5 cards after a check (spec §2)
+  /* the batch is spent HERE, not at "Continue" — otherwise a learner who
+     closes the tab on the score screen gets the same ten asked again */
+  /* only a round that AUDITED the new ten spends the batch. A focus round
+     tests already-known words and must leave the claim queue alone. */
+  const spentClaim = claimItems.length > 0;
   mem.queue = null;
+  if(spentClaim){ mem.sinceCheck = 0; mem.pending = []; }
   Store.write();
 }
 
 /* which top-level screen is visible */
+let lastSurface = null;
 function show(which){
   if(which !== 'cards') watchCard(null);
-  const CARDS = ['stage','controls','voices','statwrap','meta'];
-  const PANELS = ['test','check','chkDone','offer','progress','wall'];
+  /* SWAPPING SURFACES RESETS THE SCROLL (Preston, 2026-08-09). The Progress
+     page is long; its "Back" button sits ~1,200 px down. Swapping panels left
+     the window scrolled exactly where it was, so the check reappeared far above
+     the viewport and the learner was left looking at blank space — it reads as
+     "the button did nothing". Only on an actual surface CHANGE, so a repaint
+     never yanks the page. */
+  if(which !== lastSurface){
+    lastSurface = which;
+    try{ window.scrollTo({ top: 0, behavior: 'auto' }); }
+    catch(e){ try{ window.scrollTo(0, 0); }catch(e2){} }
+  }
+  /* the settings control lives under the avatar and only surfaces on the
+     growth page, whose settings they are */
+  document.body.classList.toggle('on-progress', which === 'progress');
+  const CARDS = ['stage','controls','subControls','voices','statwrap','meta'];
+  const PANELS = ['check','chkDone','offer','progress','wall'];
   CARDS.forEach(id=>{ const el=$(id); if(el) el.classList.toggle('hidden', which !== 'cards'); });
   PANELS.forEach(id=>{ const el=$(id); if(el) el.classList.toggle('show', id === which); });
 }
 
-function offerCheck(){
-  mem.offerMode = 'claim';
-  $('offerTitle').textContent = '열 개를 안다고 하셨어요.';
-  const claim = mem.pending.slice(0, CHECK_EVERY);
-  const total = buildCheck(claim);
-  const claimN = mem.queue.filter(q => q.part === 'claim').length;
-  $('offerSub').textContent = total > claimN
-    ? `${claimN} new, plus ${total - claimN} you already know. About ${Math.round(total * 7 / 10) / 10 * 10 | 0} seconds.`
-    : `${claimN} words. About a minute.`;
-  show('offer');
+/* THE CHECK JUST HAPPENS (Preston, 2026-08-09). It used to stop the learner
+   with a "확인 · Check them / Later" door. That door asked a question the
+   learner has no basis to answer and framed the check as an interruption —
+   the same mistake the drip was built to avoid. Now the tenth retirement
+   simply turns into the first question, exactly the way a drip does, and the
+   whole thing reads as one continuous deck (rule: one surface, not modes).
+   Leaving mid-check is safe: the queue persists and resumes (see Store).
+   The FOUNDATION AUDIT keeps its door — it is longer, remedial, and
+   explicitly "never forced, never chains" in the progression spec. */
+function startClaimCheck(){
+  mem.offerMode = null;
+  const total = buildCheck(mem.pending.slice(0, CHECK_EVERY));
+  if(!total){                       // everything in the batch is sitting out
+    mem.queue = null; mem.sinceCheck = 0; mem.pending = []; Store.write();
+    return false;
+  }
+  Store.write();                    // the queue is now recoverable
+  show('check'); askItem();
+  return true;
 }
 
 $('offerYes').addEventListener('click', ()=>{
@@ -1916,7 +2225,9 @@ $('offerNo').addEventListener('click', ()=>{
   paint();
 });
 $('doneBtn').addEventListener('click', ()=>{
-  mem.sinceCheck = 0; mem.pending = []; Store.write();
+  /* endCheck() already spent the batch if the round audited the new ten.
+     Clearing again here would let a PRIVATE focus round wipe ten pending
+     claims on its way out — the sealed room must not reach outside itself. */
   /* the medal moment lands right after the score screen that earned it */
   if(mileQueue.length){ showMilestone(); return; }
   if(mem.foundationDue){
@@ -1962,6 +2273,13 @@ let sinceDrip = 0;          // forward advances since the last drip
 let warmupLeft = 0;         // session-start review items still owed
 let postCheckQuiet = 0;     // cards of quiet right after a check
 let curWasNew = false;      // the card on screen was met for the first time just now
+
+/* Why there is no anti-gaming machinery here (Preston, 2026-08-09): focus
+   study records NOTHING, so there is nothing to farm. An earlier design let
+   the focus test count and then booked a "cold re-check" to catch crammed
+   passes; his version deletes the contamination instead of policing it, which
+   is both simpler and a better estimator — every event feeding confidence is
+   now the same kind of event: a cold, unprompted retrieval. */
 
 function dripPool(){
   /* the retired pool minus: words sitting out after a miss (s.hc), and the
@@ -2026,7 +2344,7 @@ function pickDrip(){
 }
 
 function maybeDrip(trigger){
-  if(dripState || reviewMode) return false;
+  if(dripState || reviewMode || focusMode) return false;
   if(mem.queue) return false;                        // a check is in progress
   if($('stage').classList.contains('hidden')) return false;
   if(postCheckQuiet > 0) return false;               // let the celebration breathe
@@ -2205,6 +2523,7 @@ function mergeCloud(remote){
     if(rs.rp !== undefined) s.rp = s.rp === undefined ? rs.rp : Math.max(s.rp, rs.rp);
     if(rs.ms) s.ms = Math.max(s.ms || 0, rs.ms);
     if(rs.sk) s.sk = Math.max(s.sk || 0, rs.sk);
+    if(rs.fs) s.fs = Math.max(s.fs || 0, rs.fs);   // inert: sessions, never outcomes
     if(rs.ap !== undefined){
       if(s.ap === undefined){ s.ap = rs.ap; s.ar = rs.ar || 0; }
       else{
@@ -2222,6 +2541,14 @@ function mergeCloud(remote){
     }else if(f.n && !cur.n){ cur.n = f.n; }
   });
   if(remote.chkN) mem.chkN = Math.max(mem.chkN, remote.chkN);
+  /* an unfinished check from another device is adopted ONLY if this device
+     isn't already in one — never interrupt the check in front of the learner */
+  if(remote.chk && Array.isArray(remote.chk.q) && remote.chk.q.length
+     && remote.chk.i < remote.chk.q.length
+     && !(mem.queue && mem.qi < mem.queue.length)){
+    mem.queue = remote.chk.q; mem.qi = remote.chk.i || 0;
+    mem.back = Array.isArray(remote.chk.back) ? remote.chk.back : [];
+  }
   /* the governor's retention estimate merges pessimistically — the shakier
      reading wins, consistent with every other pessimistic merge */
   if(typeof remote.dripA === 'number'){
@@ -2246,6 +2573,19 @@ function mergeCloud(remote){
   if(typeof remote.avatar === 'number' && mem.avatar === undefined) mem.avatar = remote.avatar;
 }
 
+/* Firestore's set() THROWS on an undefined field value anywhere in the document —
+   one undefined aborts the entire write. mem.wall carries three optional fields
+   (j/m/mu) that are genuinely absent until the first medal write lands, so the
+   wall sub-object gets pruned on the way out. This is not defensive decoration:
+   an undefined in doc.wall used to throw INSIDE cloudPush's single try block,
+   which silently killed pushWall() and every future progress sync with it
+   (found 2026-08-10, from "I can't change my display name"). */
+function pruneU(o){
+  const r = {};
+  for(const k in o) if(o[k] !== undefined) r[k] = o[k];
+  return r;
+}
+
 function cloudPush(){
   if(resetting) return;
   if(!authUser || AUTH_PREVIEW && !AUTH.enabled) return;
@@ -2258,13 +2598,19 @@ function cloudPush(){
         retired: [...mem.retired], met: [...mem.met], hw: mem.hw, hist: mem.hist, miles: mem.miles,
         stats: mem.stats, flags: mem.flags, chkN: mem.chkN, flagAck: !!mem.flagAck
       };
-      if(mem.wall) doc.wall = mem.wall;
+      if(mem.wall) doc.wall = pruneU(mem.wall);
       if(mem.avatar !== undefined) doc.avatar = mem.avatar;
       if(mem.dripA !== undefined){ doc.dripA = mem.dripA; doc.dripAn = mem.dripAn || 0; }
       if(mem.dripNote) doc.dripNote = true;
-      firebase.firestore().collection('users').doc(authUser.uid).set(doc);
-      pushWall();          // the public wall entry rides the same debounce
+      /* the unfinished check follows the account to any device */
+      if(mem.queue && mem.qi < mem.queue.length){
+        doc.chk = { q: mem.queue, i: mem.qi, back: mem.back || [] };
+      }
+      firebase.firestore().collection('users').doc(authUser.uid).set(doc).catch(()=>{});
     }catch(e){}
+    /* SEPARATE try — the private save and the public wall entry are two
+       independent writes and one must never be able to take the other down. */
+    try{ pushWall(); }catch(e){}
   }, 2000);
 }
 
@@ -2520,14 +2866,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const bad = nameProblem(raw);
     if(bad){ $('wjErr').textContent = bad; return; }
     const prev = mem.wall || {};
-    mem.wall = { n: raw.trim().replace(/\s+/g, ' '), a: wjSel,
-                 j: prev.j, m: prev.m, mu: prev.mu };
+    /* copy only what EXISTS. `j: prev.j` on a first join wrote undefined into
+       mem.wall, which rode into the cloud document and made Firestore's set()
+       throw — inside cloudPush's try, so pushWall never ran and the wall entry
+       (and every later progress sync) died silently. 2026-08-10. */
+    const w = { n: raw.trim().replace(/\s+/g, ' '), a: wjSel };
+    if(prev.j  !== undefined) w.j  = prev.j;
+    if(prev.m  !== undefined) w.m  = prev.m;
+    if(prev.mu !== undefined) w.mu = prev.mu;
+    mem.wall = w;
     mem.avatar = wjSel;
     $('wallJoin').classList.remove('show');
-    Store.write();                                  // rides the debounce -> pushWall
+    Store.write();
     paintWallMine();
     flagToast('올랐어요 — your name is on the wall');
     openWall();
+    /* NOW, not on the 2 s debounce: the wall the learner is looking at has to
+       show the name they just chose. Repaint from the server once it lands. */
+    pushWall().then(ok => { Store.write(); if(ok) loadWallList(); });
   });
   $('wjNo').addEventListener('click', ()=>$('wallJoin').classList.remove('show'));
   $('wjSpin').addEventListener('click', ()=>{
@@ -2763,18 +3119,24 @@ function nameProblem(raw){
 }
 const escName = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+/* Returns a promise that always RESOLVES — true if the wall doc landed, false
+   if it could not. Callers that need the wall repainted (rename) chain on it;
+   callers that don't (the debounce) ignore it. It never rejects, so it can
+   never leave an unhandled rejection behind. */
 function pushWall(){
-  if(!authUser || !mem.wall || !mem.wall.n) return;
+  if(!authUser || !mem.wall || !mem.wall.n) return Promise.resolve(false);
   const medal = Math.min(15, Math.floor((mem.hw || 0) / 100));
-  if(medal < 1) return;
+  if(medal < 1) return Promise.resolve(false);
   if(!mem.wall.j) mem.wall.j = Date.now();
   if(medal > (mem.wall.m || 0)){ mem.wall.m = medal; mem.wall.mu = Date.now(); }
+  /* every field below is proven present: j and mu are set just above, m is set
+     or already >= medal >= 1, w is hw which medal>=1 proves is >= 100. */
   try{
-    firebase.firestore().collection('wall').doc(authUser.uid).set({
-      n: mem.wall.n, a: mem.wall.a || 0, m: mem.wall.m, w: mem.hw || 0,
+    return firebase.firestore().collection('wall').doc(authUser.uid).set({
+      n: mem.wall.n, a: mem.wall.a || 0, m: mem.wall.m || medal, w: mem.hw || 0,
       j: mem.wall.j, mu: mem.wall.mu || mem.wall.j, u: Date.now()
-    });
-  }catch(e){}
+    }).then(()=>true, ()=>false);
+  }catch(e){ return Promise.resolve(false); }
 }
 
 function wallEntry(r, meId){
@@ -2852,6 +3214,12 @@ function openWall(demoRows){
   if(b){ b.textContent = mem.musicOff ? '♪ 음악 꺼짐' : '♪ 음악'; b.style.opacity = mem.musicOff ? .6 : 1; }
   paintWallMine();
   if(demoRows){ renderWall(demoRows); return; }
+  loadWallList();
+}
+/* the fetch-and-render half of openWall, callable on its own — a rename has to
+   repaint the list from the server AFTER its write lands, or the learner is
+   left staring at the name they just changed. */
+function loadWallList(){
   if(!authOn()){
     $('wallList').innerHTML = '<p class="note" style="text-align:center">The wall connects once accounts are live.</p>';
     return;
@@ -2859,7 +3227,18 @@ function openWall(demoRows){
   fbReady(()=>{
     try{
       firebase.firestore().collection('wall').orderBy('j', 'desc').limit(500).get()
-        .then(q => renderWall(q.docs.map(d => Object.assign({ id: d.id }, d.data()))))
+        .then(q => {
+          const rows = q.docs.map(d => Object.assign({ id: d.id }, d.data()));
+          /* the wall is ordered by ARRIVAL, so a learner's join date belongs to
+             them permanently. If the local record lost it (old saves dropped the
+             optional fields), adopt the server's rather than stamping today and
+             quietly jumping them to the front of the wall. */
+          if(authUser && mem.wall && mem.wall.n && !mem.wall.j){
+            const mine = rows.find(r => r.id === authUser.uid);
+            if(mine && mine.j){ mem.wall.j = mine.j; Store.write(); }
+          }
+          renderWall(rows);
+        })
         .catch(()=>{ $('wallList').innerHTML =
           '<p class="note" style="text-align:center">The wall couldn’t load — try again in a moment.</p>'; });
     }catch(e){
@@ -2892,12 +3271,37 @@ function showMilestone(){
   Store.write();
   return true;
 }
+/* drop-in affordance for any published coverage number. Returns markup, so it
+   works in innerHTML strings as well as static markup. */
+function whyChip(){
+  return '<button class="whybtn" data-why="1" aria-label="Where this number comes from"'
+       + ' title="Where this number comes from">?</button>';
+}
+const canExplain = () => !!(window.matchMedia
+  && matchMedia('(hover:hover) and (pointer:fine)').matches);
+function openWhy(){ $('whyNum').classList.add('show'); }
+document.addEventListener('DOMContentLoaded', ()=>{
+  /* one delegated handler serves every published number, present or future */
+  document.addEventListener('click', e=>{
+    const w = e.target.closest && e.target.closest('[data-why]');
+    if(w && canExplain()){ e.preventDefault(); e.stopPropagation(); openWhy(); }
+  });
+  $('whyClose').addEventListener('click', ()=>$('whyNum').classList.remove('show'));
+  $('whyNum').addEventListener('click', e=>{
+    if(e.target === $('whyNum')) $('whyNum').classList.remove('show');
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape' && $('whyNum').classList.contains('show')){
+      $('whyNum').classList.remove('show');
+    }
+  });
+});
 document.addEventListener('DOMContentLoaded', ()=>{
   /* the overlay markup sits after this script — bind on ready (the standing rule) */
   $('mileGo').addEventListener('click', ()=>{
     $('mile').classList.remove('show');
     if(showMilestone()) return;            // stacked milestones, rare but possible
-    if(mem.sinceCheck >= CHECK_EVERY){ offerCheck(); return; }
+    if(mem.sinceCheck >= CHECK_EVERY){ if(startClaimCheck()) return; }
     paint();
   });
   $('mileMute').addEventListener('click', ()=>{
@@ -2961,11 +3365,8 @@ function drawGrowth(){
   $('gTicks').innerHTML = Array.from({length: 15}, (_, i) =>
     `<i class="${hw >= (i + 1) * 100 ? 'hit' : ''}" style="left:${((i + 1) * 100) / 1500 * 100}%"></i>`).join('');
   $('gArcNote').textContent = hw + ' of the 1,500 picturable words · a medal every 100';
-  /* coverage, honest + the ceiling reframe */
-  const cov = coverage();
-  $('gCov').innerHTML = '<b>' + cov.toFixed(1) + '%</b> of the content words in everyday '
-    + 'spoken Korean &nbsp;·&nbsp; that is <b>' + Math.round(cov / CEILING * 100) + '%</b> of '
-    + 'everything pictures can teach — the rest lives in the phrase track, coming later.';
+  /* the coverage pair that lived here was removed 2026-08-10 — the header %
+     publishes the same number on every screen and owns the explainer. */
   /* the staircase: daily high-water, always climbing */
   const days = Object.keys(mem.hist).sort();
   const W = 560, H = 200, L = 40, R = 12, T = 14, B = 26;
@@ -3007,15 +3408,44 @@ function drawGrowth(){
   }
   $('gChart').innerHTML = svg;
 }
-function openGrowth(){ drawGrowth(); renderHistory(); Store.write(); show('progress'); paintMusicChip(); bgmStart('browse'); }
+function openGrowth(){
+  drawGrowth(); renderHistory(); Store.write();
+  /* if a check is waiting, say so on the way out — "Back to the cards" would
+     be a small lie, and the learner should know the round is still open */
+  const mid = !!(mem.queue && mem.qi < mem.queue.length);
+  const label = mid ? '계속 · Back to the test' : '계속 · Back to the cards';
+  $('gBack').textContent = label;
+  $('gBackTop').textContent = label;
+  show('progress'); paintMusicChip(); bgmStart('browse');
+}
 $('growthBtn').addEventListener('click', openGrowth);
-$('covNum').addEventListener('click', openGrowth);
-$('gBack').addEventListener('click', ()=>{
+/* Tapping a STATISTIC should explain the statistic — it used to jump to the
+   Progress page, which is what the avatar and the 성장 · Progress link are for.
+   On a touch device there is no explainer (it is a long read, desktop-only by
+   design), so the old behaviour is kept there rather than leaving a dead zone. */
+$('covBtn').addEventListener('click', ()=>{
+  if(canExplain()) openWhy(); else openGrowth();
+});
+/* BACK MEANS "BACK TO WHAT I WAS DOING" (Preston, 2026-08-09). The avatar is
+   reachable during a check — nothing is locked, by design — but "Back to the
+   cards" used to always land on the deck, which stranded an unfinished check:
+   the queue was still live and invisible, and only a page reload recovered it.
+   Every exit now returns to the surface the learner actually left. */
+function backToWork(){
   bgmDrift();
+  if(mem.queue && mem.qi < mem.queue.length){   // a check/private round is live
+    show('check');
+    askItem();                                  // re-render the item, unanswered
+    return;
+  }
   show('cards');
+  /* a live drip already owns the stage and its grid is still rendered —
+     repainting would talk to the hidden card underneath it */
+  if(dripState) return;
   if(idx >= active().length) idx = Math.max(0, active().length - 1);
   paint();
-});
+}
+$('gBack').addEventListener('click', backToWork);
 $('gMusic').addEventListener('click', ()=>{
   mem.musicOff = !mem.musicOff; Store.write();
   if(mem.musicOff) bgmStop(); else bgmStart('browse');
@@ -3065,21 +3495,20 @@ function paintSettings(){
 }
 $('gearBtn').addEventListener('click', ()=>{ paintSettings(); $('settings').classList.add('show'); });
 $('gBackTop').addEventListener('click', ()=>$('gBack').click());
+/* THE TOP TEN — recomputed live from the priority ranking every time. Re-enter
+   and you get the same ten, because nothing you did in there changed anything;
+   they are still your worst words. They leave this list only by being met COLD
+   somewhere else and passing. */
 $('studyTop').addEventListener('click', ()=>{
   const nowF = Date.now();
-  const top = Object.keys(mem.stats)
+  const eligible = Object.keys(mem.stats)
     .filter(k => byWord(k) && ((mem.stats[k].p || 0) + (mem.stats[k].r || 0) + (mem.stats[k].n || 0)) > 0)
-    .sort((a, b) => refeedPriority(b, nowF) - refeedPriority(a, nowF))
-    .slice(0, 10);
+    .sort((a, b) => refeedPriority(b, nowF) - refeedPriority(a, nowF));
+  const top = eligible.slice(0, 10);
   enterFocus(top);
 });
 $('wallLink').addEventListener('click', ()=>openWall());
-$('wallBack').addEventListener('click', ()=>{
-  bgmDrift();
-  show('cards');
-  if(idx >= active().length) idx = Math.max(0, active().length - 1);
-  paint();
-});
+$('wallBack').addEventListener('click', backToWork);
 $('wallMusic').addEventListener('click', ()=>{
   mem.musicOff = !mem.musicOff; Store.write();
   if(mem.musicOff) bgmStop(); else bgmStart('wall');
@@ -3106,114 +3535,123 @@ function flagSection(){
 }
 /* Word history now lives INSIDE the Progress page (Preston, Aug 2026) —
    rendered fresh every time the panel opens. Column headers per his ask. */
+/* WORD HISTORY — four columns, everything else on hover (Preston, 2026-08-09).
+   The table was showing five columns plus a sentence of prose per row, which
+   at a glance is a wall of numbers rather than an answer. What the learner
+   actually comes here to ask is "what should I study, and do I know it?" —
+   so the table answers exactly that: priority, word, value, confidence. Time
+   on card, taps, record and the mix-up live in a hover card on desktop, where
+   curiosity is cheap; on touch they simply aren't shown, which is the right
+   call for a phone anyway. The gold "suspect picture" tint is gone — it was
+   a third signal competing with rank and confidence, and the flag on the card
+   is the honest way to report a bad picture. */
+const histDetail = {};
+function histTipHTML(k, s, c){
+  const bits = [];
+  bits.push(`<b>${c.k}</b> <span class="ht-en">${c.en}</span>`);
+  const rec = [];
+  if(s.p || s.r) rec.push(`${s.p} passed · ${s.r} missed`);
+  if(s.n) rec.push(`${s.n} tap${s.n === 1 ? '' : 's'}`);
+  if(s.ms) rec.push(`${fmtDur(s.ms)} on the card`);
+  if(rec.length) bits.push(`<span class="ht-row">${rec.join(' &nbsp;·&nbsp; ')}</span>`);
+  if(s.picks && s.picks.length){
+    const counts = {};
+    s.picks.forEach(x => counts[x] = (counts[x] || 0) + 1);
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+    const tc = byWord(top);
+    if(tc){
+      const why = (c.cp && top === c.cp) ? 'its opposite'
+                : (tc.vc === c.vc ? 'a look-alike' : '');
+      bits.push(`<span class="ht-row">mixed up with <b>${tc.k}</b>${why ? ' — ' + why : ''}</span>`);
+    }
+  }
+  if(!s.p && !s.r) bits.push('<span class="ht-row">not tested yet</span>');
+  return bits.join('');
+}
 function renderHistory(){
   const box = $('gHist');
   if(!box) return;
-  const tapped = Object.values(mem.stats).map(s=>s.n||0).filter(n=>n>0);
-  const avg = tapped.length ? tapped.reduce((a,b)=>a+b,0)/tapped.length : 1;
-  /* sorted by the RE-FEED PRIORITY (worst-known × most-valuable first), so
-     the top of this list is literally what the deck plans to bring back next
-     — and the value column on the left explains the order */
   const nowH = Date.now();
+  /* sorted by RE-FEED PRIORITY (worst-known × most-valuable first): the top of
+     this list is literally what the deck plans to bring back next */
   const rows = Object.entries(mem.stats)
     .filter(([k, s]) => s.p + s.r + (s.n||0) > 0)
     .sort((a, b) => refeedPriority(b[0], nowH) - refeedPriority(a[0], nowH));
   if(!rows.length){ box.innerHTML = '<p class="note">Nothing checked yet.</p>' + flagSection(); return; }
   const hdr = '<tr class="hdr"><td class="rcell">순위<br>most important<br>to study</td>'
             + '<td>단어<br>word</td><td class="vcell">가치<br>value</td>'
-            + '<td class="tcell">시간<br>time on card</td>'
-            + '<td>자신감 · 기록<br>confidence &amp; record</td></tr>';
+            + '<td class="ccell">자신감<br>confidence</td></tr>';
+  Object.keys(histDetail).forEach(k => delete histDetail[k]);
   box.innerHTML = '<table>' + hdr + rows.map(([k, s], ri) => {
     const c = byWord(k); if(!c) return '';
-    /* gold = the PICTURE is suspect: tapped far above his own average, which
-       usually means the image isn't doing its job (the rank column already
-       says which words are hard — this flags which CARDS might be broken) */
-    const bad = (s.n || 0) > avg * 2.5;
-    let mix = '';
-    if(s.picks && s.picks.length){
-      const counts = {};
-      s.picks.forEach(p => counts[p] = (counts[p] || 0) + 1);
-      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-      const tc = byWord(top);
-      if(tc){
-        const why = (c.cp && top === c.cp) ? 'its opposite'
-                  : (tc.vc === c.vc ? 'a look-alike' : '');
-        mix = ` &nbsp;·&nbsp; mixed up with <b>${tc.k}</b>${why ? ' — ' + why : ''}`;
-      }
-    }
+    histDetail[k] = histTipHTML(k, s, c);
     const cf = confidence(k);
-    const cfCell = cf === null ? 'untested &nbsp;·&nbsp; ' : `<b>${cf}%</b> &nbsp;·&nbsp; `;
-    return `<tr><td class="rcell">${ri + 1}</td>`
-         + `<td class="${bad ? 'warn' : ''}">${c.k} &nbsp;<span style="color:var(--ink-faint)">${c.en}</span></td>`
+    return `<tr data-k="${k}"><td class="rcell">${ri + 1}</td>`
+         + `<td>${c.k} &nbsp;<span style="color:var(--ink-faint)">${c.en}</span></td>`
          + `<td class="vcell">${valueScore(c)}</td>`
-         + `<td class="tcell">${fmtDur(s.ms)}</td>`
-         + `<td>${cfCell}${s.n || 0} taps &nbsp;·&nbsp; ${s.p} passed &nbsp;·&nbsp; ${s.r} missed${mix}</td></tr>`;
+         + `<td class="ccell">${cf === null ? '<span class="untested">—</span>' : '<b>' + cf + '%</b>'}</td></tr>`;
   }).join('') + '</table>'
   + `<p class="note">The rank on the left is your <b>study priority</b> — how badly you know a `
   + `word weighted by its <b>value</b>: how hard it works in real spoken Korean, on a 100-point `
-  + `scale where 나 sets the bar at 100. The percentage is our `
-  + `confidence you truly own the word — built from your record, how quickly the right answer `
-  + `comes, and how recently it was checked. The list runs worst-to-best by confidence weighted `
-  + `by value, which makes the top of this list exactly what the deck plans to bring back next. `
-  + `A word high on this list is either genuinely hard, or its picture is not doing its `
-  + `job. A word shown in <b style="color:var(--warn)">gold</b> is the second kind of suspect — `
-  + `you tap it far more than your average, which usually means the picture isn't landing. `
-  + `That's a bug in the card, not in you — tap the little flag on that card's picture and we'll fix it.</p>` + flagSection();
+  + `scale where 나 sets the bar at 100. <b>Confidence</b> is how sure we are you truly own the `
+  + `word — built from your record, how quickly the right answer comes, and how recently it was `
+  + `checked. The list runs worst-to-best, so the top is exactly what the deck plans to bring `
+  + `back next. <span class="hoveronly">Hover any word for its full record.</span> `
+  + `If a word keeps coming back, it may be the picture and not you — tap the little flag on `
+  + `that card and we'll fix it.</p>` + flagSection();
+  bindHistTips(box);
 }
-
-/* ============================================================
-   TEST
-   Distractors are chosen by VISUAL class first, not meaning.
-   Ishii (2015): the confusion normally blamed on semantics is driven by the
-   pictures resembling each other. A look-alike distractor is a real test;
-   a merely same-topic one is not.
-   ============================================================ */
-let testAnswer = null;
-function startTest(){
-  const pool = DECK;
-  testAnswer = pool[Math.floor(Math.random()*pool.length)];
-  /* same meaning-twin rules as the check: no twin of the answer, ever, and
-     at most one member of any meaning-group among the distractors */
-  const aGroup = EQUIV_IDX[testAnswer.k];
-  const others = pool.filter(c=>c.k !== testAnswer.k
-    && !(aGroup !== undefined && EQUIV_IDX[c.k] === aGroup));
-  const look = others.filter(c=>c.vc === testAnswer.vc).sort(()=>Math.random()-0.5);
-  const rest = others.filter(c=>c.vc !== testAnswer.vc).sort(()=>Math.random()-0.5);
-  const usedG = new Set();
-  const distractors = [];
-  for(const c of [...look, ...rest]){
-    if(distractors.length >= 3) break;
-    const g = EQUIV_IDX[c.k];
-    if(g !== undefined && usedG.has(g)) continue;
-    if(g !== undefined) usedG.add(g);
-    distractors.push(c);
+/* the hover card: desktop only (a hover-capable pointer), positioned next to
+   the row and clamped to the viewport so it never runs off the edge */
+let histTipEl = null;
+function bindHistTips(box){
+  if(!(window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches)) return;
+  if(!histTipEl){
+    histTipEl = document.createElement('div');
+    histTipEl.className = 'histtip';
+    document.body.appendChild(histTipEl);
   }
-  const opts = [testAnswer, ...distractors].sort(()=>Math.random()-0.5);
-
-  $('testGrid').innerHTML = opts.map(o=>
-    '<button class="opt" data-k="'+o.k+'"><img src="'+src(o)+'" alt=""></button>').join('');
-
-  [...$('testGrid').children].forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const right = b.dataset.k === testAnswer.k;
-      [...$('testGrid').children].forEach(x=>
-        x.classList.add(x.dataset.k===testAnswer.k ? 'right' : 'wrong'));
-      say(testAnswer.k);
-      advanceAfterClip(right ? 900 : 1800, ()=>{
-        const cell = [...$('testGrid').children].find(x => x.dataset.k === testAnswer.k);
-        revealClipIn(cell, testAnswer.k, startTest);
-      });
-    }, {once:true});
+  const hide = ()=>{ if(histTipEl) histTipEl.classList.remove('show'); };
+  box.querySelectorAll('tr[data-k]').forEach(tr => {
+    tr.addEventListener('mouseenter', ()=>{
+      const html = histDetail[tr.dataset.k]; if(!html) return;
+      histTipEl.innerHTML = html;
+      histTipEl.classList.add('show');
+      const r = tr.getBoundingClientRect(), t = histTipEl.getBoundingClientRect();
+      let left = r.right + 14;
+      if(left + t.width > window.innerWidth - 10) left = Math.max(10, r.left - t.width - 14);
+      let top = r.top + window.scrollY - 6;
+      if(top + t.height > window.scrollY + window.innerHeight - 10){
+        top = window.scrollY + window.innerHeight - t.height - 10;
+      }
+      histTipEl.style.left = left + 'px';
+      histTipEl.style.top  = top + 'px';
+    });
+    tr.addEventListener('mouseleave', hide);
   });
-  say(testAnswer.k);
+  box.addEventListener('mouseleave', hide);
 }
-$('testBtn').addEventListener('click', ()=>{ show('test'); startTest(); });
-$('testExit').addEventListener('click', ()=>{ show('cards'); paint(); });
-$('testPlay').addEventListener('click', ()=>{ if(testAnswer) sayNextVoice(testAnswer.k); });
+
+/* THE MANUAL TEST — REMOVED 2026-08-09 (Preston). `startTest()` picked a
+   RANDOM card from the whole DECK, including words never met, and offered it
+   as a four-picture question. Three better testers now run without being
+   asked: the drip (priority-picked, woven into the stream), the ten-card
+   check (auto, every 10 retirements), and the foundation audit (offered when
+   review evidence says the base is shaky). A manual button on top of those is
+   a fourth path that tests worse than all three. `revealClipIn()` stays — it
+   is the post-answer reveal animation and belongs to whatever asks next. */
+
 
 restore();
 armWarmup();
 paint();
+/* RESUME AN UNFINISHED CHECK. A check is part of the stream now, so a closed
+   tab mid-check comes back to the exact item it stopped on rather than losing
+   the round (or re-asking words already answered). Signed-in learners get this
+   across devices — the queue rides the cloud doc. */
+if(mem.queue && mem.queue.length && mem.qi < mem.queue.length){
+  show('check'); askItem();
+}
 </script>
 <div class="mile" id="mile" role="dialog" aria-modal="true">
   <div class="mile-box">
@@ -3291,6 +3729,77 @@ paint();
   </div>
 </div>
 
+<div class="flagc" id="whyNum" role="dialog" aria-modal="true" aria-labelledby="whyTitle">
+  <div class="flagc-box whybox">
+    <h3 id="whyTitle">이 숫자는 어디서 왔나 · Where this number comes from</h3>
+    <div class="whysub">Short version: it is arithmetic on 5.18 million words of Korean
+      dialogue, and we will show you the whole calculation.</div>
+
+    <h4>What it counts</h4>
+    <p>It is the share of <b>content words</b> — the words that carry the meaning: nouns,
+      verbs, adjectives. Not the share of sentences you would understand. Knowing every
+      brick is not the same as reading the blueprint.</p>
+    <p>So "30% of the content words" means that in a typical spoken sentence, roughly
+      three out of every ten meaning-carrying words are ones you already own. The
+      grammar holding them together is a separate job.</p>
+
+    <h4>Where the raw counts come from</h4>
+    <p>We started with a public frequency list built from Korean subtitles —
+      <b>5.18 million running words, 50,000 distinct forms</b>. Korean conjugates
+      heavily, so every form was reduced to its dictionary word first: 먹어요, 먹었다 and
+      먹는 all count as one word, 먹다. Then each word gets its share of all the content
+      words in that corpus.</p>
+
+    <h4>Why some very common words are missing</h4>
+    <p>The 250 most frequent words in Korean are grammatical glue — 하다, 있다, 것, 되다.
+      They are everywhere and they are nearly impossible to draw. We set them aside on
+      purpose and say so, rather than quietly counting them to inflate the number. They
+      come back later, as phrases, where they actually make sense.</p>
+
+    <h4>The arithmetic</h4>
+    <p>Every word carries its own percentage. 나 by itself is <b>3.44%</b> of all content
+      words spoken. Add them up in order and the curve looks like this:</p>
+    <table class="whytable">
+      <tr><td>first 50 words</td><td>22.0%</td></tr>
+      <tr><td>first 100 words</td><td>30.0%</td></tr>
+      <tr><td>first 300 words &mdash; this deck</td><td>36.9%</td></tr>
+      <tr><td>first 500 words</td><td>40.3%</td></tr>
+      <tr><td>all 1,500 picturable words</td><td>47.0%</td></tr>
+    </table>
+    <p>Notice how steep the start is: the first fifty words do more work than the last
+      thousand. That is the entire reason this deck is ordered the way it is, rather than
+      alphabetically or by textbook chapter.</p>
+    <p>That <b>47%</b> at the bottom is the ceiling — the most any picture-based deck can
+      reach, because the rest of spoken Korean is grammar and glue that no illustration
+      can teach. The second number on the progress page is simply your position against
+      that ceiling: how far you are through the part pictures <i>can</i> teach.</p>
+
+    <h4>What we are not claiming</h4>
+    <div class="whycaveat">
+      <p><b>This is our arithmetic, not a published statistic.</b> There is no official
+        token-coverage curve for spoken Korean. Any figure you find online claiming one is
+        unsourced — including, we suspect, some that look authoritative.</p>
+      <p><b>Subtitles are translated speech, not overheard conversation.</b> They lean toward
+        drama vocabulary and they over-use pronouns, because English needs pronouns and
+        Korean drops them. To correct for this the ranking is blended with the Korean
+        government's official learner list (국립국어원, 5,965 words); <b>1,296 of our 1,500
+        appear on it</b>. That fixes most of the skew. Not all of it.</p>
+      <p><b>Coverage is not comprehension.</b> Owning 47% of content words will not let you
+        follow 47% of a conversation. It means the words you meet most often are the ones
+        you already know — which is what makes the next sentence learnable instead of
+        overwhelming.</p>
+    </div>
+
+    <h4>Check us</h4>
+    <p>Every word in the deck carries its own percentage and its rank, and they sum to the
+      numbers above. If a number here ever looks wrong to you, we would rather hear it
+      than have you quietly assume we rounded in our own favour.</p>
+
+    <div class="flagc-row" style="margin-top:20px">
+      <button class="btn primary" id="whyClose">알겠어요 · Got it</button>
+    </div>
+  </div>
+</div>
 <div class="flagc" id="flagConfirm" role="dialog" aria-modal="true" aria-labelledby="flagcTitle">
   <div class="flagc-box">
     <div class="flagc-title" id="flagcTitle">Flag this picture?</div>
