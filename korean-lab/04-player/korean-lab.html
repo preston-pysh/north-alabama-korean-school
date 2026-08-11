@@ -305,12 +305,28 @@ body.reviewing .subcontrols .dot{display:none}
   padding:28px 28px 22px; box-shadow:0 24px 64px rgba(0,0,0,.18); text-align:center}
 .flagc-title{font-size:17px; font-weight:600; margin-bottom:10px}
 .flagc-body{font-size:14px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px}
+/* ROOM TO ACTUALLY SAY IT (Preston, 2026-08-11: "some of the cards I'm trying to
+   give good feedback and the input field won't let me type it all"). Two separate
+   walls were in the way — a 3-row box and a hard maxlength of 280 that stopped the
+   sentence mid-word with no explanation. The note is the single most valuable thing
+   the flag produces: a vote says "this card is wrong", a paragraph says WHAT to
+   redraw. Never ration it. The box now opens at 6 rows, GROWS with what is typed up
+   to a viewport-aware ceiling (then scrolls, so the buttons can never be pushed off
+   a phone screen), and can still be dragged taller by hand. */
 .flagc-note{width:100%; box-sizing:border-box; font:inherit; font-size:14px; color:var(--ink);
   background:var(--bg-alt); border:1px solid var(--line); border-radius:12px;
-  padding:10px 14px; margin-bottom:16px; resize:none; line-height:1.5;
+  padding:11px 14px; margin-bottom:7px; resize:vertical; line-height:1.55;
+  min-height:104px; max-height:min(40vh, 260px); overflow-y:auto; text-align:left;
   -webkit-user-select:text; user-select:text}
 .flagc-note:focus{outline:none; border-color:var(--accent)}
 .flagc-note::placeholder{color:var(--ink-faint)}
+/* the counter stays INVISIBLE until the limit is actually in sight — a permanent
+   "0/1000" is a nag, but hitting a silent wall is what Preston just hit */
+.flagc-count{font-size:11px; color:var(--ink-faint); text-align:right; height:15px;
+  margin-bottom:11px; opacity:0; transition:opacity .2s var(--ease)}
+.flagc-count.show{opacity:1}
+.flagc-count.at{color:var(--accent-dk)}
+#flagConfirm .flagc-box{max-width:472px}
 .flagc-row{display:flex; gap:10px; justify-content:center}
 
 /* ── "WHERE DOES THIS NUMBER COME FROM?" ─────────────────────────────────
@@ -493,6 +509,14 @@ body.on-progress .setbtn{display:inline-flex}
 .set-row:last-of-type{border-bottom:none; margin-bottom:6px}
 .check.show{display:flex}
 .chk-head{text-align:center; margin-bottom:6px}
+/* quiet by construction: it must be findable, never a competing call to action
+   next to the four pictures that are the actual question */
+/* class toggle, NOT style.display='' — an inline empty display falls straight
+   back to this rule and the button stays invisible. Caught in the headless pass
+   on 2026-08-11; the same trap will bite any element whose default is none. */
+.chk-leave{display:none; margin-top:18px; font-size:12.5px; opacity:.62}
+.chk-leave.show{display:inline-block}
+.chk-leave:hover{opacity:1}
 .chk-title{font-size:19px; font-weight:500; letter-spacing:-.01em}
 .chk-sub{font-size:13.5px; color:var(--ink-faint); margin-top:7px; line-height:1.5}
 .chk-dots{display:flex; gap:6px; margin-top:26px}
@@ -531,15 +555,39 @@ body.on-progress .setbtn{display:inline-flex}
   .hoveronly{display:inline}
   .stats tr[data-k]:hover{background:var(--bg-alt)}
 }
-.histtip{position:absolute; z-index:60; max-width:250px; pointer-events:none;
-  background:var(--bg); border:1px solid var(--line); border-radius:12px;
-  box-shadow:0 10px 34px rgba(0,0,0,.11); padding:11px 14px;
-  font-size:12.5px; line-height:1.6; color:var(--ink-soft);
+/* THE HOVER CARD, REBUILT 2026-08-11 (Preston: "more data ... and the way that
+   data is presented is a little messy"). It was a run-on sentence — record,
+   taps, time and ONE mix-up strung together with interpuncts. It is now the
+   CONFIDENCE NUMBER TAKEN APART: the four things that actually move it (record,
+   recent form, speed, freshness) as a label/value grid, then every word this
+   one gets confused with — the learner's own AND the global tracker's — then a
+   quiet footer of taps and time. Sections are separated by rules, not by
+   commas, and any section with no data is not rendered at all. */
+.histtip{position:absolute; z-index:60; width:292px; pointer-events:none;
+  background:var(--bg); border:1px solid var(--line); border-radius:14px;
+  box-shadow:0 12px 38px rgba(0,0,0,.12); padding:0; overflow:hidden;
+  font-size:12.5px; line-height:1.5; color:var(--ink-soft);
   opacity:0; transform:translateY(3px); transition:.14s var(--ease)}
 .histtip.show{opacity:1; transform:none}
-.histtip b{color:var(--ink)}
-.histtip .ht-en{color:var(--ink-faint)}
-.histtip .ht-row{display:block; margin-top:5px}
+.histtip b{color:var(--ink); font-weight:600}
+.ht-hd{padding:11px 14px 10px; border-bottom:1px solid var(--line)}
+.ht-w{font-size:16px; font-weight:600; color:var(--ink); letter-spacing:-.01em}
+.ht-en{color:var(--ink-faint); font-size:12px; margin-left:7px}
+.ht-cap{display:block; font-size:9.5px; font-weight:600; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--ink-faint)}
+.ht-hd .ht-cap{margin-top:4px}
+.ht-sec{padding:9px 14px 10px; border-bottom:1px solid var(--line)}
+.ht-sec .ht-cap{margin-bottom:6px}
+.ht-r{display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+  padding:2px 0}
+.ht-r > span:first-child{color:var(--ink-faint); flex:0 0 auto}
+.ht-r > span:last-child{color:var(--ink); text-align:right}
+.ht-r .ht-dim{color:var(--ink-faint); font-weight:400}
+.ht-foot{padding:8px 14px 9px; display:flex; justify-content:space-between; gap:12px;
+  font-size:9.5px; font-weight:600; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-faint)}
+.ht-flag{padding:8px 14px 9px; color:var(--ink-faint); font-size:11.5px;
+  border-top:1px solid var(--line)}
 .stats .note{color:var(--ink-faint); font-size:12.5px; margin:12px 0 0; line-height:1.55}
 
 /* the city backdrop — Huntsville on the left, Seoul on the right. PAGE furniture,
@@ -587,8 +635,13 @@ body::after{
     <button class="cov" id="covBtn" aria-label="이 숫자는 어디서 왔나 · Where this number comes from">
       <span class="cov-num" id="covNum">0.0%</span>
       <span class="cov-lbl">content words in<br>everyday spoken Korean</span>
-    </button><button class="whybtn" data-why="1" aria-label="Where this number comes from"
-      title="Where this number comes from" style="margin-top:9px">?</button>
+    </button>
+    <!-- The "?" chip that used to sit here was removed 2026-08-11 (Preston).
+         The % number IS the click target and opens the same explainer, so the
+         chip published a second control for one behaviour on every screen —
+         two affordances, one panel. The rule stands for numbers that have NO
+         affordance of their own: whyChip() and .whybtn remain as the drop-in.
+         A statistic that is already clickable does not also get a chip. -->
     <div class="topright">
       <button class="id-chip" id="idChip" aria-label="내 성장 · Your progress">
         <img id="idChipImg" alt=""></button>
@@ -654,6 +707,13 @@ body::after{
     <button class="test-play" id="chkPlay">&#9656; Play again</button>
     <div class="grid" id="chkGrid"></div>
     <div class="chk-dots" id="chkDots"></div>
+    <!-- THE PRACTICE ROOM HAS A DOOR (Preston, 2026-08-11). Focus study writes
+         NOTHING (15-drip-spec.md §13), so there was never anything to protect by
+         holding the learner in until item ten. Browsing the ten already had
+         "Leave the ten"; the test that follows it had no exit at all, which made
+         a sealed sandbox feel like a commitment. Shown ONLY for a focus round —
+         a real check is measurement and keeps its shape. -->
+    <button class="btn ghost chk-leave" id="chkLeave">나가기 · Leave practice</button>
   </div>
 
   <div class="check" id="chkDone">
@@ -1475,7 +1535,7 @@ function startFocusCheck(){
   /* deliberately does NOT advance mem.chkN: the check counter governs when a
      missed word becomes eligible again (s.hc), so burning a number here would
      reach outside the sealed room and change the real schedule. */
-  const order = keys.slice().sort(() => Math.random() - 0.5);
+  const order = shuffle(keys.slice());
   mem.queue = order.map(k => ({ k, part: 'focus' }));
   mem.qi = 0; mem.back = [];
   prefetchConfusions(order);
@@ -1589,7 +1649,7 @@ function pickRecheck(exclude, nOverride, priOnly){
   });
   scored.sort((a, b) => b.w - a.w);
   const picks = scored.slice(0, nPri).map(x => x.k);
-  const rest = pool.filter(k => !picks.includes(k)).sort(() => Math.random() - 0.5);
+  const rest = shuffle(pool.filter(k => !picks.includes(k)));
   picks.push(...rest.slice(0, n - picks.length));
   return picks;
 }
@@ -1825,6 +1885,57 @@ function confidence(k){
   return Math.max(5, Math.min(99, Math.round(100 * acc * flFac * rpFac * recFac)));
 }
 
+/* A REAL SHUFFLE. `sort(() => Math.random() - 0.5)` is not one: the comparator is
+   inconsistent, so V8's insertion sort (arrays <= 10, which is every shuffle in this
+   file) leaves elements clustered near where they started and the distribution is
+   measurably lopsided. That is harmless for decoration and NOT harmless here — the
+   same call orders the four pictures in every grid, so a biased shuffle means the
+   correct answer favours certain positions, which is a free hint. Fisher-Yates. */
+function shuffle(a){
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+/* THE FRESHEST WORD IS NOT A FAIR FIRST QUESTION (Preston, 2026-08-11:
+   "it ends up being a throw away data point because the person obviously still
+   remembers what they just got taught").
+
+   It is worse than throw-away. A pass at delay ~0 is not neutral — it writes
+   s.p++, seeds the decayed counters, and records a FAST latency into s.fl, so it
+   lifts confidence and pushes the word DOWN the re-feed priority. The one word
+   with the least evidence behind it gets the strongest-looking result. That is
+   the exact failure the miss path already guards against ("relearn-then-retest
+   minutes later only measures short-term memory; the value of the recycle is in
+   the delay") — this applies the same principle to the front of the round.
+
+   Rule: the LAST word retired may not be asked in the first three items, and the
+   runner-up may not be asked first. Positions are constrained, not assigned —
+   fixing the newest to a slot would just trade a recency tell for a positional
+   one, which is what the 2026-08-08 shuffle was introduced to kill. Bars scale
+   down with the round so a short claim is still legal. */
+const freshBars = n => n >= 9 ? [3, 1] : n >= 6 ? [2, 1] : n >= 3 ? [1, 0]
+                                                          : [Math.min(1, n - 1), 0];
+function placeFresh(order, fresh){
+  /* bounded on purpose (standing rule: every repeating path gets a written bound).
+     With bars of 3 and 1 this settles in one or two passes; six is a backstop, and
+     falling out of it degrades to "well shuffled", never to a hang. */
+  for(let pass = 0; pass < 6; pass++){
+    let clean = true;
+    for(const f of fresh){
+      if(!f.k || f.bar < 1) continue;
+      const at = order.indexOf(f.k);
+      if(at > -1 && at < f.bar){
+        clean = false;
+        const j = f.bar + Math.floor(Math.random() * (order.length - f.bar));
+        const t = order[at]; order[at] = order[j]; order[j] = t;
+      }
+    }
+    if(clean) break;
+  }
+  return order;
+}
 function buildCheck(claim){
   /* Checks are numbered so a word missed in check n can sit out check n+1.
      (Declining an offered check still advances the number — the hold is a
@@ -1834,7 +1945,13 @@ function buildCheck(claim){
   /* SHUFFLED (Preston, 2026-08-08): the claim used to be asked in the exact
      order the words were retired — after a few checks you can answer by
      POSITION without knowing the word. The order is now random every time. */
-  eligible.sort(() => Math.random() - 0.5);
+  shuffle(eligible);
+  /* claim arrives in RETIREMENT order (mem.pending is a push queue), so the tail
+     is the freshest. Read before any reordering; a word that sat this check out
+     simply is not in `eligible` and placeFresh skips it. */
+  const bars = freshBars(eligible.length);
+  placeFresh(eligible, [{k: claim[claim.length - 1], bar: bars[0]},
+                        {k: claim[claim.length - 2], bar: bars[1]}]);
   const rec = pickRecheck(new Set(claim), RECHECK_N, true);   // Part B: fixed 3, priority lane
   mem.queue = eligible.map(k => ({k, part:'claim'})).concat(rec.map(k => ({k, part:'recheck'})));
   mem.qi = 0; mem.back = [];
@@ -1871,8 +1988,8 @@ function buildOptions(target, batch){
     && !(tGroup !== undefined && EQUIV_IDX[c.k] === tGroup));
   if(batch){
     const inBatch = new Set(batch);
-    const cand = met.filter(c => inBatch.has(c.k)).sort(() => Math.random() - 0.5)
-      .concat(met.filter(c => !inBatch.has(c.k)).sort(() => Math.random() - 0.5));
+    const cand = shuffle(met.filter(c => inBatch.has(c.k)))
+      .concat(shuffle(met.filter(c => !inBatch.has(c.k))));
     const usedG = new Set();
     const distractors = [];
     for(const c of cand){
@@ -1884,7 +2001,7 @@ function buildOptions(target, batch){
       if(g !== undefined) usedG.add(g);
       distractors.push(c);
     }
-    return [target, ...distractors].sort(() => Math.random() - 0.5);
+    return shuffle([target, ...distractors]);
   }
   /* THE CONFUSERS COME BACK (Preston, Aug 2026). Two sources, by his design:
      up to TWO distractors from this person's OWN past mistakes on this word
@@ -1912,10 +2029,8 @@ function buildOptions(target, batch){
      cap — the global one is dropped first, then the older personal one. */
   while(forced.filter(c => c.vc === target.vc).length > 2) forced.pop();
   const forcedKeys = new Set(forced.map(c => c.k));
-  const look = met.filter(c => c.vc === target.vc && !forcedKeys.has(c.k))
-    .sort(() => Math.random() - 0.5);
-  const rest = met.filter(c => c.vc !== target.vc && !forcedKeys.has(c.k))
-    .sort(() => Math.random() - 0.5);
+  const look = shuffle(met.filter(c => c.vc === target.vc && !forcedKeys.has(c.k)));
+  const rest = shuffle(met.filter(c => c.vc !== target.vc && !forcedKeys.has(c.k)));
   const lookCap = Math.max(0, 2 - forced.filter(c => c.vc === target.vc).length);
   /* assemble, honouring one-per-meaning-group among the distractors: two
      same-meaning "wrong" options waste a slot and make the item easier */
@@ -1929,7 +2044,7 @@ function buildOptions(target, batch){
     if(g !== undefined) usedGroups.add(g);
     distractors.push(c);
   }
-  return [target, ...distractors].sort(() => Math.random() - 0.5);
+  return shuffle([target, ...distractors]);
 }
 
 function askItem(){
@@ -1947,6 +2062,7 @@ function askItem(){
       ? mem.queue.filter(x => x.part === q.part).map(x => x.k) : null);
 
   const claimN = mem.queue.filter(x => x.part === 'claim').length;
+  $('chkLeave').classList.toggle('show', q.part === 'focus');
   if(q.part === 'focus'){
     $('chkTitle').textContent = '상위 10 · The ten you just worked';
     $('chkSub').textContent = `${mem.qi + 1} of ${mem.queue.length}`;
@@ -2270,6 +2386,22 @@ $('doneBtn').addEventListener('click', ()=>{
 $('chkPlay').addEventListener('click', ()=>{
   const q = mem.queue && mem.queue[mem.qi];
   if(q){ itemReplays++; sayNextVoice(q.k); }   // hesitation made visible
+});
+/* Leaving a practice round mid-way. The whole queue is dropped rather than
+   parked: a focus round is regenerated from the priority list every time it is
+   entered, so a half-finished one is worth nothing, and leaving it in mem.queue
+   would make the page RESUME it on the next load — the same trap, one reload
+   later. Deliberately does NOT grant postCheckQuiet: the learner walks back out
+   into exactly the stream they left, neither rewarded nor punished. The guard
+   is real, not decorative — this door must never be able to void a check. */
+$('chkLeave').addEventListener('click', ()=>{
+  if(!mem.queue || !mem.queue.length) return;
+  if(!mem.queue.every(q => q.part === 'focus')) return;
+  mem.queue = null; mem.qi = 0; mem.back = [];
+  Store.write();
+  show('cards');
+  if(idx >= active().length) idx = Math.max(0, active().length - 1);
+  paint();
 });
 
 /* ============================================================
@@ -2753,6 +2885,24 @@ if(authOn() && AUTH.enabled){
    word per browser; tapping again withdraws it. Stored locally today; when the
    Hall-of-Names backend exists, sendFlag() is the hook that forwards votes.
    ============================================================ */
+const NOTE_MAX = 1000;                    // one place; the textarea reads it on open
+/* grow to fit what is typed, up to the CSS ceiling, then scroll. Height is reset
+   to 'auto' first or the box can only ever get taller, never shorter. */
+function growNote(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, Math.round(
+    Math.min(window.innerHeight * 0.40, 260))) + 'px';
+}
+function paintNoteCount(){
+  const el = $('flagcNote'), c = $('flagcCount'); if(!el || !c) return;
+  const left = NOTE_MAX - el.value.length;
+  c.classList.toggle('show', left <= 120);
+  c.classList.toggle('at', left <= 0);
+  c.textContent = left <= 120
+    ? (left > 0 ? left + ' characters left'
+                : 'That is the limit — ' + NOTE_MAX + ' characters.')
+    : '';
+}
 function sendFlag(word, on, note){
   /* backend hook — POST {word, on, note, when} to the flag endpoint when one
      exists. Deliberately a no-op until then; localStorage holds the history. */
@@ -2779,10 +2929,12 @@ function doFlag(c, note){
      image they happen to dislike. The backend hook inherits the same semantics.
      The note is Preston's ask: a vote-down without a reason leaves us guessing;
      a sentence of "what doesn't fit" tells us exactly what to redraw. Optional,
-     capped at 280, and the key is OMITTED when empty (Firestore rejects
-     undefined values in set()). */
+     capped at NOTE_MAX, and the key is OMITTED when empty (Firestore rejects
+     undefined values in set()). The cap and the textarea's maxlength are the SAME
+     constant — they were 280 in two places and drifting them apart would truncate
+     silently on the way out, which is worse than refusing the keystroke. */
   const e = { t: Date.now(), taps: stat(c.k).n || 0 };
-  if(note && note.trim()) e.n = note.trim().slice(0, 280);
+  if(note && note.trim()) e.n = note.trim().slice(0, NOTE_MAX);
   mem.flags[c.k] = e;
   flagToast(e.n ? 'Noted, with your comment \u2014 thank you.'
                 : 'Noted \u2014 thank you. This helps us improve the cards.');
@@ -2810,11 +2962,14 @@ $('flagBtn').addEventListener('click', (e)=>{
         + 'the word</b> — that tells us to improve the card. It isn’t a bookmark '
         + 'for saving cards for later.';
     $('flagcNote').value = '';
+    $('flagcNote').style.height = '';        // back to the CSS min on every open
+    paintNoteCount();
     $('flagConfirm').classList.add('show');
   }
 });
 document.addEventListener('DOMContentLoaded', ()=>{
   /* the dialog markup sits after this script in the document, so bind on ready */
+  $('flagcNote').addEventListener('input', e => { growNote(e.target); paintNoteCount(); });
   $('flagcYes').addEventListener('click', ()=>{
     $('flagConfirm').classList.remove('show');
     mem.flagAck = true;
@@ -2983,14 +3138,68 @@ const medalFile = i => 'medals/medal-' + String((i + 1) * 100).padStart(4, '0') 
    number, so the same medal sounds the same on every device. */
 const SOUNDS = { fanfares: ['sounds/medal-fanfare-1.mp3', 'sounds/medal-fanfare-2.mp3'],
                  final: 'sounds/medal-mugunghwa.mp3' };
+/* THE MEDAL MOMENT DOES NOT DEFLATE (Preston, 2026-08-11: "when it quickly fades
+   out, it leaves you feeling a little empty (ha ha!)"). The fanfares are real
+   8-second pieces (12s for 무궁화) that resolve and stop — so the screen he is
+   still reading went silent under him. They now REPEAT for as long as the medal
+   is up, and only stop when he decides to move on.
+
+   Two judgement calls in that:
+   • The first pass is the EVENT at full volume; every repeat after it settles
+     back to underscore, because a fanfare restated at full blast four times
+     stops being a reward and starts being a klaxon. Rule 4 says reward what was
+     achieved — it does not say shout.
+   • Leaving fades over ~450ms instead of cutting. A hard stop on Continue would
+     recreate the exact emptiness this is fixing, one beat later.
+   Bounds (standing rule): repeats stop when the tab is hidden and resume when it
+   comes back, and a runaway backstop caps the total passes. */
+const FANFARE_LEAD = 0.9, FANFARE_UNDER = 0.55, FANFARE_MAX_PASSES = 20;
+let fanfareEl = null, fanfareFade = null, fanfareFading = null, fanfareNow = null;
+function endFanfareFade(){
+  if(fanfareFade){ clearInterval(fanfareFade); fanfareFade = null; }
+  if(fanfareFading){ try{ fanfareFading.pause(); }catch(e){} fanfareFading = null; }
+}
+function stopFanfare(ms){
+  endFanfareFade();                        // any fade already running completes NOW
+  const a = fanfareEl; fanfareEl = null;
+  if(!a) return;
+  a.onended = null;                        // never let a dying take restart itself
+  if(!ms){ try{ a.pause(); }catch(e){} return; }
+  fanfareFading = a;
+  const step = 55, dv = (a.volume || 0) / Math.max(1, ms / step);
+  fanfareFade = setInterval(()=>{
+    if(fanfareFading !== a) return;
+    a.volume = Math.max(0, a.volume - dv);
+    if(a.volume <= 0.001) endFanfareFade();
+  }, step);
+}
 function playFanfare(final, m){
+  stopFanfare(0);                          // a stacked medal must never double the music
+  fanfareNow = {final, m};                 // remembered so unmute can pick it back up
   if(mem.mute) return;
   const src = final ? SOUNDS.final : SOUNDS.fanfares[((m || 1) - 1) % SOUNDS.fanfares.length];
   const a = new Audio(src);
-  a.volume = 0.9;
-  a.play().catch(()=>chime(final));       // missing file (or blocked) -> the stand-in
+  a.volume = FANFARE_LEAD;
+  let passes = 1;
+  /* looped by hand rather than a.loop, because the repeat has to be able to drop
+     its own volume — a.loop offers no seam to act on */
+  a.onended = ()=>{
+    if(fanfareEl !== a || passes >= FANFARE_MAX_PASSES) return;
+    passes++;
+    a.volume = FANFARE_UNDER;
+    a.currentTime = 0;
+    a.play().catch(()=>{});
+  };
+  fanfareEl = a;
+  a.play().catch(()=>chime(final));        // missing file (or blocked) -> the stand-in
   a.onerror = ()=>chime(final);
 }
+/* a looping fanfare in a backgrounded tab is noise, not celebration */
+document.addEventListener('visibilitychange', ()=>{
+  if(!fanfareEl) return;
+  if(document.hidden){ try{ fanfareEl.pause(); }catch(e){} }
+  else if($('mile') && $('mile').classList.contains('show')) fanfareEl.play().catch(()=>{});
+});
 /* the stand-in: a warm pentatonic bloom, gayageum-ish pluck envelopes */
 function chime(final){
   try{
@@ -3392,6 +3601,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 document.addEventListener('DOMContentLoaded', ()=>{
   /* the overlay markup sits after this script — bind on ready (the standing rule) */
   $('mileGo').addEventListener('click', ()=>{
+    stopFanfare(450);                      // walk out of the moment, don't cut it
     $('mile').classList.remove('show');
     if(showMilestone()) return;            // stacked milestones, rare but possible
     if(mem.sinceCheck >= CHECK_EVERY){ if(startClaimCheck()) return; }
@@ -3400,6 +3610,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('mileMute').addEventListener('click', ()=>{
     mem.mute = !mem.mute; Store.write();
     $('mileMute').textContent = mem.mute ? '소리 켜기 · unmute' : '소리 끄기 · mute';
+    /* it used to flip the flag and the label and leave the audio playing — the
+       button did nothing to the thing it is named after until the NEXT medal.
+       A control that can be dead must not look alive (v38). */
+    if(mem.mute) stopFanfare(260);
+    else if(fanfareNow && $('mile').classList.contains('show')){
+      playFanfare(fanfareNow.final, fanfareNow.m);
+    }
   });
 });
 
@@ -3645,27 +3862,118 @@ function flagSection(){
    a third signal competing with rank and confidence, and the flag on the card
    is the honest way to report a bad picture. */
 const histDetail = {};
+/* "3 days ago" beats a timestamp, and staleness is one of the four terms in
+   confidence — a word can sit at 60% purely because nobody has seen it since
+   May, and the learner deserves to be told that rather than left guessing. */
+function agoText(t){
+  if(!t) return '';
+  const h = (Date.now() - t) / 3.6e6;
+  if(h < 1)  return 'just now';
+  if(h < 24) return Math.round(h) + 'h ago';
+  const d = Math.round(h / 24);
+  if(d < 14) return d + ' day' + (d === 1 ? '' : 's') + ' ago';
+  if(d < 60) return Math.round(d / 7) + ' weeks ago';
+  return Math.round(d / 30) + ' months ago';
+}
+/* WHY these two words collide. The grid builder already knows — it deliberately
+   seeds look-alikes and opposites as distractors — so naming the reason turns a
+   raw miss into a diagnosis the learner can act on. */
+function mixWhy(c, tc){
+  if((c.cp && tc.k === c.cp) || (tc.cp && tc.cp === c.k)) return 'its opposite';
+  if(tc.vc === c.vc) return 'a look-alike';
+  return '';
+}
+function ht_row(label, value, dim){
+  return `<div class="ht-r"><span>${label}</span><span${dim ? ' class="ht-dim"' : ''}>${value}</span></div>`;
+}
 function histTipHTML(k, s, c){
-  const bits = [];
-  bits.push(`<b>${c.k}</b> <span class="ht-en">${c.en}</span>`);
-  const rec = [];
-  if(s.p || s.r) rec.push(`${s.p} passed · ${s.r} missed`);
-  if(s.n) rec.push(`${s.n} tap${s.n === 1 ? '' : 's'}`);
-  if(s.ms) rec.push(`${fmtDur(s.ms)} on the card`);
-  if(rec.length) bits.push(`<span class="ht-row">${rec.join(' &nbsp;·&nbsp; ')}</span>`);
-  if(s.picks && s.picks.length){
-    const counts = {};
-    s.picks.forEach(x => counts[x] = (counts[x] || 0) + 1);
-    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-    const tc = byWord(top);
-    if(tc){
-      const why = (c.cp && top === c.cp) ? 'its opposite'
-                : (tc.vc === c.vc ? 'a look-alike' : '');
-      bits.push(`<span class="ht-row">mixed up with <b>${tc.k}</b>${why ? ' — ' + why : ''}</span>`);
-    }
+  const cf = confidence(k);
+  const seen = (s.p || 0) + (s.r || 0);
+  const pos  = DECK.findIndex(x => x.k === k) + 1;
+  const out  = [];
+
+  /* ---- head: the word, its place in the deck, whether it is still in play ---- */
+  out.push(`<div class="ht-hd"><span class="ht-w">${c.k}</span>`
+    + `<span class="ht-en">${c.en}</span>`
+    + `<span class="ht-cap">card ${pos} of ${DECK.length}`
+    + `${mem.retired.has(k) ? ' \u00b7 known' : ' \u00b7 in the deck'}</span></div>`);
+
+  /* ---- the confidence number, taken apart. Every published number explains
+     itself; this is that rule applied to the one in the row to the left. The
+     terms are named in the same order confidence() multiplies them. ---- */
+  const anat = [];
+  if(seen) anat.push(ht_row('기록 \u00b7 record',
+      `<b>${s.p || 0}</b> passed <span class="ht-dim">\u00b7</span> <b>${s.r || 0}</b> missed`));
+  /* recent form vs the lifetime record — confidence reads the last ~5 tests, so
+     a word can be climbing or slipping while the permanent tally barely moves.
+     Only shown when the two genuinely disagree; a matching pair says nothing. */
+  if(seen >= 3 && s.ap !== undefined && (s.ap + s.ar) >= 1.5){
+    const lifeAcc = (s.p || 0) / seen, recAcc = s.ap / (s.ap + s.ar);
+    if(recAcc - lifeAcc > 0.15)      anat.push(ht_row('최근 \u00b7 lately', 'stronger than its record'));
+    else if(lifeAcc - recAcc > 0.15) anat.push(ht_row('최근 \u00b7 lately', 'slipping'));
   }
-  if(!s.p && !s.r) bits.push('<span class="ht-row">not tested yet</span>');
-  return bits.join('');
+  if(s.fl){
+    const sp = s.fl <= 0.75 ? 'quicker than your usual'
+             : s.fl <= 1.30 ? 'your usual pace'
+             : s.fl <= 2.00 ? 'slower than your usual'
+             : 'much slower than your usual';
+    anat.push(ht_row('속도 \u00b7 speed', sp));
+  }
+  if((s.rp || 0) > 0.6) anat.push(ht_row('반복 \u00b7 replays', 'you usually play it twice'));
+  if(s.t) anat.push(ht_row('마지막 \u00b7 last checked', agoText(s.t)));
+  if(anat.length){
+    out.push(`<div class="ht-sec"><span class="ht-cap">`
+      + (cf === null ? '아직 \u00b7 not tested yet'
+                     : `자신감 ${cf}% \u00b7 what it is built from`)
+      + `</span>${anat.join('')}</div>`);
+  }else{
+    out.push('<div class="ht-sec"><span class="ht-cap">아직 \u00b7 not tested yet</span>'
+      + '<div class="ht-r"><span>seen on the card only</span><span></span></div></div>');
+  }
+
+  /* ---- EVERY word it collides with, not just the loudest one (Preston,
+     2026-08-11). picks keeps the last six misses, so two and three distinct
+     confusers are common and the old top-1 threw the rest away. Counted,
+     ranked, each with its reason. ---- */
+  const counts = {};
+  (s.picks || []).forEach(x => counts[x] = (counts[x] || 0) + 1);
+  const mine = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([w, n]) => ({c: byWord(w), n}))
+    .filter(x => x.c);
+  if(mine.length){
+    /* the COUNT belongs beside the word, not in the value column: a word missed
+       once with no known reason would otherwise leave that column empty and the
+       list would read as unfinished. Left side always complete, right side only
+       when there is a real diagnosis to give. */
+    const shown = mine.slice(0, 4).map(({c: tc, n}) => ht_row(
+      `<b>${tc.k}</b> <span class="ht-dim">${tc.en}${n > 1 ? ' \u00d7' + n : ''}</span>`,
+      mixWhy(c, tc), true));
+    if(mine.length > 4) shown.push(ht_row(`<span class="ht-dim">+${mine.length - 4} more</span>`, '', true));
+    out.push('<div class="ht-sec"><span class="ht-cap">헷갈린 단어 \u00b7 you mixed it up with</span>'
+      + shown.join('') + '</div>');
+  }else if(c.cp && byWord(c.cp)){
+    /* nothing to report yet — so name the pair it was BUILT against, which is
+       the collision the deck is expecting and the one worth watching for */
+    out.push('<div class="ht-sec"><span class="ht-cap">짝 \u00b7 its pair</span>'
+      + ht_row(`<b>${c.cp}</b> <span class="ht-dim">${byWord(c.cp).en}</span>`, 'its opposite', true) + '</div>');
+  }
+
+  /* ---- the global tracker: what EVERYONE else misses this word as. Already
+     fetched for every word in a check; free to publish, and it tells the
+     learner their confusion is normal. Own picks filtered out — no echo. ---- */
+  const glob = (confCache[k] || []).filter(w => !counts[w] && byWord(w)).slice(0, 3);
+  if(glob.length){
+    out.push('<div class="ht-sec"><span class="ht-cap">다른 학습자들 \u00b7 others mix it up with</span>'
+      + glob.map(w => ht_row(`<b>${w}</b> <span class="ht-dim">${byWord(w).en}</span>`,
+                             mixWhy(c, byWord(w)), true)).join('') + '</div>');
+  }
+
+  /* ---- footer: the two counters that are context, never a score ---- */
+  out.push(`<div class="ht-foot"><span>${s.n || 0} tap${s.n === 1 ? '' : 's'}</span>`
+    + `<span>${s.ms ? fmtDur(s.ms) + ' on the card' : '\u2014'}</span></div>`);
+  if(mem.flags && mem.flags[k]) out.push('<div class="ht-flag">You flagged this picture \u2014 we are on it.</div>');
+  return out.join('');
 }
 function renderHistory(){
   const box = $('gHist');
@@ -3906,8 +4214,9 @@ if(mem.queue && mem.queue.length && mem.qi < mem.queue.length){
     <div class="flagc-body" id="flagcBody">You are flagging this picture because it does a <b>poor job of
     illustrating the word</b> — that tells us to improve the card. It isn't a bookmark
     for saving cards for later.</div>
-    <textarea class="flagc-note" id="flagcNote" maxlength="280" rows="3"
-      placeholder="What doesn&#39;t fit? Optional, but it helps us fix the picture — e.g. &#39;looks more like sleeping than resting&#39;"></textarea>
+    <textarea class="flagc-note" id="flagcNote" maxlength="1000" rows="6"
+      placeholder="What doesn&#39;t fit? Optional, but it is the most useful thing you can give us — say as much as you like. e.g. &#39;looks more like sleeping than resting, and the blanket makes it read as night&#39;"></textarea>
+    <div class="flagc-count" id="flagcCount"></div>
     <div class="flagc-row">
       <button class="btn primary" id="flagcYes">Yes, flag it</button>
       <button class="btn" id="flagcNo">Cancel</button>
