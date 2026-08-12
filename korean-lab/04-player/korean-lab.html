@@ -438,7 +438,14 @@ body.dripping #subControls{opacity:.4; pointer-events:none}
 .test-play{border:0; background:var(--accent-bg); color:var(--accent-dk); cursor:pointer;
   border-radius:999px; padding:12px 26px; font:inherit; font-size:15px; font-weight:500;
   margin-bottom:28px; transition:.2s var(--ease)}
+/* SIX OPTIONS, THREE COLUMNS (v41). Two columns x three rows was measured and
+   rejected: it fell below the fold on EVERY viewport tested, desktop included, and
+   an option you have to scroll to is not an equal option — it would have re-created
+   the position bias the Fisher-Yates fix had just removed. Three columns keeps the
+   grid SHORTER than today's 2x2, which also preserves the drip's disguise: same
+   footprint as a card, the only tell being pictures instead of one picture. */
 .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; max-width:460px}
+.grid.six{grid-template-columns:1fr 1fr 1fr; gap:12px}
 .opt{aspect-ratio:1/1; border-radius:14px; background:var(--bg-alt); border:1px solid var(--line);
   overflow:hidden; cursor:pointer; padding:0; transition:.2s var(--ease)}
 .opt:hover{box-shadow:0 8px 26px rgba(0,0,0,.06)}
@@ -448,8 +455,10 @@ body.dripping #subControls{opacity:.4; pointer-events:none}
 
 /* THE DRIP — a single review question living INSIDE the card stream
    (references/15-drip-spec.md). Same stage, same footprint as the card; the
-   only tell is four pictures instead of one — the affordance itself says
-   "asked, not shown", so no mode chrome is ever needed. The right arrow
+   only tell is a grid instead of one picture — the affordance itself says
+   "asked, not shown", so no mode chrome is ever needed. Three columns was
+   chosen partly to protect this: a six-up grid in 3x2 is SHORTER than the old
+   2x2, so the footprint claim still holds. The right arrow
    skips it: a drip is a card you can flip past that happens to be a question. */
 .dripwrap{flex:0 1 440px; display:none; flex-direction:column; align-items:center; gap:10px}
 .dripwrap.show{display:flex}
@@ -891,7 +900,7 @@ const Store = {
       stats: mem.stats, sinceCheck: mem.sinceCheck, pending: mem.pending,
       flags: mem.flags, flagAck: !!mem.flagAck, moved: mem.moved, chkN: mem.chkN,
       hw: mem.hw, hist: mem.hist, miles: mem.miles, mute: !!mem.mute, musicOff: !!mem.musicOff,
-      latBase: mem.latBase, name: mem.name || undefined,
+      latBase: mem.latBase, latBase6: mem.latBase6 || undefined, name: mem.name || undefined,
       wall: mem.wall || undefined, hwV2: true,
       avatar: mem.avatar, dripA: mem.dripA, dripAn: mem.dripAn || 0,
       dripNote: mem.dripNote || undefined,
@@ -922,6 +931,7 @@ function restore(){
   if(s.mute) mem.mute = true;
   if(s.musicOff) mem.musicOff = true;
   if(Array.isArray(s.latBase)) mem.latBase = s.latBase;
+  if(Array.isArray(s.latBase6)) mem.latBase6 = s.latBase6;
   if(s.wall && s.wall.n) mem.wall = s.wall;
   /* the name used to live only inside the wall record; older saves carry it
      there, so it migrates out on first load and the wall keeps a mirror. */
@@ -1622,7 +1632,20 @@ document.querySelectorAll('.vbtn').forEach(b=>{
    No score, no percentage, no pass/fail. The deck getting longer IS the feedback.
    ============================================================ */
 const CHECK_EVERY   = 10;    // retirements that trigger a check
-const RECHECK_N     = 3;     // Part B: fixed, priority-lane only — the drip owns review now
+/* Part B sample per check. Raised 3 -> 4 (Preston, 2026-08-11) because his goal is a
+   better beat on long-term comprehension, and THIS is the lever for it — more review
+   ITEMS. More pictures per item never tests more words; only the target is tested.
+   The drip's density is deliberately NOT touched: it is governed by measured
+   retention, so hard-coding more drips would override the feedback loop that keeps
+   it honest. This constant is the un-governed one, which is why it is the right dial. */
+const RECHECK_N     = 4;     // Part B: fixed, priority-lane only — the drip owns review now
+/* HOW MANY PICTURES (v41, Preston). Six in the LONG-TERM lane — rechecks and drips,
+   words the learner claims to own — where the extra option buys real diagnostic
+   power: the guess floor drops 25% -> 16.7%, and six slots fit the contrast partner
+   AND the personal confuser AND the global confuser, which currently fight over
+   three. Brand-new words stay at FOUR: their pool is thinnest, so the sixth slot
+   would be filler, and first exposure is the most fragile moment in the system. */
+const OPT_N_LONG = 6, OPT_N_NEW = 4;
 
 function pickRecheck(exclude, nOverride, priOnly){
   const pool = [...mem.retired].filter(k => !exclude.has(k)
@@ -1798,14 +1821,25 @@ function armItemClock(){ itemT0 = performance.now(); itemVoid = false; itemRepla
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden) itemVoid = true; });
 window.addEventListener('blur', ()=>{ itemVoid = true; });
 
-function recordFluency(s){
+/* ONE BASELINE PER GRID SIZE (v41). s.fl is a latency normalised against the
+   learner's OWN rolling median. Six pictures take longer to scan than four, so a
+   single shared baseline would have made every pre-v41 fluency value incomparable
+   to every post-v41 one for ~30 items — confidence drifting for everyone mid-stream,
+   silently, with no error to notice. `mem.latBase` stays the four-up series it
+   always was; six-up gets its own. Compare like with like or do not compare. */
+function latSeries(n){
+  if(n >= 6){ if(!Array.isArray(mem.latBase6)) mem.latBase6 = []; return mem.latBase6; }
+  return mem.latBase;
+}
+function recordFluency(s, n){
   const lat = performance.now() - itemT0;
+  const base = latSeries(n || OPT_N_NEW);
   /* guards: walked away / tabbed out (void), gone > 12 s (doorbell, not memory),
      or under 250 ms (a double-tap, not a decision) -> keep the answer, drop the clock */
   if(!itemVoid && lat >= 250 && lat <= 12000){
-    mem.latBase.push(Math.round(lat));
-    if(mem.latBase.length > 30) mem.latBase.shift();
-    const sorted = [...mem.latBase].slice().sort((a, b) => a - b);
+    base.push(Math.round(lat));
+    if(base.length > 30) base.shift();
+    const sorted = [...base].slice().sort((a, b) => a - b);
     const med = sorted[Math.floor(sorted.length / 2)] || lat;
     const norm = Math.min(4, lat / Math.max(400, med));
     s.fl = s.fl ? Math.round((0.65 * s.fl + 0.35 * norm) * 100) / 100
@@ -1818,8 +1852,8 @@ function recordFluency(s){
 }
 
 /* One honest 0-100 per word. Untested words return null (the caller says
-   "untested" rather than inventing a number). Anatomy: Laplace-smoothed
-   accuracy (1 clean pass ≈ 67%, four ≈ 83%, nine ≈ 91%) x a fluency factor
+   "untested" rather than inventing a number). Anatomy: GUESS-CORRECTED
+   smoothed accuracy x a fluency factor
    (his own speed = neutral, fast lifts a little, slow costs up to a quarter)
    x a replay factor x a STABILITY-DEPENDENT staleness decay (an established
    word barely drifts for months; a one-pass word halves in ~6 weeks; floor
@@ -1858,6 +1892,16 @@ function seedDecay(s){
   const M = Math.min(tot, 5);
   return tot ? { ap: M * (s.p || 0) / tot, ar: M * (s.r || 0) / tot } : { ap: 0, ar: 0 };
 }
+/* WHICH GUESS FLOOR THIS WORD HAS ACTUALLY FACED. A word tested at four-up and a
+   word tested at six-up did not sit the same exam, so confidence cannot read their
+   records the same way. Decayed at the same 0.8 as ap/ar, so a word that moves from
+   the new-word lane into the long-term lane migrates its floor smoothly instead of
+   snapping. Absent on every pre-v41 save, which is correct: those answers really
+   were given at four. */
+function noteOptionCount(s, n){
+  if(!n) return;
+  s.on = s.on === undefined ? n : Math.round((0.8 * s.on + 0.2 * n) * 100) / 100;
+}
 function decayOutcome(s, right){
   if(s.ap === undefined){ const d = seedDecay(s); s.ap = d.ap; s.ar = d.ar; }
   s.ap = Math.round((0.8 * s.ap + (right ? 1 : 0)) * 100) / 100;
@@ -1869,7 +1913,29 @@ function confidence(k){
   const seen = s ? (s.p || 0) + (s.r || 0) : 0;
   if(!seen) return null;
   const d = s.ap === undefined ? seedDecay(s) : { ap: s.ap, ar: s.ar };
-  const acc = (d.ap + 0.5) / (d.ap + d.ar + 1);
+  /* THE GUESS FLOOR IS NOW IN THE NUMBER (Preston, 2026-08-11). Until v41 a pass
+     was a pass: a learner who knew nothing still passed a quarter of four-picture
+     items, and every one of those lifted confidence and pushed the word DOWN the
+     study list. Observed accuracy is corrected back to the knowledge it implies —
+     p = k + (1-k)/n, so k = (p - 1/n) / (1 - 1/n).
+
+     This LOWERS almost every existing number, which is the point (rule 3: the
+     number is honest). It is also conservative: real learners do not guess
+     uniformly, they eliminate the obviously-wrong options first, so the true floor
+     is HIGHER than 1/n and the correction here is a lower bound on the overstatement.
+
+     Medals, the wall and the 단어 count are untouched — those run on verified passes
+     and always did. Only the estimator's READING of a record changes.
+
+     Measured effect at a four-picture floor — one clean pass 75 -> 67, four clean
+     passes 90 -> 87, right-half-the-time 50 -> 33. The correction is gentle on
+     solid words and severe on shaky ones, which is exactly the right shape: a
+     coin-flip record was never 50% knowledge, it was mostly the grid being kind.
+     And the SAME record is worth MORE at six pictures (67 -> 70, 33 -> 40) — the
+     harder exam pays better, automatically, with no separate reward machinery. */
+  const g = 1 / Math.max(2, s.on || OPT_N_NEW);
+  const accObs = (d.ap + 0.5) / (d.ap + d.ar + 1);
+  const acc = Math.max(0, (accObs - g) / (1 - g));
   const flFac = s.fl ? Math.max(0.75, Math.min(1.05, 1.15 - 0.15 * s.fl)) : 1;
   const rpFac = (s.rp || 0) > 0.6 ? 0.93 : 1;
   const hrs = s.t ? (Date.now() - s.t) / 3.6e6 : 24 * 60;
@@ -1979,7 +2045,17 @@ function renderDots(){
    personal/global confusers are SKIPPED in batch mode — they are old words,
    which is exactly the leak. Twin ban, one-per-meaning-group, and the Ishii
    ≤2 same-class cap all still hold. */
-function buildOptions(target, batch){
+/* A SIXTH PICTURE ONLY HELPS IF IT IS A PLAUSIBLE PICTURE. Learners do not guess
+   uniformly — they ELIMINATE. A filler sixth option is discarded for free, so the
+   grid is effectively back to four while paying the full screen cost, and the guess
+   floor never actually moves. So `want` is a ceiling, not a promise: the assembly
+   loop below stops at however many LEGAL distractors survive the meaning-twin,
+   ambiguity, look-alike and one-per-group filters, and the caller renders whatever
+   comes back. Early learners with a thin `met` pool simply keep getting four. This
+   is Preston's "as we get more cards in" instinct, expressed as a runtime gate
+   rather than a date. */
+function buildOptions(target, batch, want){
+  want = want || (batch ? OPT_N_NEW : OPT_N_LONG);
   /* MEANING TWINS banned first — before confusers, before look-alikes. A word
      with the same meaning as the target can never be in this grid: it would
      be a second correct answer. This outranks every other selection rule. */
@@ -1993,7 +2069,7 @@ function buildOptions(target, batch){
     const usedG = new Set();
     const distractors = [];
     for(const c of cand){
-      if(distractors.length >= 3) break;
+      if(distractors.length >= OPT_N_NEW - 1) break;
       if(distractors.some(x => x.k === c.k)) continue;
       const g = EQUIV_IDX[c.k];
       if(g !== undefined && usedG.has(g)) continue;
@@ -2027,22 +2103,36 @@ function buildOptions(target, batch){
      same-class distractors guarantees at least one visibly different option, so a bad
      card pair can never make an item impossible. Forced confusers count toward the
      cap — the global one is dropped first, then the older personal one. */
-  while(forced.filter(c => c.vc === target.vc).length > 2) forced.pop();
+  /* Ishii cap scales with the grid: never more than HALF the distractors from the
+     target's own visual class, so at least two options stay visibly different and a
+     bad card pair can still never make an item impossible. 3 of 5 at six-up, 2 of 3
+     at four-up. */
+  const lookMax = want >= 6 ? 3 : 2;
+  while(forced.filter(c => c.vc === target.vc).length > lookMax) forced.pop();
   const forcedKeys = new Set(forced.map(c => c.k));
   const look = shuffle(met.filter(c => c.vc === target.vc && !forcedKeys.has(c.k)));
   const rest = shuffle(met.filter(c => c.vc !== target.vc && !forcedKeys.has(c.k)));
-  const lookCap = Math.max(0, 2 - forced.filter(c => c.vc === target.vc).length);
+  const lookCap = Math.max(0, lookMax - forced.filter(c => c.vc === target.vc).length);
   /* assemble, honouring one-per-meaning-group among the distractors: two
      same-meaning "wrong" options waste a slot and make the item easier */
   const usedGroups = new Set();
   const distractors = [];
   for(const c of [...forced, ...look.slice(0, lookCap), ...rest, ...look.slice(lookCap)]){
-    if(distractors.length >= 3) break;
+    if(distractors.length >= want - 1) break;
     if(distractors.some(x => x.k === c.k)) continue;
     const g = EQUIV_IDX[c.k];
     if(g !== undefined && usedGroups.has(g)) continue;
     if(g !== undefined) usedGroups.add(g);
     distractors.push(c);
+  }
+  /* SIX OR FOUR, NEVER FIVE. A five-tile grid in three columns is a ragged 3+2 —
+     and worse, the gap tells the learner the deck ran short, which is information
+     about the POOL leaking into a question about a WORD. If the filters cannot fill
+     six legal distractors we take a clean four instead. (Fewer than four is the
+     pre-existing early-learner case and is left alone: a brand-new learner with
+     three met words genuinely has three options.) */
+  if(distractors.length + 1 !== want && distractors.length + 1 > OPT_N_NEW){
+    distractors.length = OPT_N_NEW - 1;
   }
   return shuffle([target, ...distractors]);
 }
@@ -2074,6 +2164,7 @@ function askItem(){
   }
   renderDots();
 
+  $('chkGrid').classList.toggle('six', opts.length > 4);
   $('chkGrid').innerHTML = opts.map(o =>
     `<button class="opt" data-k="${o.k}"><img src="${src(o)}" alt=""></button>`).join('');
   [...$('chkGrid').children].forEach(b => {
@@ -2102,7 +2193,8 @@ function askItem(){
       s.t = Date.now();
       decayOutcome(s, right);                  // trend first: the past fades 20%
       if(q.part === 'recheck') noteRetention(right);   // pool retention feeds the drip governor
-      if(right){ s.p++; recordFluency(s); recordGrowth(); }   // verification is here, not at the click
+      noteOptionCount(s, opts.length);         // the guess floor this answer was given
+      if(right){ s.p++; recordFluency(s, opts.length); recordGrowth(); }   // verification is here, not at the click
       else {
         s.r++; q.missed = true;
         /* what fooled him is diagnostic: the contrast partner = backwards binding,
@@ -2415,8 +2507,9 @@ $('chkLeave').addEventListener('click', ()=>{
    the retired pool continuously, in the stream, at a density governed by
    measured retention — one continuous deck, no test mode.
 
-   Shape: between cards, a single check-style item — audio plays, four
-   pictures, tap. Right arrow SKIPS it (no record, no penalty — a drip is a
+   Shape: between cards, a single check-style item — audio plays, SIX
+   pictures in three columns (v41: the drip is the long-term lane, so it gets
+   the lower guess floor), tap. Right arrow SKIPS it (no record, no penalty — a drip is a
    card you can flip past). Misses wire into the exact machinery a check miss
    uses. No score, no tally, no banner, ever.
    ============================================================ */
@@ -2526,16 +2619,17 @@ function startDrip(k){
   $('next').disabled = false;                        // the skip is always open
   prefetch(k);
   const opts = buildOptions(target);
+  $('dripGrid').classList.toggle('six', opts.length > 4);
   $('dripGrid').innerHTML = opts.map(o =>
     `<button class="opt" data-k="${o.k}"><img src="${src(o)}" alt=""></button>`).join('');
   [...$('dripGrid').children].forEach(b => {
-    b.addEventListener('click', () => answerDrip(b, target), {once: true});
+    b.addEventListener('click', () => answerDrip(b, target, opts.length), {once: true});
   });
   armItemClock();
   say(k);
 }
 
-function answerDrip(b, target){
+function answerDrip(b, target, optN){
   if(!dripState || dripState.done) return;
   dripState.done = true;
   const right = b.dataset.k === target.k;
@@ -2543,7 +2637,8 @@ function answerDrip(b, target){
   st.t = Date.now();
   decayOutcome(st, right);
   noteRetention(right);
-  if(right){ st.p++; recordFluency(st); recordGrowth(); }
+  noteOptionCount(st, optN);
+  if(right){ st.p++; recordFluency(st, optN); recordGrowth(); }
   else {
     st.r++;
     /* the exact machinery of a check miss — one system, no second bucket */
@@ -2678,6 +2773,10 @@ function mergeCloud(remote){
     if(rs.ms) s.ms = Math.max(s.ms || 0, rs.ms);
     if(rs.sk) s.sk = Math.max(s.sk || 0, rs.sk);
     if(rs.fs) s.fs = Math.max(s.fs || 0, rs.fs);   // inert: sessions, never outcomes
+    /* the option count merges PESSIMISTICALLY, like fluency: the SMALLER grid is the
+       easier exam, so the lower number wins. A sync must never be able to inflate a
+       word's credit by claiming its record was earned against harder odds. */
+    if(rs.on !== undefined) s.on = s.on === undefined ? rs.on : Math.min(s.on, rs.on);
     if(rs.ap !== undefined){
       if(s.ap === undefined){ s.ap = rs.ap; s.ar = rs.ar || 0; }
       else{
@@ -3920,6 +4019,8 @@ function histTipHTML(k, s, c){
     anat.push(ht_row('속도 \u00b7 speed', sp));
   }
   if((s.rp || 0) > 0.6) anat.push(ht_row('반복 \u00b7 replays', 'you usually play it twice'));
+  if(s.on) anat.push(ht_row('추측 \u00b7 guess floor',
+      `1 in ${Math.round(s.on)}` + (s.on >= 5 ? '' : ' <span class="ht-dim">pictures</span>')));
   if(s.t) anat.push(ht_row('마지막 \u00b7 last checked', agoText(s.t)));
   if(anat.length){
     out.push(`<div class="ht-sec"><span class="ht-cap">`
