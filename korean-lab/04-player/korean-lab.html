@@ -35,6 +35,15 @@
   --accent-green-dk:#5f6d12; --accent-green-bg:#f5f8dd;
   --accent-green-ink:#36420a;
   --warn:#a8781f;
+  /* THE NAKS RED — a deliberate, narrow exception to the Aug-2026 pivot that
+     retired red from UI. It marks ONLY the words in trouble on the report card.
+     #d23c4c fails contrast as type on white, so the ink is the same hue darkened. */
+  --naks-red:#d23c4c; --naks-red-ink:#a32e3c;
+  --naks-red-bg:#fbf1f2; --naks-red-line:#eed3d7;
+  /* the dossier's navy field and the papers laid on it */
+  --doss:#16345c; --doss-2:#1f4788; --doss-ink:#f4f1e8; --doss-dim:#93a9c8;
+  --doss-rule:rgba(244,241,232,.20);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   --radius:18px; --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
@@ -607,6 +616,186 @@ body.on-progress .setbtn{display:inline-flex}
   border-top:1px solid var(--line)}
 .stats .note{color:var(--ink-faint); font-size:12.5px; margin:12px 0 0; line-height:1.55}
 
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE PROGRESS PAGE — report card x dossier (2026-08-13)
+   Every new class is namespaced so nothing here can reach another surface.
+   ══════════════════════════════════════════════════════════════════════════ */
+#progress .dossier{position:relative; width:100%; border-radius:var(--radius);
+  overflow:hidden; color:var(--doss-ink); padding:26px 26px 22px; margin-bottom:14px;
+  background:linear-gradient(158deg,var(--doss-2) 0%,var(--doss) 62%,#102845 100%)}
+#progress .dossier::before{content:''; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.030) 0 1px,transparent 1px 4px),
+             radial-gradient(120% 80% at 8% 0%,rgba(255,255,255,.13),transparent 60%)}
+#progress .doss-kicker{font-family:var(--mono); font-size:9.5px; letter-spacing:.19em;
+  text-transform:uppercase; color:var(--doss-dim)}
+#progress .doss-grid{position:relative; display:grid; grid-template-columns:1fr 196px;
+  gap:26px; align-items:start}
+#progress .doss-main{min-width:0}
+#progress .doss-top{position:relative; display:grid; grid-template-columns:auto 1fr;
+  gap:22px; align-items:start}
+/* the portrait sits in FLOW, caption included — absolutely positioning the
+   caption put it on the line where .dfields draws its border-top */
+#progress .dportrait{width:132px; flex:0 0 auto; display:flex; flex-direction:column; gap:9px}
+#progress .dportrait img{width:132px; height:132px; object-fit:contain;
+  background:rgba(255,255,255,.07); border-radius:16px; padding:8px}
+#progress .dportrait .cls{text-align:center; font-family:var(--mono); font-size:8.5px;
+  letter-spacing:.16em; color:var(--doss-dim)}
+/* THE EMPTY SLOT — signed out there is no character, and tapping it is the
+   whole point: it opens the picker and the sign-in as one decision. */
+#progress .avslot{width:132px; height:132px; padding:0; border:0; background:none;
+  cursor:pointer; position:relative; border-radius:16px}
+#progress .avslot .ring{position:absolute; inset:0; border-radius:16px;
+  border:1.5px dashed rgba(216,232,100,.55); background:rgba(255,255,255,.05);
+  transition:.2s var(--ease)}
+#progress .avslot:hover .ring{background:rgba(216,232,100,.12); border-color:var(--accent-green)}
+#progress .avslot svg{position:absolute; inset:0; width:100%; height:100%; padding:22px}
+#progress .avslot .plus{position:absolute; right:-5px; bottom:-5px; width:28px; height:28px;
+  border-radius:50%; background:var(--accent-green); color:var(--accent-green-ink);
+  font-size:17px; font-weight:600; line-height:26px; text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#progress .ident{min-width:0}
+#progress .doss-name{margin:7px 0 2px; font-size:31px; line-height:1.05;
+  letter-spacing:-.02em; font-weight:650}
+#progress .doss-name.none{color:var(--doss-dim); font-weight:500}
+#progress .doss-file{font-family:var(--mono); font-size:10px; letter-spacing:.13em;
+  color:var(--doss-dim); text-transform:uppercase}
+#progress .dfields{margin:18px 0 0; display:grid; grid-template-columns:repeat(3,1fr);
+  gap:14px; border-top:1px solid var(--doss-rule); padding-top:15px}
+#progress .dfields .f{display:flex; flex-direction:column}
+#progress .dfields .f dt{font-family:var(--mono); font-size:8.5px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--doss-dim); margin:0 0 5px; line-height:1.45;
+  min-height:2.9em}
+#progress .dfields .f dd{margin:0; font-size:20px; font-weight:620; letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums; line-height:1.1; color:var(--doss-ink)}
+#progress .dfields .f dd small{font-size:11px; font-weight:500; color:var(--doss-dim);
+  letter-spacing:0; margin-left:3px}
+/* the headline number keeps its id (gNum) and its meaning; only its size changes */
+#progress .dfields .f.hero dd{font-size:36px; line-height:.95; color:#fff}
+
+/* ── the stereo ──────────────────────────────────────────────────────────── */
+#progress .bbox{width:100%; padding-top:2px}
+#progress .bb-stack{position:relative; display:block; line-height:0}
+#progress .bbox img{display:block; width:100%; height:auto;
+  filter:drop-shadow(0 10px 20px rgba(0,0,0,.34))}
+/* the dusty and clean renders were exported registered on the navy body, so
+   this is a pure crossfade — the stereo cannot jump at the reward moment */
+#progress .bb-clean{position:absolute; inset:0; opacity:0; transition:opacity 1.1s var(--ease)}
+#progress .bb-lock{transition:opacity 1.1s var(--ease)}
+#progress.unlocked .bb-clean{opacity:1}
+#progress.unlocked .bb-lock{opacity:0}
+#progress:not(.unlocked) .bb-ctl, #progress:not(.unlocked) .bb-now{display:none}
+#progress .bb-tape{position:absolute; border-radius:3px; mix-blend-mode:multiply;
+  transition:background .35s var(--ease); pointer-events:none}
+/* the painted bars stay the bars; the light behind them breathes */
+#progress .bb-eq{position:absolute; pointer-events:none; opacity:0; filter:blur(3px);
+  background:radial-gradient(closest-side,rgba(216,232,100,.95),rgba(216,232,100,0) 78%);
+  mix-blend-mode:screen; transition:opacity .35s var(--ease)}
+#progress.playing .bb-eq{opacity:.5; animation:bbEq .58s ease-in-out infinite alternate}
+@keyframes bbEq{from{opacity:.16; transform:scaleX(.86)} to{opacity:.62; transform:scaleX(1.06)}}
+#progress .bb-now{margin-top:3px; text-align:center; font-family:var(--mono); font-size:8.5px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--doss-dim); line-height:1.5}
+#progress .bb-now b{color:var(--doss-ink); font-weight:600}
+#progress .bb-ctl{display:flex; justify-content:center; align-items:center; gap:8px; margin-top:7px}
+#progress .bb-btn{width:38px; height:38px; border-radius:50%; padding:0;
+  border:1px solid rgba(244,241,232,.28); background:rgba(255,255,255,.07);
+  color:var(--doss-ink); cursor:pointer; font-size:13px; line-height:1; display:flex;
+  align-items:center; justify-content:center; transition:.16s var(--ease); -webkit-appearance:none}
+#progress .bb-btn:hover{background:rgba(255,255,255,.16)}
+#progress .bb-btn:active{transform:scale(.94)}
+#progress .bb-btn.on{background:var(--accent-green); border-color:var(--accent-green-mid);
+  color:var(--accent-green-ink)}
+@media (pointer:coarse){ #progress .bb-btn{width:46px; height:46px; font-size:15px}
+  #progress .bb-ctl{gap:12px} }
+#progress .bb-unlock{margin-top:10px; padding:9px 11px; border-radius:12px; text-align:center;
+  background:rgba(216,232,100,.10); box-shadow:inset 0 0 0 1px rgba(216,232,100,.28);
+  font-size:11px; line-height:1.5; color:var(--accent-green)}
+#progress .bb-unlock b{display:block; color:#eef4bb; font-weight:600}
+#progress .bb-unlock span{display:block; margin-top:2px; font-size:10px; color:var(--doss-dim)}
+#progress .bb-unlock.done{background:rgba(255,255,255,.06);
+  box-shadow:inset 0 0 0 1px var(--doss-rule); color:var(--doss-dim)}
+#progress .bb-unlock.done b{color:var(--doss-ink)}
+
+/* ── the medal rack: a light sheet laid into the file ────────────────────── */
+#progress .drack{position:relative; margin-top:20px; border-radius:14px;
+  padding:13px 15px 12px; background:#faf8f2;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),0 2px 10px rgba(0,0,0,.22)}
+#progress .drack .doss-kicker{margin-bottom:9px; color:#8c8578}
+/* the medals were knocked out for a WHITE page — on the navy they go muddy and
+   the locked ones vanish, hence the sheet */
+#progress .drack .shelf{grid-template-columns:repeat(8,1fr); gap:8px 6px; margin:0}
+#progress .drack .shelf .m img{max-width:62px}
+#progress .drack .shelf .m.locked img{filter:grayscale(1) opacity(.3)}
+#progress .drack .shelf .m span{font-family:var(--mono); font-size:8px; color:#a09889}
+#progress .drack .shelf .m.earned span{color:var(--accent-dk); font-weight:600}
+
+/* ── the report card ─────────────────────────────────────────────────────── */
+#progress .rcards{display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%;
+  margin-bottom:6px}
+#progress .rcard{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  display:flex; flex-direction:column; background:var(--bg)}
+#progress .rcard-hd{padding:12px 15px 10px; border-bottom:1px solid var(--line);
+  display:flex; align-items:baseline; justify-content:space-between; gap:8px}
+#progress .rcard-hd h3{margin:0; font-size:14.5px; font-weight:620; letter-spacing:-.01em}
+#progress .rcard-hd em{font-family:var(--mono); font-size:8.5px; letter-spacing:.14em;
+  text-transform:uppercase; font-style:normal; color:var(--ink-faint)}
+#progress .rcard.needs .rcard-hd{background:var(--naks-red-bg);
+  border-bottom-color:var(--naks-red-line)}
+#progress .rcard.needs .rcard-hd h3{color:var(--naks-red-ink)}
+#progress .rcard.best .rcard-hd{background:var(--accent-green-bg); border-bottom-color:#e6ecc0}
+#progress .rcard table{width:100%; border-collapse:collapse; font-size:13px;
+  font-variant-numeric:tabular-nums}
+#progress .rcard td{padding:6px 15px; border-bottom:1px solid var(--line); text-align:left}
+#progress .rcard tr:last-child td{border-bottom:0}
+#progress .rcard td.n{width:26px; padding-right:0; color:var(--ink-faint);
+  font-family:var(--mono); font-size:9.5px}
+#progress .rcard td.w b{font-weight:600}
+#progress .rcard td.w span{color:var(--ink-faint); margin-left:6px; font-size:12px}
+#progress .rcard td.mk{width:56px; text-align:right; font-weight:640}
+#progress .rcard.needs td.mk{color:var(--naks-red-ink)}
+#progress .rcard.best  td.mk{color:var(--accent-green-dk)}
+#progress .rcard .foot{margin-top:auto; padding:12px 15px 14px; border-top:1px solid var(--line)}
+#progress .rcard .foot p{margin:0; font-size:11.5px; line-height:1.5; color:var(--ink-faint)}
+#progress .rcard .foot .btn{width:100%}
+#progress .growth-wrap{width:100%; margin-top:30px}
+#progress .growth-wrap .arcwrap{margin:6px 0 20px}
+
+/* the character picker */
+.avdlg{position:fixed; inset:0; z-index:80; display:none; align-items:center;
+  justify-content:center; padding:22px; background:rgba(16,32,56,.55);
+  -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+.avdlg.show{display:flex}
+.avcard{width:100%; max-width:430px; background:var(--bg); border-radius:20px;
+  padding:24px 24px 20px; box-shadow:0 24px 70px rgba(0,0,0,.35); text-align:center}
+.avcard h3{margin:0 0 4px; font-size:19px; font-weight:650; letter-spacing:-.01em}
+.avcard p{margin:0 0 16px; font-size:13px; line-height:1.55; color:var(--ink-soft)}
+.avgrid{display:grid; grid-template-columns:repeat(6,1fr); gap:9px; margin-bottom:14px}
+.avgrid img{width:100%; height:auto; border-radius:50%; background:var(--bg-alt);
+  filter:grayscale(1) opacity(.42)}
+.avcard .lock{font-size:11.5px; color:var(--ink-faint); margin:0 0 14px}
+.avcard .btn.commit{width:100%; margin-bottom:8px}
+.avcard .later{background:none; border:0; cursor:pointer; font-family:inherit;
+  font-size:12.5px; color:var(--ink-faint); padding:8px}
+
+@media (max-width:680px){
+  #progress .dossier{padding:20px 18px 18px}
+  #progress .doss-grid{grid-template-columns:1fr; gap:4px}
+  #progress .doss-top{grid-template-columns:92px 1fr; gap:15px; align-items:center}
+  #progress .dportrait{width:92px}
+  #progress .dportrait img{width:92px; height:92px}
+  #progress .dportrait .cls{display:none}
+  #progress .avslot{width:92px; height:92px}
+  #progress .doss-name{font-size:25px; margin-top:4px}
+  #progress .doss-file{font-size:9px; letter-spacing:.08em}
+  #progress .dfields{gap:12px 10px}
+  #progress .dfields .f dd{font-size:17px}
+  #progress .dfields .f.hero dd{font-size:29px}
+  #progress .bbox{width:196px; margin:16px auto 2px}
+  #progress .drack .shelf{grid-template-columns:repeat(5,1fr); gap:10px 6px}
+  #progress .rcards{grid-template-columns:1fr}
+  .avgrid{grid-template-columns:repeat(4,1fr)}
+}
+
 /* the city backdrop — Huntsville on the left, Seoul on the right. PAGE furniture,
    never card content: it sits behind the whole tool at z-index:-1 and degrades to
    nothing if skyline.png is missing. Tuning surface: opacity, the saturate() filter,
@@ -753,26 +942,94 @@ body::after{
       <div class="chk-sub">Every word you have proven on a test at least once — a record of how
         far you have come.</div>
     </div>
-    <div class="growth-hero"><div class="gnum" id="gNum">0</div>
-      <div class="glbl">단어 · words proven on tests</div></div>
-    <div class="growth-sub" id="gGoal"></div>
-    <div class="growth-chart"><p id="gChartLbl">Your words, day by day</p>
-      <svg id="gChart" viewBox="0 0 560 200" role="img" aria-label="Words owned over time"></svg>
+    <section class="dossier">
+      <div class="doss-grid">
+        <div class="doss-main">
+          <div class="doss-top">
+            <div class="dportrait">
+              <img id="dossAv" src="" alt="">
+              <button class="avslot" id="dossSlot" hidden aria-label="캐릭터 선택 · Choose your character">
+                <span class="ring"></span>
+                <svg viewBox="0 0 64 64" aria-hidden="true">
+                  <circle cx="32" cy="21" r="12" fill="rgba(244,241,232,.30)"/>
+                  <path d="M8 60c0-13.3 10.7-24 24-24s24 10.7 24 24z" fill="rgba(244,241,232,.30)"/>
+                </svg>
+                <span class="plus">+</span>
+              </button>
+              <span class="cls" id="dossCap">학습자 · LEARNER</span>
+            </div>
+            <div class="ident">
+              <div class="doss-kicker">북알라바마 한국학교 · 한국어 실험실</div>
+              <h1 class="doss-name" id="dossName">—</h1>
+              <div class="doss-file">학습 기록부 · Record of study</div>
+            </div>
+          </div>
+          <dl class="dfields">
+            <div class="f hero"><dt>단어 · Words</dt><dd id="gNum">0</dd></div>
+            <div class="f"><dt>최고 훈장 · Highest</dt><dd id="dossMedal">—</dd></div>
+            <div class="f"><dt>상태 · Standing</dt><dd id="dossStand">—</dd></div>
+            <div class="f"><dt>확인 · Checks</dt><dd id="dossChecks">0</dd></div>
+            <div class="f"><dt>학습 일수 · Days</dt><dd id="dossDays">0</dd></div>
+            <div class="f"><dt>자신감 · Mean conf.</dt><dd id="dossConf">—</dd></div>
+          </dl>
+        </div>
+        <div class="bbox">
+          <div class="bb-stack">
+            <img class="bb-lock" src="landing-assets/boombox-dusty.webp" alt="A dusty stereo">
+            <img class="bb-clean" src="landing-assets/boombox-clean.webp" alt="">
+            <span class="bb-tape" id="bbTape"></span>
+            <span class="bb-eq" id="bbEq"></span>
+          </div>
+          <div class="bb-now" id="bbNow"></div>
+          <div class="bb-ctl">
+            <button class="bb-btn" id="bbPrev" title="이전 곡" aria-label="Previous track">&#9664;</button>
+            <button class="bb-btn" id="bbPlay" title="재생 · Play / pause" aria-label="Play or pause">&#9834;</button>
+            <button class="bb-btn" id="bbNext" title="다음 곡" aria-label="Next track">&#9654;</button>
+          </div>
+          <div class="bb-unlock" id="bbUnlock"></div>
+        </div>
+      </div>
+      <div class="drack">
+        <div class="doss-kicker" id="rackLbl">훈장 · Commendations</div>
+        <div class="shelf" id="gShelf"></div>
+      </div>
+    </section>
+
+    <section class="rcards">
+      <div class="rcard needs">
+        <div class="rcard-hd"><h3>다시 볼 열 단어</h3><em>needs work</em></div>
+        <table id="tWorst"></table>
+        <div class="foot">
+          <button class="btn commit" id="studyTop">이 열 단어 공부하기 · Study these words</button>
+          <p style="margin-top:9px">Practice only — nothing here is recorded. The drip meets
+            these words cold later, and that is the measurement we trust.</p>
+        </div>
+      </div>
+      <div class="rcard best">
+        <div class="rcard-hd"><h3>가장 잘 아는 열 단어</h3><em>strongest</em></div>
+        <table id="tBest"></table>
+        <div class="foot"><p>Your surest words, by confidence. These have earned their place in
+          the long-term lane and come back rarely.</p></div>
+      </div>
+    </section>
+
+    <div class="growth-wrap">
+      <div class="growth-sub" id="gGoal"></div>
+      <div class="growth-chart"><p id="gChartLbl">Your words, day by day</p>
+        <svg id="gChart" viewBox="0 0 560 200" role="img" aria-label="Words owned over time"></svg>
+      </div>
+      <div class="arcwrap">
+        <div class="arcbar"><div class="arcfill" id="gArc"></div></div>
+        <div class="arcticks" id="gTicks"></div>
+        <div class="arcnote" id="gArcNote"></div>
+      </div>
     </div>
-    <div class="shelf" id="gShelf"></div>
-    <div class="arcwrap">
-      <div class="arcbar"><div class="arcfill" id="gArc"></div></div>
-      <div class="arcticks" id="gTicks"></div>
-      <div class="arcnote" id="gArcNote"></div>
-    </div>
-    <div class="controls" style="margin-top:26px"><button class="btn commit" id="gBackTop">계속 · Back to the cards</button></div>
+    <div class="controls"><button class="btn commit" id="gBackTop">계속 · Back to the cards</button></div>
+
     <div class="wall-sect" style="margin-top:30px">단어 기록 · Word history</div>
-    <div class="controls" style="margin-top:2px; margin-bottom:6px">
-      <button class="btn" id="studyTop">상위 10 공부 · Study my top ten</button></div>
     <div class="stats show" id="gHist"></div>
     <div class="controls"><button class="btn commit" id="gBack">계속 · Back to the cards</button>
-      <button class="btn" id="gWall">명예의 전당 · Hall of Names</button>
-      <button class="btn" id="gMusic">♪ 음악</button></div>
+      <button class="btn" id="gWall">명예의 전당 · Hall of Names</button></div>
   </div>
 
   <div class="check" id="wall">
@@ -2925,8 +3182,13 @@ function paintIdChip(){
   const img = $('idChipImg'), chip = $('idChip');
   if(!img || !chip) return;
   const nm = $('idName');
-  if(nm) nm.textContent = mem.name || '';
-  const av = mem.avatar !== undefined ? mem.avatar
+  if(nm) nm.textContent = authUser ? (mem.name || '') : '';
+  /* GATED (Preston, 2026-08-13): no character and no name unless signed in.
+     This is the incentive to make an account — and the account is what actually
+     keeps their words safe across devices, so the reward and the reason agree.
+     Reversal of the v38 "naming yourself is free" rule, made deliberately. */
+  const av = !authUser ? undefined
+           : mem.avatar !== undefined ? mem.avatar
            : (mem.wall && mem.wall.n ? (mem.wall.a || 0) : undefined);
   /* your character shows whenever you've chosen one; the GREEN RING is the
      signed-in signal, the dashed ring means no character picked yet */
@@ -3095,12 +3357,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const note = $('flagcNote').value;
     const deck = active(); const c = deck[idx]; if(c) doFlag(c, note); else Store.write();
   });
+  /* the character picker — same standing rule */
+  $('avLater').addEventListener('click', ()=> $('avDlg').classList.remove('show'));
+  $('avDlg').addEventListener('click', e => {
+    if(e.target === $('avDlg')) $('avDlg').classList.remove('show');
+  });
+  $('avSignIn').addEventListener('click', ()=>{
+    $('avDlg').classList.remove('show');
+    /* reuse the ONE sign-in path that already exists rather than starting a
+       second — Settings owns the provider buttons and the error handling */
+    $('settings').classList.add('show'); paintSettings();
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') $('avDlg').classList.remove('show');
+  });
   /* settings dialog lives after this script — same standing rule */
   $('setDone').addEventListener('click', ()=>$('settings').classList.remove('show'));
   $('setMusic').addEventListener('click', ()=>{
     mem.musicOff = !mem.musicOff; Store.write();
     if(mem.musicOff) bgmStop();
-    else if($('progress').classList.contains('show')) bgmStart('browse');
+    /* the Progress screen has its own transport now — nothing to restart here */
     paintSettings(); paintMusicChip();
   });
   /* START OVER (Preston chose the learner-facing settings option, 2026-08-08).
@@ -3837,6 +4113,179 @@ function drawGrowth(){
   }
   $('gChart').innerHTML = svg;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE PROGRESS PAGE — dossier figures, the two top-ten panels, and the stereo.
+   Nothing here writes a learning statistic; it is all read-side.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ---- the unlock ladder --------------------------------------------------
+   50 proven words cleans the stereo and loads the first song; every medal
+   after that adds another. The fifth gate is 400 words, which the 300-card
+   deck cannot reach — that is deliberate, it is the first reward waiting in
+   2.0. Nothing on screen ever counts down what is still locked (rule 4:
+   reward what was achieved, never account for what was missed).             */
+const TRACKS = [
+  {file:'Bouncing in the Rain.mp3', name:'Bouncing in the Rain', tint:'#c8394c'},
+  {file:'Janggu Arcade.mp3',        name:'Janggu Arcade',        tint:'#1f4788'},
+  {file:'Pixel Hanbok Parade.mp3',  name:'Pixel Hanbok Parade',  tint:'#bcd043'},
+  {file:'Taepyeongso Parade.mp3',   name:'Taepyeongso Parade',   tint:'#c98b25'},
+  {file:'progress-loop.mp3',        name:'Progress',             tint:'#8ba07a'}
+];
+const GATES = [50, 100, 200, 300, 400];
+const unlockedSongs = ()=> GATES.filter(g => (mem.hw || 0) >= g).length;
+
+/* the stereo's own element — deliberately NOT bgm, which still owns the wall
+   loop and its fades. Two players, two lifetimes, no shared state to desync. */
+let bb = null, bbT = 0, bbNote = '';
+const bbLive = ()=> bb && !bb.paused && !bb.ended && bb.readyState >= 2;
+try{ bbT = Math.max(0, Math.min(4, +localStorage.getItem('klTrack') || 0)); }catch(e){}
+
+function bbPaint(){
+  const t = TRACKS[bbT], n = unlockedSongs();
+  const pg = $('progress');
+  pg.classList.toggle('unlocked', n > 0);
+  pg.classList.toggle('playing', bbLive());
+  const btn = $('bbPlay'); if(btn) btn.classList.toggle('on', bbLive());
+  const tape = $('bbTape'); if(tape) tape.style.background = t.tint;
+  const now = $('bbNow');
+  if(now) now.innerHTML = bbLive() ? `${bbT+1}/${n} · <b>${t.name}</b>`
+                        : bbNote   ? bbNote
+                        :            `정지 · stopped · <b>${t.name}</b>`;
+  const ub = $('bbUnlock');
+  if(ub){
+    ub.classList.toggle('done', n >= GATES.length);
+    ub.innerHTML = n === 0
+      ? '<b>50단어를 배우면 스테레오가 깨끗해져요</b><span>Learn 50 words to clean up your stereo</span>'
+      : n < GATES.length
+      ? '<b>훈장을 받으면 새 노래가 열려요</b><span>Earn a medal, get a new K-pop song</span>'
+      : '<b>다섯 곡 모두 열렸어요</b><span>All five songs unlocked</span>';
+  }
+}
+function bbLoad(play){
+  if(!bb){
+    bb = new Audio(); bb.loop = true; bb.volume = 0.5; bb.preload = 'auto';
+    ['playing','pause','timeupdate','ended','canplay'].forEach(e =>
+      bb.addEventListener(e, ()=>{ if(bbLive()) bbNote = ''; bbPaint(); }));
+    bb.addEventListener('error', ()=>{ bbNote = '음원 없음 · <b>no audio</b>'; bbPaint(); });
+  }
+  bb.src = 'sounds/' + encodeURIComponent(TRACKS[bbT].file);
+  /* no bb.load() before play() — WebKit answers that with AbortError */
+  try{ localStorage.setItem('klTrack', String(bbT)); }catch(e){}
+  if(play) bbGo(); else bbPaint();
+}
+function bbGo(){
+  const p = bb.play();
+  if(p && p.catch) p.catch(err => {
+    bbNote = (err && err.name === 'NotAllowedError')
+      ? '탭하면 시작 · <b>tap to start</b>'
+      : '재생 실패 · <b>could not play</b>';
+    bbPaint();
+  });
+}
+function bbStep(d){
+  const n = unlockedSongs(); if(!n) return;
+  bbT = ((bbT + d) % n + n) % n;
+  bbLoad(bbLive() || (bb && !bb.paused));
+}
+function bbStop(){ if(bb && !bb.paused) bb.pause(); }
+
+/* ---- the dossier figures ---- */
+function renderDossier(){
+  const hw = mem.hw || 0;
+  const av = !authUser ? undefined
+           : mem.avatar !== undefined ? mem.avatar
+           : (mem.wall && mem.wall.n ? (mem.wall.a || 0) : undefined);
+  const img = $('dossAv'), slot = $('dossSlot');
+  if(av !== undefined){
+    img.src = avatarFile(av); img.hidden = false; slot.hidden = true;
+    $('dossCap').textContent = '학습자 · LEARNER';
+  }else{
+    img.hidden = true; slot.hidden = false;
+    $('dossCap').textContent = '탭하여 선택 · TAP TO CHOOSE';
+  }
+  const nameEl = $('dossName');
+  const nm = authUser ? (mem.name || '') : '';
+  nameEl.textContent = nm || '이름 없음';
+  nameEl.classList.toggle('none', !nm);
+
+  const mi = Math.min(15, Math.floor(hw / 100));       // 0 = none yet
+  $('dossMedal').innerHTML = mi > 0
+    ? `${MEDALS[mi-1][1]}<small>${MEDALS[mi-1][2]}</small>`
+    : '—<small>none yet</small>';
+  $('dossStand').innerHTML = hw ? '현역<small>Active</small>' : '신입<small>New</small>';
+  $('dossChecks').textContent = mem.chkN || 0;
+  $('dossDays').textContent   = Object.keys(mem.hist || {}).length;
+
+  /* mean confidence over the words that HAVE been tested — an average that
+     silently included untested words would read lower than the truth */
+  let sum = 0, cnt = 0;
+  Object.keys(mem.stats || {}).forEach(k => {
+    const c = confidence(k); if(c !== null){ sum += c; cnt++; }
+  });
+  $('dossConf').innerHTML = cnt ? Math.round(sum / cnt) + '<small>%</small>'
+                                : '—<small>no data</small>';
+  $('rackLbl').textContent =
+    `훈장 · Commendations — ${mi} of 15 earned`;
+}
+
+/* ---- the two top-ten panels ----
+   Same two orderings the page already trusts: refeed priority for the words in
+   trouble (identical to the history's rank, so the panel and the list can never
+   disagree), and confidence for the strongest. */
+function renderTopTen(){
+  const nowT = Date.now();
+  const tested = Object.keys(mem.stats || {}).filter(k =>
+    byWord(k) && ((mem.stats[k].p || 0) + (mem.stats[k].r || 0) + (mem.stats[k].n || 0)) > 0);
+  const worst = tested.slice()
+    .sort((a, b) => refeedPriority(b, nowT) - refeedPriority(a, nowT)).slice(0, 10);
+  const best = tested.filter(k => confidence(k) !== null)
+    .sort((a, b) => confidence(b) - confidence(a)).slice(0, 10);
+  const rows = list => list.map((k, i) => {
+    const c = byWord(k), cf = confidence(k);
+    return `<tr><td class="n">${String(i+1).padStart(2,'0')}</td>`
+         + `<td class="w"><b>${c.k}</b><span>${c.en}</span></td>`
+         + `<td class="mk">${cf === null ? '—' : cf + '%'}</td></tr>`;
+  }).join('');
+  const empty = '<tr><td class="w" style="color:var(--ink-faint);padding:14px 15px">'
+              + '아직 없어요 · nothing checked yet</td></tr>';
+  $('tWorst').innerHTML = worst.length ? rows(worst) : empty;
+  $('tBest').innerHTML  = best.length  ? rows(best)  : empty;
+  $('studyTop').disabled = !worst.length;
+  $('studyTop').style.opacity = worst.length ? '' : '.45';
+}
+
+function renderProgress(){
+  renderDossier();
+  renderTopTen();
+  if(unlockedSongs() && !bb) bbLoad(false);   // prime, never autoplay
+  bbPaint();
+}
+
+/* ---- the transport ---- */
+$('bbPlay').addEventListener('click', ()=>{
+  if(!unlockedSongs()) return;
+  if(bbLive()){ bb.pause(); }
+  else { if(!bb) bbLoad(false); bbGo(); }
+  bbPaint();
+});
+$('bbNext').addEventListener('click', ()=> bbStep(1));
+$('bbPrev').addEventListener('click', ()=> bbStep(-1));
+/* never leave a loop running in a tab nobody is looking at */
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) bbStop(); });
+
+/* ---- the character picker ----
+   Its markup sits AFTER this script, like the flag and settings dialogs, so the
+   listeners bind on DOMContentLoaded. Binding them here threw on a null element
+   and killed the rest of the script — which then showed up as an unrelated
+   "cannot access histDetail before initialization" three functions later. */
+function openPicker(){
+  $('avGrid').innerHTML = AVATARS.map(a =>
+    `<img src="avatars/avatar-${a[0]}@128.png" alt="${a[1]}" loading="lazy">`).join('');
+  $('avDlg').classList.add('show');
+}
+$('dossSlot').addEventListener('click', openPicker);
+
 function openGrowth(){
   drawGrowth(); renderHistory(); Store.write();
   /* if a check is waiting, say so on the way out — "Back to the cards" would
@@ -3845,7 +4294,11 @@ function openGrowth(){
   const label = mid ? '계속 · Back to the test' : '계속 · Back to the cards';
   $('gBack').textContent = label;
   $('gBackTop').textContent = label;
-  show('progress'); paintMusicChip(); bgmStart('browse');
+  /* NO MUSIC ON ARRIVAL (Preston, 2026-08-13). The Progress screen used to
+     auto-start progress-loop.mp3; that track is now song 5 in the boom box and
+     the learner presses play. Removing the autoplay also removes the
+     gesture-arming this needed, which is where the first-click bugs lived. */
+  show('progress'); paintMusicChip(); renderProgress();
 }
 $('growthBtn').addEventListener('click', openGrowth);
 /* Tapping a STATISTIC should explain the statistic — it used to jump to the
@@ -3862,6 +4315,7 @@ $('covBtn').addEventListener('click', ()=>{
    Every exit now returns to the surface the learner actually left. */
 function backToWork(){
   bgmDrift();
+  bbStop();          /* the stereo belongs to the Progress page and to nowhere else */
   if(mem.queue && mem.qi < mem.queue.length){   // a check/private round is live
     show('check');
     askItem();                                  // re-render the item, unanswered
@@ -3875,11 +4329,6 @@ function backToWork(){
   paint();
 }
 $('gBack').addEventListener('click', backToWork);
-$('gMusic').addEventListener('click', ()=>{
-  mem.musicOff = !mem.musicOff; Store.write();
-  if(mem.musicOff) bgmStop(); else bgmStart('browse');
-  paintMusicChip();
-});
 $('gWall').addEventListener('click', ()=>openWall());
 $('idChip').addEventListener('click', ()=>{
   if($('progress').classList.contains('show')) return;
@@ -3887,8 +4336,15 @@ $('idChip').addEventListener('click', ()=>{
   openGrowth();
 });
 function paintSettings(){
-  const cur = mem.avatar !== undefined ? mem.avatar
+  const cur = !authUser ? -1
+            : mem.avatar !== undefined ? mem.avatar
             : (mem.wall && mem.wall.n ? (mem.wall.a || 0) : -1);
+  /* gate the AFFORDANCE, not the click — a picker that answers a tap with
+     nothing is a broken control no matter what the code intends (v38) */
+  const setAv = $('setAvatars'), setNm = $('setName');
+  if(setAv) setAv.style.opacity = authUser ? '' : '.4';
+  if(setAv) setAv.style.pointerEvents = authUser ? '' : 'none';
+  if(setNm){ setNm.disabled = !authUser; setNm.style.opacity = authUser ? '' : '.45'; }
   $('setAvatars').innerHTML = AVATARS.map((a, i) =>
     `<button type="button" class="${i === cur ? 'sel' : ''}" data-i="${i}" title="${a[1]}">`
     + `<img src="${avatarFile(i)}" alt="${a[1]}"></button>`).join('');
@@ -3902,9 +4358,10 @@ function paintSettings(){
   /* show the name the button changes — a control with no visible subject is
      half a control (this row is what read as broken before 2026-08-10). */
   const nameCur = $('setNameCur');
-  if(nameCur) nameCur.textContent = mem.name
-    ? mem.name + ' — shows under your character, and on the Hall of Names'
-    : 'shows under your character — and on the Hall of Names';
+  if(nameCur) nameCur.textContent = !authUser
+    ? '로그인하면 열립니다 · sign in to choose a character and a name'
+    : mem.name ? mem.name + ' — shows under your character, and on the Hall of Names'
+               : 'shows under your character — and on the Hall of Names';
   $('setMusic').textContent  = mem.musicOff ? '꺼짐 · Off' : '켜짐 · On';
   $('setSounds').textContent = mem.mute ? '꺼짐 · Off' : '켜짐 · On';
   const acc = $('setAccount');
@@ -4236,6 +4693,18 @@ if(mem.queue && mem.queue.length && mem.qi < mem.queue.length){
       <button class="btn primary" id="rstYes">지우고 처음부터 · Erase everything</button>
       <button class="btn" id="rstNo">아니요 · Keep my progress</button>
     </div>
+  </div>
+</div>
+
+<div class="avdlg" id="avDlg" role="dialog" aria-modal="true" aria-labelledby="avTitle">
+  <div class="avcard">
+    <h3 id="avTitle">캐릭터를 고르세요</h3>
+    <p>Choose your character. Sign in to pick one, keep your words on every device,
+      and put your name on the Hall of Names.</p>
+    <div class="avgrid" id="avGrid"></div>
+    <p class="lock">로그인하면 열립니다 · unlocked when you sign in</p>
+    <button class="btn commit" id="avSignIn">Google로 로그인 · Sign in to choose</button>
+    <button class="later" id="avLater">나중에 · Maybe later</button>
   </div>
 </div>
 
