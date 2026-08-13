@@ -680,7 +680,22 @@ body.on-progress .setbtn{display:inline-flex}
   filter:drop-shadow(0 10px 20px rgba(0,0,0,.34))}
 /* the dusty and clean renders were exported registered on the navy body, so
    this is a pure crossfade — the stereo cannot jump at the reward moment */
-#progress .bb-clean{position:absolute; inset:0; opacity:0; transition:opacity 1.1s var(--ease)}
+#progress .bb-clean{position:absolute; inset:0; opacity:0; transition:opacity 1.1s var(--ease);
+  display:block; perspective:900px; perspective-origin:50% 65%}
+/* THE STEREO MOVES WITH THE MUSIC (v45).
+   Four layers, so parts can move against each other — one flat image can only
+   scale as a lump, which reads as a sticker pulsing. Every transform is written
+   by the rAF loop from the live FFT of the playing track; nothing is on a CSS
+   timer, so silence is exactly zero motion and there is no "stop" to get wrong. */
+#progress .bb-rig{position:absolute; inset:0; transform-style:preserve-3d; will-change:transform}
+#progress .bb-l{position:absolute; display:block; will-change:transform}
+#progress .bb-shell{left:0; top:0; width:100%; z-index:1;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.34))}
+#progress .bb-cone{z-index:2}
+#progress .bb-ant{z-index:0}
+@media (prefers-reduced-motion:reduce){
+  #progress .bb-rig, #progress .bb-l{transform:none !important}
+}
 #progress .bb-lock{transition:opacity 1.1s var(--ease)}
 #progress.unlocked .bb-clean{opacity:1}
 #progress.unlocked .bb-lock{opacity:0}
@@ -976,7 +991,12 @@ body::after{
         <div class="bbox">
           <div class="bb-stack">
             <img class="bb-lock" src="landing-assets/boombox-dusty.webp" alt="A dusty stereo">
-            <img class="bb-clean" src="landing-assets/boombox-clean.webp" alt="">
+            <span class="bb-clean" id="bbRig">
+          <img class="bb-l bb-ant"  id="bbAnt"   src="landing-assets/bb-antenna.webp" alt="">
+          <img class="bb-l bb-shell" id="bbShell" src="landing-assets/bb-body.webp" alt="">
+          <img class="bb-l bb-cone" id="bbConeL" src="landing-assets/bb-cone-l.webp" alt="">
+          <img class="bb-l bb-cone" id="bbConeR" src="landing-assets/bb-cone-r.webp" alt="">
+        </span>
             <span class="bb-tape" id="bbTape"></span>
             <span class="bb-eq" id="bbEq"></span>
           </div>
@@ -4186,6 +4206,9 @@ function bbLoad(play){
   if(play) bbGo(); else bbPaint();
 }
 function bbGo(){
+  bbGraph();
+  if(bbCtx && bbCtx.state === 'suspended') bbCtx.resume();
+  bbMotion(true);
   const p = bb.play();
   if(p && p.catch) p.catch(err => {
     bbNote = (err && err.name === 'NotAllowedError')
@@ -4199,7 +4222,7 @@ function bbStep(d){
   bbT = ((bbT + d) % n + n) % n;
   bbLoad(bbLive() || (bb && !bb.paused));
 }
-function bbStop(){ if(bb && !bb.paused) bb.pause(); }
+function bbStop(){ if(bb && !bb.paused) bb.pause(); bbMotion(false); }
 
 /* ---- LEAVING AND COMING BACK (Preston, 2026-08-13) ----
    Leave the stereo playing, go study, come back — and it is still playing.
@@ -4220,11 +4243,114 @@ function bbStop(){ if(bb && !bb.paused) bb.pause(); }
 function bbLeave(){
   if(!bb || bb.paused) return;
   fadeAudio(bb, 0, 900, true);     // then resume() restores the volume
+  bbMotion(false);
 }
 function bbResume(){
   if(!bbWanted || !unlockedSongs() || !bb) return;
   bb.volume = 0.5;                 // the leave-fade left it at zero
   bbGo();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE STEREO BUMPS — driven by the signal, never by a timer (v45).
+
+   A keyframe loop cannot look like music: it has no relationship to what is
+   playing, so it drifts against the beat within two bars and the eye catches it.
+   An AnalyserNode taps the same element that is sounding and every transform
+   below is a function of this frame's spectrum.
+
+   What makes it read as weight rather than as a pulsing sticker:
+     · ENVELOPE FOLLOWERS, fast attack / slow release. The asymmetry IS the punch.
+     · SQUASH AND STRETCH on the shell, volume-preserving.
+     · SECONDARY MOTION: the antenna is a damped spring driven by the RIG's
+       VELOCITY, not by the audio, so it whips a beat late and overshoots. One
+       indirection, and it stops looking synchronised and starts looking attached.
+     · The cones only ever scale UP — scaled down they would reveal the same cone
+       still painted on the shell underneath.
+
+   Settings are Preston's, dialled by ear against the real tracks, 2026-08-13.
+   ══════════════════════════════════════════════════════════════════════════ */
+const BBGEO = {"canvas": [525, 470], "layers": {"coneL": {"left": 0.08316, "top": 0.28886, "width": 0.35554, "height": 0.46099}, "coneR": {"left": 0.64179, "top": 0.29958, "width": 0.34542, "height": 0.40024}, "antenna": {"left": 0.83316, "top": 0.00119, "width": 0.15299, "height": 0.2972, "originX": 0.096, "originY": 0.998}}};
+const MOT = {cone:5, squash:2, bounce:18, rock:10, whip:15, sway:30};
+let bbCtx = null, bbAna = null, bbSrc = null, bbFreq = null, bbRAF = 0, bbLast = 0;
+const bbEnv = {kick:0, body:0, air:0, lvl:0};
+let bbKickPrev = 0, bbHit = 0, bbBy = 0, bbBv = 0, bbAw = 0, bbAv = 0, bbPhase = 0;
+
+(function placeLayers(){
+  const put = (el, L) => { if(!el || !L) return;
+    el.style.left = (L.left*100)+'%'; el.style.top = (L.top*100)+'%';
+    el.style.width = (L.width*100)+'%'; };
+  put($('bbConeL'), BBGEO.layers.coneL);
+  put($('bbConeR'), BBGEO.layers.coneR);
+  put($('bbAnt'),   BBGEO.layers.antenna);
+  const A = BBGEO.layers.antenna;
+  if($('bbAnt')) $('bbAnt').style.transformOrigin = (A.originX*100)+'% '+(A.originY*100)+'%';
+  const rig = $('bbRig'); if(rig) rig.classList.add('bb-rig');
+})();
+
+/* the graph is built ONCE, inside the play gesture. createMediaElementSource may
+   be called only once per element, ever — and once routed through Web Audio the
+   element no longer reaches the speakers by itself, so it MUST be connected on
+   to destination. If any of this throws, motion is skipped and audio still plays. */
+function bbGraph(){
+  if(bbCtx || !bb) return;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    bbCtx = new AC();
+    bbSrc = bbCtx.createMediaElementSource(bb);
+    bbAna = bbCtx.createAnalyser();
+    bbAna.fftSize = 1024; bbAna.smoothingTimeConstant = 0.55;
+    bbSrc.connect(bbAna); bbAna.connect(bbCtx.destination);
+    bbFreq = new Uint8Array(bbAna.frequencyBinCount);
+  }catch(e){ bbCtx = null; bbAna = null; }
+}
+const bbBand = (a,b)=>{ let t=0; for(let i=a;i<b;i++) t += bbFreq[i]; return t/((b-a)*255); };
+const bbFollow = (cur,raw,rel)=> raw > cur ? raw : cur + (raw-cur)*rel;
+
+function bbFrame(ts){
+  bbRAF = requestAnimationFrame(bbFrame);
+  const dt = Math.min(0.05, (ts - bbLast)/1000 || 0.016); bbLast = ts;
+  let kick=0, bod=0, air=0, lvl=0;
+  if(bbAna && bb && !bb.paused){
+    bbAna.getByteFrequencyData(bbFreq);
+    kick = bbBand(1,7); bod = bbBand(7,26); air = bbBand(58,190); lvl = bbBand(1,120);
+  }
+  bbEnv.kick = bbFollow(bbEnv.kick, kick, 1-Math.pow(0.0016,dt));
+  bbEnv.body = bbFollow(bbEnv.body, bod,  1-Math.pow(0.02,  dt));
+  bbEnv.air  = bbFollow(bbEnv.air,  air,  1-Math.pow(0.004, dt));
+  bbEnv.lvl  = bbFollow(bbEnv.lvl,  lvl,  1-Math.pow(0.35,  dt));
+
+  /* an onset is a RISE in the kick — a sustained bass note is not a hit */
+  const d = kick - bbKickPrev; bbKickPrev = kick;
+  if(d > 0.055 && kick > 0.30 && ts - bbHit > 95){
+    bbHit = ts; bbBv -= (MOT.bounce*0.17)*(0.55+kick);
+  }
+  bbBv += (-46*bbBy - 7.2*bbBv)*dt; bbBy += bbBv*dt;
+  bbAv += (-42*bbAw - 5.2*bbAv)*dt + (-bbBv*dt*MOT.whip*0.17); bbAw += bbAv*dt;
+  bbPhase += dt*(0.55 + bbEnv.lvl*1.2);
+
+  const k = bbEnv.kick, u = v => v/100;
+  const sq = k*u(MOT.squash), lift = bbBy*44;
+  const rY = Math.sin(bbPhase)*MOT.rock*0.22 + k*MOT.rock*0.10;
+  const rX = -k*MOT.rock*0.16, sway = Math.sin(bbPhase*0.5)*MOT.sway*0.09;
+  const rig = $('bbRig'); if(!rig) return;
+  rig.style.transform = `translateY(${lift.toFixed(2)}px) rotate(${sway.toFixed(2)}deg) `
+    + `rotateY(${rY.toFixed(2)}deg) rotateX(${rX.toFixed(2)}deg) scale(${(1+k*u(MOT.squash)*0.25).toFixed(4)})`;
+  $('bbShell').style.transform = `scaleY(${(1-sq*0.5).toFixed(4)}) scaleX(${(1+sq*0.3).toFixed(4)})`;
+  $('bbConeL').style.transform = `scale(${(1+k*u(MOT.cone)*1.05 + bbEnv.body*u(MOT.cone)*0.25).toFixed(4)})`;
+  $('bbConeR').style.transform = `scale(${(1+k*u(MOT.cone)*0.98 + bbEnv.body*u(MOT.cone)*0.32).toFixed(4)})`;
+  $('bbAnt').style.transform   = `rotate(${(bbAw*57.3).toFixed(2)}deg)`;
+  const eq = $('bbEq');
+  if(eq){ eq.style.opacity = (bb && !bb.paused) ? (0.18 + bbEnv.air*0.75 + k*0.25).toFixed(3) : 0;
+          eq.style.transform = `scaleX(${(0.9 + bbEnv.air*0.30).toFixed(3)})`; }
+}
+/* run the loop only while something is playing — and let it settle to rest
+   afterwards rather than freezing mid-bounce */
+function bbMotion(on){
+  if(on){ if(!bbRAF){ bbLast = 0; bbRAF = requestAnimationFrame(bbFrame); } }
+  else if(bbRAF){ setTimeout(()=>{ if(bb && bb.paused){ cancelAnimationFrame(bbRAF); bbRAF = 0; } }, 1400); }
 }
 
 /* ---- the dossier figures ---- */
