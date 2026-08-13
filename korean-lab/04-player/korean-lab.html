@@ -2689,6 +2689,17 @@ function show(which){
   /* the settings control lives under the avatar and only surfaces on the
      growth page, whose settings they are */
   document.body.classList.toggle('on-progress', which === 'progress');
+  /* THE STEREO STOPS ON ANY SURFACE CHANGE, AND THIS IS THE ONLY PLACE THAT
+     KNOWS IT (Preston, 2026-08-13). It was hooked into backToWork() alone, so
+     "계속 · Back to the cards" silenced it but "Study these words" did not —
+     focus study enters through enterFocus(), which calls show('cards') itself.
+     The Hall of Names had the same hole, and every surface added later would
+     inherit it. show() is the ONE funnel every surface change passes through,
+     so the rule lives here: leaving Progress fades the music out, arriving
+     resumes it (renderProgress). Declared with `var` above because show() sits
+     far earlier in the file than the music block — with `let` this call is a
+     TDZ throw that would kill the whole app. */
+  if(which !== 'progress' && typeof bbLeave === 'function') bbLeave();
   const CARDS = ['stage','controls','subControls','voices','statwrap','meta'];
   const PANELS = ['check','chkDone','offer','progress','wall'];
   CARDS.forEach(id=>{ const el=$(id); if(el) el.classList.toggle('hidden', which !== 'cards'); });
@@ -4137,7 +4148,7 @@ const unlockedSongs = ()=> GATES.filter(g => (mem.hw || 0) >= g).length;
 
 /* the stereo's own element — deliberately NOT bgm, which still owns the wall
    loop and its fades. Two players, two lifetimes, no shared state to desync. */
-let bb = null, bbT = 0, bbNote = '', bbWanted = false;
+var bb = null, bbT = 0, bbNote = '', bbWanted = false;   /* var, not let — see show() */
 const bbLive = ()=> bb && !bb.paused && !bb.ended && bb.readyState >= 2;
 try{ bbT = Math.max(0, Math.min(4, +localStorage.getItem('klTrack') || 0)); }catch(e){}
 
@@ -4347,7 +4358,6 @@ $('covBtn').addEventListener('click', ()=>{
    Every exit now returns to the surface the learner actually left. */
 function backToWork(){
   bgmDrift();
-  bbLeave();         /* fades out over the exit; intent is kept, so coming back resumes */
   if(mem.queue && mem.qi < mem.queue.length){   // a check/private round is live
     show('check');
     askItem();                                  // re-render the item, unanswered

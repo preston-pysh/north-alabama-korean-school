@@ -73,6 +73,8 @@ korean-lab/04-player/audio/Music/
 korean-lab/04-player/audio/_test/
 !korean-lab/04-player/videos/
 korean-lab/04-player/videos/_raw/
+# audit staging — promoted into videos/ by swap-verb-marks.py
+korean-lab/04-player/videos/_new/
 !korean-lab/04-player/medals/
 !korean-lab/04-player/avatars/
 !korean-lab/04-player/sounds/
