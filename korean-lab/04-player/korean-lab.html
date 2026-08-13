@@ -77,7 +77,33 @@ body{
   font-variant-numeric:tabular-nums; color:var(--ink)}
 .cov-lbl{font-size:10.5px; line-height:1.45; color:var(--ink-faint);
   letter-spacing:.04em; text-transform:uppercase}
-.topright{display:flex; flex-direction:column; align-items:flex-end; gap:8px}
+/* Tighter, and truly right-justified. The gear's 9px of pill padding held its
+   LABEL 9px shy of the avatar's edge, so three things that are all "flush
+   right" read as a ragged edge; the negative margin puts the text on the same
+   line as the face above it, and the pill's hover fill still overhangs. */
+.topright{display:flex; flex-direction:column; align-items:flex-end; gap:5px}
+.topright .setbtn{margin-right:-9px}
+
+/* ── the Progress rail (2026-08-13) ────────────────────────────────────────
+   Three columns instead of two: exit, statistic, identity. The two outer
+   columns are flex:1 1 0 so they take EQUAL width whatever they contain —
+   that, not text-align, is what puts the percentage on the true centre line.
+   The rail also widens to the growth column (720) and drops the 64px inset,
+   which exists to align with the CARD's edges and has nothing to align to
+   here. */
+.topleft{display:none; min-width:0}
+body.on-progress .topbar{max-width:720px; padding:0 10px; align-items:flex-start}
+body.on-progress .topleft{display:flex; flex:1 1 0; justify-content:flex-start}
+body.on-progress .topright{flex:1 1 0; align-items:flex-end}
+body.on-progress .cov{flex:0 0 auto; align-items:center; text-align:center; padding:4px 8px}
+/* .btn.commit carries min-width:220px so the two commit buttons at the foot of
+   the page read as one weight; a rail button sized to that is a slab. Beaten
+   with equal specificity, not !important. */
+.btn.commit.railback{display:inline-flex; align-items:center; gap:7px;
+  min-width:0; padding:9px 17px 9px 13px; font-size:13px;
+  box-shadow:0 2px 8px rgba(188,208,67,.30)}
+.railback svg{width:16px; height:16px; flex:0 0 auto; margin-top:-1px}
+.rb-short{display:none}
 
 .stage{display:flex; align-items:center; gap:20px; width:100%; justify-content:center}
 .arrow{flex:0 0 auto; width:44px; height:44px; border:0; background:none; cursor:pointer;
@@ -838,6 +864,25 @@ body::after{
   .stage{gap:6px}
   .arrow{width:38px;height:38px}
   .btn.commit{width:100%; max-width:340px; min-width:0}
+  /* on a phone the rail has ~360px for three columns, so the exit shows its
+     short label — the long one alone would eat half the row and shove the
+     percentage off centre. .btn.commit's mobile width:100% has to be undone
+     here or the button spans the rail. */
+  /* THE STATISTIC STANDS DOWN ON A PHONE (Preston, 2026-08-13). Three columns
+     do not fit in ~356px: the identity column is the widest of the three, so an
+     equal-flex split hands the middle column an off-centre slot (measured
+     -21.6px), and wrapping it onto its own line costs a whole row of height at
+     the top of a page that is already a long scroll. It is not load-bearing
+     here — the same number is spelled out in the dossier below — so on a narrow
+     screen it simply steps aside, and returns the moment there is room for it
+     to sit on the true centre line. Nothing about it changes; it is only
+     hidden. */
+  body.on-progress .topbar{padding:0 2px; gap:8px}
+  body.on-progress .cov{display:none}
+  .btn.commit.railback{width:auto; max-width:none; padding:9px 15px 9px 11px; font-size:12.5px}
+  .rb-long{display:none}
+  .rb-short{display:inline}
+  .id-name{max-width:104px}
 }
 </style>
 </head>
@@ -853,6 +898,22 @@ body::after{
        the card use — so the CARD is the hero of the screen and the numbers
        are reference. The honest wording is unchanged; only its scale is. -->
   <header class="topbar">
+    <!-- THE WAY OUT (2026-08-13). The Progress page is a long scroll and both
+         "Back to the cards" buttons lived below the fold — land on it from the
+         avatar chip and the only exits were the browser's back button or a
+         scroll past the whole dossier. A screen you can enter in one tap needs
+         an exit in one tap, at the top, where the eye starts. It is display:none
+         off the Progress page, so it is not a flex item and the card screens'
+         rail is untouched. -->
+    <div class="topleft">
+      <button class="btn commit railback" id="railBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7"/></svg>
+        <span class="rb-long" id="rbLong">학습으로 · Back to learning</span>
+        <span class="rb-short" id="rbShort">학습 · Learning</span>
+      </button>
+    </div>
     <button class="cov" id="covBtn" aria-label="이 숫자는 어디서 왔나 · Where this number comes from">
       <span class="cov-num" id="covNum">0.0%</span>
       <span class="cov-lbl">content words in<br>everyday spoken Korean</span>
@@ -4463,6 +4524,8 @@ function openGrowth(){
   const label = mid ? '계속 · Back to the test' : '계속 · Back to the cards';
   $('gBack').textContent = label;
   $('gBackTop').textContent = label;
+  $('rbLong').textContent = mid ? '계속 · Back to the test' : '학습으로 · Back to learning';
+  $('rbShort').textContent = mid ? '시험 · Test' : '학습 · Learning';
   /* NO MUSIC ON ARRIVAL (Preston, 2026-08-13). The Progress screen used to
      auto-start progress-loop.mp3; that track is now song 5 in the boom box and
      the learner presses play. Removing the autoplay also removes the
@@ -4555,6 +4618,9 @@ function paintSettings(){
 }
 $('gearBtn').addEventListener('click', ()=>{ paintSettings(); $('settings').classList.add('show'); });
 $('gBackTop').addEventListener('click', ()=>$('gBack').click());
+/* one exit, three triggers — every one of them goes through gBack so the music
+   fade, the save and the mid-check routing can only ever be written once */
+$('railBack').addEventListener('click', ()=>$('gBack').click());
 /* THE TOP TEN — recomputed live from the priority ranking every time. Re-enter
    and you get the same ten, because nothing you did in there changed anything;
    they are still your worst words. They leave this list only by being met COLD
