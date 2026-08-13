@@ -4137,7 +4137,7 @@ const unlockedSongs = ()=> GATES.filter(g => (mem.hw || 0) >= g).length;
 
 /* the stereo's own element — deliberately NOT bgm, which still owns the wall
    loop and its fades. Two players, two lifetimes, no shared state to desync. */
-let bb = null, bbT = 0, bbNote = '';
+let bb = null, bbT = 0, bbNote = '', bbWanted = false;
 const bbLive = ()=> bb && !bb.paused && !bb.ended && bb.readyState >= 2;
 try{ bbT = Math.max(0, Math.min(4, +localStorage.getItem('klTrack') || 0)); }catch(e){}
 
@@ -4189,6 +4189,32 @@ function bbStep(d){
   bbLoad(bbLive() || (bb && !bb.paused));
 }
 function bbStop(){ if(bb && !bb.paused) bb.pause(); }
+
+/* ---- LEAVING AND COMING BACK (Preston, 2026-08-13) ----
+   Leave the stereo playing, go study, come back — and it is still playing.
+
+   `bbWanted` is the learner's INTENT and the only thing remembered; whether
+   sound is actually coming out is always asked of the element. Intent survives
+   leaving the page, so returning resumes the same song from where it was — the
+   element is never rebuilt, so `currentTime` is preserved for free.
+
+   IT IS NOT PERSISTED ACROSS A RELOAD, deliberately. Within one page session the
+   learner has already gestured, so resuming is allowed; after a reload it is not,
+   and a remembered "was playing" would only produce a rejected play() and the
+   arrival noise this page was explicitly designed not to make.
+
+   Leaving FADES rather than cuts, and does not run over the cards: the four-voice
+   word audio starts the moment a card is on screen, and music must never fight it
+   (the same reason bgmDrift hurries its own fade on the first tap). */
+function bbLeave(){
+  if(!bb || bb.paused) return;
+  fadeAudio(bb, 0, 900, true);     // then resume() restores the volume
+}
+function bbResume(){
+  if(!bbWanted || !unlockedSongs() || !bb) return;
+  bb.volume = 0.5;                 // the leave-fade left it at zero
+  bbGo();
+}
 
 /* ---- the dossier figures ---- */
 function renderDossier(){
@@ -4259,20 +4285,26 @@ function renderProgress(){
   renderDossier();
   renderTopTen();
   if(unlockedSongs() && !bb) bbLoad(false);   // prime, never autoplay
+  bbResume();                                 // ...but DO pick up where they left off
   bbPaint();
 }
 
 /* ---- the transport ---- */
 $('bbPlay').addEventListener('click', ()=>{
   if(!unlockedSongs()) return;
-  if(bbLive()){ bb.pause(); }
-  else { if(!bb) bbLoad(false); bbGo(); }
+  /* toggle against REALITY, then record the intent */
+  if(bbLive()){ bbWanted = false; bb.pause(); }
+  else { bbWanted = true; if(!bb) bbLoad(false); bb.volume = 0.5; bbGo(); }
   bbPaint();
 });
 $('bbNext').addEventListener('click', ()=> bbStep(1));
 $('bbPrev').addEventListener('click', ()=> bbStep(-1));
-/* never leave a loop running in a tab nobody is looking at */
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) bbStop(); });
+/* never leave a loop running in a tab nobody is looking at — but a hidden tab is
+   not the learner changing their mind, so intent is untouched and it picks back up */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) bbStop();
+  else if(bbWanted && $('progress').classList.contains('show')) bbResume();
+});
 
 /* ---- the character picker ----
    Its markup sits AFTER this script, like the flag and settings dialogs, so the
@@ -4315,7 +4347,7 @@ $('covBtn').addEventListener('click', ()=>{
    Every exit now returns to the surface the learner actually left. */
 function backToWork(){
   bgmDrift();
-  bbStop();          /* the stereo belongs to the Progress page and to nowhere else */
+  bbLeave();         /* fades out over the exit; intent is kept, so coming back resumes */
   if(mem.queue && mem.qi < mem.queue.length){   // a check/private round is live
     show('check');
     askItem();                                  // re-render the item, unanswered
