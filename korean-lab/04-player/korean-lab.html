@@ -2106,11 +2106,17 @@ function sendConfusion(targetK, wrongK){
    audit of cards 1-300; run scripts/audit-meaning-twins.py on any new cards
    before they ship and extend this list. */
 const EQUIV_GROUPS = [
-  ['나','저'], ['하나','한'], ['우리','저희'], ['길','도로'],
+  ['나','저'], ['하나','한'], ['우리','저희'], ['길','도로','거리'],
   ['너','당신','자네','너희'], ['조금','약간'], ['다','모든','모두'],
   ['여자','여성'], ['미안','죄송하다'], ['같이','함께'], ['두','둘'],
   ['쪽','방향'], ['게임','경기'], ['식사','밥'], ['잔','컵'],
-  ['뒤','등'], ['시작','처음']
+  ['뒤','등'], ['시작','처음'],
+  /* Added 2026-08-13 from Preston's full 41-flag export. Every one of these is a
+     SYNONYM PAIR, which no illustration can separate — he described 애 from the
+     inside: "I am constantly confusing this card with another one of the same
+     little boy just standing". Art cannot fix synonymy; the twin ban can.
+     audit-meaning-twins.py missed all five and must be reviewed before 301+. */
+  ['애','아이'], ['여기','이곳'], ['거기','그곳'], ['엄마','어머니']
 ];
 /* AMBIGUOUS BY ARTWORK (Preston caught 사람 "person" tested against 나's
    lone-figure card, 2026-08-08): when the audio says 사람, ANY lone-figure
@@ -4274,7 +4280,7 @@ function bbGo(){
   if(p && p.catch) p.catch(err => {
     bbNote = (err && err.name === 'NotAllowedError')
       ? '탭하면 시작 · <b>tap to start</b>'
-      : '재생 실패 · <b>could not play</b>';
+      : '음원 없음 · <b>no audio</b>';   /* the play() rejection wins the race against the element's error event, so this branch is reached for a MISSING file, not a playback failure (2026-08-13) */
     bbPaint();
   });
 }
