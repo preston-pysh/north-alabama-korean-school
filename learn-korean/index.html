@@ -90,10 +90,7 @@ body{
   border:0; background:none; padding:4px 8px 4px 0; margin:0; cursor:pointer;
   text-align:left; font:inherit; border-radius:12px; transition:.2s var(--ease)}
 .cov:hover{opacity:.72}
-.cov-num{font-size:30px; font-weight:300; letter-spacing:-.02em; line-height:1.05;
-  font-variant-numeric:tabular-nums; color:var(--ink)}
-.cov-lbl{font-size:10.5px; line-height:1.45; color:var(--ink-faint);
-  letter-spacing:.04em; text-transform:uppercase}
+.navhome img{width:42px; height:42px; display:block}
 /* Tighter, and truly right-justified. The gear's 9px of pill padding held its
    LABEL 9px shy of the avatar's edge, so three things that are all "flush
    right" read as a ragged edge; the negative margin puts the text on the same
@@ -171,8 +168,7 @@ body.on-progress .cov{flex:0 0 auto; align-items:center; text-align:center; padd
 
 /* GROWTH — the progress panel. Words owned is the linear, always-climbing
    metric; coverage stays the honest instrument. No warped axes, ever. */
-.cov-num{cursor:pointer; transition:.2s var(--ease)}
-.cov-num:hover{opacity:.75}
+
 .growth-hero{text-align:center; margin-bottom:8px}
 .growth-hero .gnum{font-size:64px; font-weight:600; letter-spacing:-.03em; line-height:1}
 .growth-hero .glbl{font-size:14px; color:var(--ink-soft); margin-top:6px}
@@ -400,7 +396,11 @@ body.reviewing .subcontrols .dot{display:none}
   line-height:1; cursor:pointer; vertical-align:middle; transition:.2s var(--ease)}
 @media (hover:hover) and (pointer:fine){ .whybtn{display:inline-flex} }
 .whybtn:hover{color:var(--accent-dk); border-color:var(--accent); background:var(--accent-bg)}
-.whybox{max-width:600px; text-align:left; padding:30px 32px 24px;
+.covline{text-align:center; font-size:13px; line-height:1.7; color:var(--ink-soft);
+  margin:26px auto 6px; max-width:480px}
+.covline b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+.covline a{color:var(--accent); text-decoration:underline; text-underline-offset:3px}
+.whybox{max-width:600px; max-height:82vh; overflow-y:auto; text-align:left; padding:30px 32px 24px;
   max-height:82vh; overflow-y:auto; -webkit-overflow-scrolling:touch}
 .whybox h3{font-size:17px; font-weight:600; margin:0 0 4px; color:var(--ink)}
 .whybox .whysub{font-size:12.5px; color:var(--ink-faint); margin-bottom:20px}
@@ -891,7 +891,6 @@ body::after{
 @media (max-width:640px){
   body{padding:24px 16px 44px}
   .topbar{margin-bottom:24px; padding:0 44px}
-  .cov-num{font-size:26px}
   .cov-lbl{font-size:10px}
   .stage{gap:6px}
   .arrow{width:38px;height:38px}
@@ -946,16 +945,14 @@ body::after{
         <span class="rb-short" id="rbShort">학습 · Learning</span>
       </button>
     </div>
-    <button class="cov" id="covBtn" aria-label="이 숫자는 어디서 왔나 · Where this number comes from">
-      <span class="cov-num" id="covNum">0.0%</span>
-      <span class="cov-lbl">content words in<br>everyday spoken Korean</span>
-    </button>
-    <!-- The "?" chip that used to sit here was removed 2026-08-11 (Preston).
-         The % number IS the click target and opens the same explainer, so the
-         chip published a second control for one behaviour on every screen —
-         two affordances, one panel. The rule stands for numbers that have NO
-         affordance of their own: whyChip() and .whybtn remain as the drop-in.
-         A statistic that is already clickable does not also get a chip. -->
+    <!-- v49 (Demi, 2026-08-14): the coverage % left this corner for the very
+         bottom of the Progress page, and the school's mark took its place —
+         a plain link home, the one thing every site header owes its visitor.
+         (The "?" chip history: removed 2026-08-11; whyChip()/.whybtn remain
+         the drop-in for any number with no affordance of its own.) -->
+    <a class="cov navhome" id="navHome" href="https://northalabamakoreanschool.org/"
+       aria-label="북알라바마 한국학교 홈으로 · North Alabama Korean School home">
+      <img src="landing-assets/mark.png" alt="북알라바마 한국학교 · North Alabama Korean School"></a>
     <div class="topright">
       <button class="id-chip" id="idChip" aria-label="내 성장 · Your progress">
         <img id="idChipImg" alt=""></button>
@@ -1143,6 +1140,13 @@ body::after{
 
     <div class="wall-sect" style="margin-top:30px">단어 기록 · Word history</div>
     <div class="stats show" id="gHist"></div>
+    <!-- THE coverage number's one published home (v49) — moved here from the
+         header at Demi's call. The link is explicit text, so the explainer
+         opens on EVERY device now; canExplain() gated implicit number-clicks
+         and no longer applies to this affordance. -->
+    <p class="covline" id="covLine">지금 일상 대화 속 내용어의 <b id="covPctK">0.0%</b>를 알고 있어요<br>
+      You currently know <b id="covPctE">0.0%</b> of the content words in everyday spoken Korean.<br>
+      <a href="#" id="covWhy" data-why="1">이 숫자에 대해 더 알아보기 · Learn more about this number</a></p>
     <div class="controls"><button class="btn commit" id="gBack">계속 · Back to the cards</button>
       <button class="btn" id="gWall">명예의 전당 · Hall of Names</button></div>
   </div>
@@ -1783,7 +1787,6 @@ function paint(){
       + 'Cards 21–50 finish Stage 1. Sentences arrive at Stage 6, built only from words you already own.'
       + '</div></div>';
     $('controls').style.display='none';
-    $('covNum').textContent = coverage().toFixed(1)+'%';
     $('meta').textContent = DECK.length + ' of ' + DECK.length + ' retired';
     return;
   }
@@ -1820,7 +1823,6 @@ function paint(){
 
   $('prev').disabled = idx===0;
   $('next').disabled = idx===deck.length-1;
-  $('covNum').textContent = coverage().toFixed(1)+'%';
   const cf = (reviewMode || focusMode) ? confidence(c.k) : null;
   if(focusMode){
     const tot = (focusList || []).length, done = focusDone.size;
@@ -4368,7 +4370,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   /* one delegated handler serves every published number, present or future */
   document.addEventListener('click', e=>{
     const w = e.target.closest && e.target.closest('[data-why]');
-    if(w && canExplain()){ e.preventDefault(); e.stopPropagation(); openWhy(); }
+    /* v49: the affordance is explicit link text now, so it works on touch too —
+       canExplain() gated IMPLICIT number-clicks and stays only as the drop-in
+       gate for any future number that is its own click target */
+    if(w){ e.preventDefault(); e.stopPropagation(); openWhy(); }
   });
   $('whyClose').addEventListener('click', ()=>$('whyNum').classList.remove('show'));
   $('whyNum').addEventListener('click', e=>{
@@ -4442,6 +4447,9 @@ function recordGrowth(){
 function drawGrowth(){
   recordGrowth();
   const hw = mem.hw || 0;
+  const pct = coverage().toFixed(1)+'%';
+  $('covPctK').textContent = pct;
+  $('covPctE').textContent = pct;
   $('gNum').textContent = hw;
   const nextGoal = (Math.floor(hw / 100) + 1) * 100;
   $('gGoal').textContent = hw >= 1500 ? '무궁화 · The whole arc is yours.'
@@ -4867,13 +4875,6 @@ function openGrowth(){
   show('progress'); paintMusicChip(); renderProgress();
 }
 $('growthBtn').addEventListener('click', openGrowth);
-/* Tapping a STATISTIC should explain the statistic — it used to jump to the
-   Progress page, which is what the avatar and the 성장 · Progress link are for.
-   On a touch device there is no explainer (it is a long read, desktop-only by
-   design), so the old behaviour is kept there rather than leaving a dead zone. */
-$('covBtn').addEventListener('click', ()=>{
-  if(canExplain()) openWhy(); else openGrowth();
-});
 /* BACK MEANS "BACK TO WHAT I WAS DOING" (Preston, 2026-08-09). The avatar is
    reachable during a check — nothing is locked, by design — but "Back to the
    cards" used to always land on the deck, which stranded an unfinished check:
