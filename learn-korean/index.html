@@ -3364,6 +3364,14 @@ function pruneU(o){
 
 function cloudPush(){
   if(resetting) return;
+  /* THE SEED GUARD (v50, from Preston's iPhone incident 2026-08-14): a device
+     that has not successfully READ users/{uid} this session knows nothing
+     about the cloud — letting it WRITE would replace a learner's whole
+     history with whatever this device happens to hold (an empty phone, most
+     likely). The union-merge on other devices papers over it, but the doc
+     should never hold a lie even briefly. cloudSeeded flips true only in
+     seedFromCloud()'s success path. */
+  if(!cloudSeeded) return;
   if(!authUser || AUTH_PREVIEW && !AUTH.enabled) return;
   clearTimeout(cloudTimer);
   cloudTimer = setTimeout(()=>{
@@ -3515,13 +3523,35 @@ let authInteractive = false;   // true only when THIS page-load started the sign
 
 /* ONE post-auth arrival path — popup success, redirect return and silent
    session restore all land here via onAuthStateChanged. */
+let cloudSeeded = false;   // true only after users/{uid} has been READ this session
+let seedRetryMs = 2000;
 function authArrived(u){
   authUser = u;
   paintAuth();
-  if(!u){ paintIdentity(); return; }
+  if(!u){ cloudSeeded = false; seedRetryMs = 2000; paintIdentity(); return; }
+  seedFromCloud(u);
+}
+function seedFromCloud(u){
   firebase.firestore().collection('users').doc(u.uid).get()
-    .catch(()=>null)   // offline / rules hiccup: finish the arrival LOCALLY — the merge can catch up later
+    .catch(err => {
+      /* THE READ FAILED (v50) — we know NOTHING about this account's cloud
+         state. The v48 shape "failed open" here: it merged null, offered the
+         brand-new-learner picker, and let the debounced writer push emptiness
+         over a real account — which is exactly what a slow cell connection
+         showed Preston as "it created a completely new user." Now: keep local
+         state untouched, say so once, and retry with backoff until the truth
+         arrives. Everything downstream (intent, picker, celebration, writes)
+         waits for a real answer. */
+      if(authInteractive && seedRetryMs === 2000){
+        flagToast('저장된 단어를 불러오는 중… — reaching your saved words, still trying');
+      }
+      setTimeout(()=>{ if(authUser === u) seedFromCloud(u); }, seedRetryMs);
+      seedRetryMs = Math.min(seedRetryMs * 2, 60000);
+      return SEED_RETRY;   // sentinel: this chain ends quietly, the retry owns the future
+    })
     .then(d => {
+      if(d === SEED_RETRY) return;
+      cloudSeeded = true; seedRetryMs = 2000;
       mergeCloud(d && d.exists ? d.data() : null);
       /* AFTER the merge, so a name already saved in the cloud wins over
          the Google default — signing in on a second device must not
@@ -3550,6 +3580,7 @@ function authArrived(u){
       }
     });
 }
+const SEED_RETRY = Symbol('seed-retry');
 if(authOn() && AUTH.enabled){
   fbReady(()=>{
     if(!window.firebase || !firebase.apps.length){ return; }   // SDK never loaded: local-only mode
@@ -4192,6 +4223,7 @@ function setName(n){
    callers that don't (the debounce) ignore it. It never rejects, so it can
    never leave an unhandled rejection behind. */
 function pushWall(){
+  if(!cloudSeeded) return Promise.resolve(false);   // same seed guard as cloudPush (v50)
   if(!authUser || !mem.wall) return Promise.resolve(false);
   if(mem.name) mem.wall.n = mem.name;          // the wall always mirrors the name
   if(!mem.wall.n) return Promise.resolve(false);
