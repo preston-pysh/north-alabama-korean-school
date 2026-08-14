@@ -34,6 +34,10 @@
   --accent-green:#d8e864; --accent-green-mid:#bcd043;
   --accent-green-dk:#5f6d12; --accent-green-bg:#f5f8dd;
   --accent-green-ink:#36420a;
+  /* --cream was referenced by .wall-mine and .wentry img.wav but never defined
+     in this file (it lived only in the landing page's :root), so both rendered
+     transparent. Defined here 2026-08-14 (audit); value matches the landing. */
+  --cream:#faf6ee;
   --warn:#a8781f;
   /* THE NAKS RED — a deliberate, narrow exception to the Aug-2026 pivot that
      retired red from UI. It marks ONLY the words in trouble on the report card.
@@ -816,10 +820,19 @@ body.on-progress .setbtn{display:inline-flex}
   padding:24px 24px 20px; box-shadow:0 24px 70px rgba(0,0,0,.35); text-align:center}
 .avcard h3{margin:0 0 4px; font-size:19px; font-weight:650; letter-spacing:-.01em}
 .avcard p{margin:0 0 16px; font-size:13px; line-height:1.55; color:var(--ink-soft)}
-.avgrid{display:grid; grid-template-columns:repeat(6,1fr); gap:9px; margin-bottom:14px}
-.avgrid img{width:100%; height:auto; border-radius:50%; background:var(--bg-alt);
-  filter:grayscale(1) opacity(.42)}
-.avcard .lock{font-size:11.5px; color:var(--ink-faint); margin:0 0 14px}
+.avgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px}
+/* THE GRID IS THE REWARD (2026-08-14, the Demi rework): full colour, tappable,
+   BEFORE sign-in — the choice is the incentive, Google is only how you keep it.
+   The old grid was greyscale with no click handlers: an advertisement shaped
+   like a control, which is exactly the "dead control that looks alive" rule. */
+.avgrid button{border:3px solid transparent; border-radius:50%; padding:2px;
+  background:none; cursor:pointer; transition:transform .12s var(--ease), border-color .12s}
+.avgrid button img{width:100%; height:auto; display:block; border-radius:50%;
+  background:var(--bg-alt)}
+.avgrid button:active{transform:scale(.93)}
+.avgrid button.sel{border-color:var(--accent-green-mid);
+  box-shadow:0 0 0 2px var(--accent-green-bg)}
+.avcard .btn.commit:disabled{opacity:.45; cursor:default}
 .avcard .btn.commit{width:100%; margin-bottom:8px}
 .avcard .later{background:none; border:0; cursor:pointer; font-family:inherit;
   font-size:12.5px; color:var(--ink-faint); padding:8px}
@@ -3281,6 +3294,9 @@ function mergeCloud(remote){
       if(!mem.flags[k].n) delete mem.flags[k].n;
     }else if(f.n && !cur.n){ cur.n = f.n; }
   });
+  /* AFTER the merge, never before: a remote copy of a stale flag would otherwise
+     walk straight back in and undo the sweep. */
+  sweepStaleFlags();
   if(remote.chkN) mem.chkN = Math.max(mem.chkN, remote.chkN);
   /* an unfinished check from another device is adopted ONLY if this device
      isn't already in one — never interrupt the check in front of the learner */
@@ -3374,14 +3390,31 @@ function signIn(which){
             : which === 'kakao'  ? new firebase.auth.OAuthProvider(AUTH.kakaoProviderId)
             : null;               /* naver: custom-token Cloud Function, post-deploy */
     if(!p) return;
-    firebase.auth().signInWithPopup(p).then(async res => {
-      authUser = res.user;
+    /* interactive flag: the observer owns ALL post-auth work (merge, intent,
+       paints, the picker offer) so popup and redirect returns behave
+       identically. The old shape did a second users/{uid} fetch + merge right
+       here, racing the observer's — wasteful, and the reason post-auth work
+       was scattered. */
+    authInteractive = true;
+    if(!sessionStorage.getItem(AUTH_INTENT)) setAuthIntent(null, 'sheet');
+    firebase.auth().signInWithPopup(p).then(()=>{
       $('authSheet').classList.remove('show');
-      const doc = await firebase.firestore().collection('users').doc(authUser.uid).get();
-      mergeCloud(doc.exists ? doc.data() : null);
-      Store.write(); cloudPush(); paintAuth(); paint();
-      flagToast('\uc800\uc7a5\ub410\uc5b4\uc694 \u2014 everything you\u2019ve earned is safe');
-    }).catch(()=>flagToast('Sign-in didn\u2019t finish \u2014 nothing lost, try again anytime'));
+    }).catch(err => {
+      const code = (err && err.code) || '';
+      if(code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment'){
+        /* iOS Safari can refuse the popup — fall back to the redirect flow.
+           The intent is already parked in sessionStorage, which is the ONLY
+           state that survives the navigation. */
+        firebase.auth().signInWithRedirect(p);
+        return;
+      }
+      if(code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request'){
+        takeAuthIntent();   // they changed their mind — don't ambush them later
+        flagToast('취소했어요 — nothing changed, try again anytime');
+        return;
+      }
+      flagToast('Sign-in didn\u2019t finish \u2014 nothing lost, try again anytime');
+    });
   });
 }
 
@@ -3451,22 +3484,64 @@ document.addEventListener('DOMContentLoaded', ()=>{
   paintAuth();
 });
 
+/* ONE identity repaint funnel (2026-08-14). Every identity write — sign-in,
+   sign-out, avatar pick, rename — goes through here, and it repaints every
+   surface that can currently be showing identity. The old pattern (each
+   writer hand-picking a subset of paint calls) is how a Settings avatar pick
+   updated the 38px header chip while the profile box behind the sheet kept
+   the old face. Patch the funnel, not each exit. */
+function paintIdentity(){
+  paintIdChip();
+  if($('progress').classList.contains('show')) renderDossier();
+  if($('settings').classList.contains('show')) paintSettings();
+  paintWallMine();
+}
+let authInteractive = false;   // true only when THIS page-load started the sign-in
+
+/* ONE post-auth arrival path — popup success, redirect return and silent
+   session restore all land here via onAuthStateChanged. */
+function authArrived(u){
+  authUser = u;
+  paintAuth();
+  if(!u){ paintIdentity(); return; }
+  firebase.firestore().collection('users').doc(u.uid).get()
+    .catch(()=>null)   // offline / rules hiccup: finish the arrival LOCALLY — the merge can catch up later
+    .then(d => {
+      mergeCloud(d && d.exists ? d.data() : null);
+      /* AFTER the merge, so a name already saved in the cloud wins over
+         the Google default — signing in on a second device must not
+         silently rename you. */
+      const intent = takeAuthIntent();
+      const fresh = !!intent;   // a fresh intent = this sign-in was started by a human on this device
+      if(intent && intent.av !== null && intent.av !== undefined){
+        /* the character they picked BEFORE Google — the newest explicit
+           choice, so it wins over any cloud value */
+        mem.avatar = intent.av;
+        if(mem.wall && mem.wall.n) mem.wall.a = mem.avatar;
+      }
+      ensureName();
+      Store.write(); cloudPush(); paintIdentity(); paint();
+      if(fresh || authInteractive){
+        authInteractive = false;
+        if(intent && intent.from === 'picker' && !$('progress').classList.contains('show')){
+          openGrowth();   // a redirect return boots on the cards — put her back where she started
+        }
+        flagToast(mem.name ? '환영해요, ' + escName(mem.name) + ' — everything you\u2019ve earned is safe'
+                           : '저장됐어요 — everything you\u2019ve earned is safe');
+        /* the reward the gate promises: if they still have no character
+           (they signed in from a save/wall entry), the picker flows in —
+           choose mode, one tap, no further sign-in talk */
+        if(mem.avatar === undefined) setTimeout(openPicker, 450);
+      }
+    });
+}
 if(authOn() && AUTH.enabled){
   fbReady(()=>{
     if(!window.firebase || !firebase.apps.length){ return; }   // SDK never loaded: local-only mode
-    firebase.auth().onAuthStateChanged(u => {
-      authUser = u;
-      paintAuth();
-      if(u) firebase.firestore().collection('users').doc(u.uid).get()
-        .then(d => {
-          mergeCloud(d.exists ? d.data() : null);
-          /* AFTER the merge, so a name already saved in the cloud wins over
-             the Google default — signing in on a second device must not
-             silently rename you. */
-          ensureName();
-          Store.write(); paintIdChip(); paintWallMine(); paint();
-        });
-    });
+    /* resolve a pending redirect return first (iOS fallback path); the
+       observer below receives the user either way */
+    try{ firebase.auth().getRedirectResult().catch(()=>{}); }catch(e){}
+    firebase.auth().onAuthStateChanged(authArrived);
   });
 }
 
@@ -3496,9 +3571,14 @@ function paintNoteCount(){
                 : 'That is the limit — ' + NOTE_MAX + ' characters.')
     : '';
 }
-function sendFlag(word, on, note){
-  /* backend hook — POST {word, on, note, when} to the flag endpoint when one
-     exists. Deliberately a no-op until then; localStorage holds the history. */
+function sendFlag(word, on, note, rev){
+  /* backend hook — POST {word, on, note, rev, when} to the flag endpoint when one
+     exists. Deliberately a no-op until then; localStorage holds the history.
+     `rev` is the art revision the learner was actually looking at. Store it: a
+     review inbox can then auto-resolve every report whose rev is behind the
+     shipped art, instead of showing Preston complaints about cards he fixed
+     weeks ago. Without this field the server-side pile has the same rot the
+     client had. */
 }
 function paintFlag(c){
   const b = $('flagBtn'); if(!b) return;
@@ -3516,6 +3596,52 @@ function flagToast(msg){
   clearTimeout(flagToastTimer);
   flagToastTimer = setTimeout(()=>el.classList.remove('show'), 1600);
 }
+/* ─────────────────── ART REVISIONS AND STALE FLAGS ───────────────────
+   A flag is a report about A PICTURE, not about a word. Before 2026-08-13 it was
+   stored keyed by word alone, so redrawing a card left every learner still staring
+   at their own flag on art that had already been fixed — and mergeRemote() keeps
+   the EARLIEST flag on purpose (so a comment can never be lost), which made those
+   flags stickier still. Preston asked the right question: what clears them?
+
+   cards/rev.json is written by export-cards.py, the one place art is actually
+   replaced. A flag carries the revision it was made against. When the shipped
+   revision is higher, the picture has changed and the report no longer applies.
+
+   Flags written before this existed have no .r, which reads as 0 — so any card
+   that has since been redrawn clears, and any card that has not stays flagged.
+   That is exactly right. */
+let CARD_REV = null;
+const REV_SEEN = 'klRevSeen';          /* cards whose "we redrew this" note was shown */
+
+function artRev(word){ return (CARD_REV && CARD_REV[word]) || 0; }
+
+function sweepStaleFlags(){
+  if(!CARD_REV) return 0;              /* revisions unknown — never guess, never clear */
+  let n = 0; const fixed = [];
+  for(const w of Object.keys(mem.flags)){
+    const f = mem.flags[w];
+    if(artRev(w) > (f.r || 0)){ delete mem.flags[w]; fixed.push(w); n++; }
+  }
+  if(n){
+    let seen = {};
+    try{ seen = JSON.parse(localStorage.getItem(REV_SEEN) || '{}'); }catch(e){}
+    fixed.forEach(w => { seen[w] = artRev(w); });
+    try{ localStorage.setItem(REV_SEEN, JSON.stringify(seen)); }catch(e){}
+    Store.write();
+    const c = active()[idx];
+    if(c && fixed.indexOf(c.k) >= 0) paintFlag(c);
+    flagToast(fixed.length === 1
+      ? 'You flagged this picture \u2014 it has been redrawn. Thank you.'
+      : fixed.length + ' pictures you flagged have been redrawn. Thank you.');
+  }
+  return n;
+}
+
+fetch('cards/rev.json', { cache: 'no-cache' })
+  .then(r => r.ok ? r.json() : null)
+  .then(j => { if(j && typeof j === 'object'){ CARD_REV = j; sweepStaleFlags(); } })
+  .catch(() => {});   /* offline or not deployed yet: flags simply stay as they are */
+
 function doFlag(c, note){
   /* One flag per card per learner, by construction: mem.flags[word] is a single
      entry however many times it is toggled, so nobody can pile votes onto one
@@ -3526,12 +3652,12 @@ function doFlag(c, note){
      undefined values in set()). The cap and the textarea's maxlength are the SAME
      constant — they were 280 in two places and drifting them apart would truncate
      silently on the way out, which is worse than refusing the keystroke. */
-  const e = { t: Date.now(), taps: stat(c.k).n || 0 };
+  const e = { t: Date.now(), taps: stat(c.k).n || 0, r: artRev(c.k) };   /* r = which PICTURE this is about, so the report can expire when the art is replaced */
   if(note && note.trim()) e.n = note.trim().slice(0, NOTE_MAX);
   mem.flags[c.k] = e;
   flagToast(e.n ? 'Noted, with your comment \u2014 thank you.'
                 : 'Noted \u2014 thank you. This helps us improve the cards.');
-  sendFlag(c.k, true, e.n);
+  sendFlag(c.k, true, e.n, e.r);
   Store.write();
   paintFlag(c);
 }
@@ -3575,10 +3701,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(e.target === $('avDlg')) $('avDlg').classList.remove('show');
   });
   $('avSignIn').addEventListener('click', ()=>{
+    if(avSel === null) return;
     $('avDlg').classList.remove('show');
-    /* reuse the ONE sign-in path that already exists rather than starting a
-       second — Settings owns the provider buttons and the error handling */
-    $('settings').classList.add('show'); paintSettings();
+    if(authUser){
+      /* choose mode: the account exists, the tap IS the commit */
+      mem.avatar = avSel;
+      if(mem.wall && mem.wall.n) mem.wall.a = mem.avatar;
+      Store.write(); paintIdentity();
+      flagToast('저장했어요 — ' + AVATARS[mem.avatar][1] + ', that’s you now');
+    }else{
+      /* pre mode: park the choice where a page reload cannot lose it,
+         then go straight to Google — no Settings hop, no second sheet */
+      setAuthIntent(avSel, 'picker');
+      signIn('google');
+    }
   });
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape') $('avDlg').classList.remove('show');
@@ -3602,9 +3738,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
      No red anywhere (brand rule): the armed state wears the warn gold. */
   let rstArmed = false;
   const rstPaint = ()=>{
-    $('rstBody').innerHTML = 'Every retired word, test record, medal, and your growth history '
-      + (authUser ? 'on this device <b>and in your saved account</b> ' : 'on this device ')
-      + 'will be erased forever. This cannot be undone.';
+    $('rstBody').innerHTML = authUser
+      ? 'Every retired word, test record, medal, and your growth history on this device '
+        + '<b>and in your saved account</b> will be erased forever — your name comes off '
+        + 'the Hall of Names and <b>the account itself is deleted</b>. This cannot be undone.'
+      : 'Every retired word, test record, medal, and your growth history on this device '
+        + 'will be erased forever. This cannot be undone.';
     $('rstYes').textContent = '지우고 처음부터 · Erase everything';
     $('rstYes').style.background = '';
     $('rstYes').style.borderColor = '';
@@ -3629,10 +3768,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
     resetting = true;
     clearTimeout(cloudTimer);
+    /* A COMPLETE delete (2026-08-14, pre-launch check). Order is the fail-safe:
+       BOTH cloud docs first — and the wall delete may no longer fail silently,
+       because "everything erased except your name on a world-readable wall" is
+       the worst possible partial state. If either delete fails, NOTHING is
+       erased. Only after the data is provably gone do we remove the account
+       record itself (auth delete wants a recent login — fall back to signOut,
+       which still lands the learner fully signed out with zero data behind
+       the account either way), then every local trace, then reload into the
+       true first-visit experience. */
     try{
       if(authUser && window.firebase && firebase.apps.length){
         await firebase.firestore().collection('users').doc(authUser.uid).delete();
-        try{ await firebase.firestore().collection('wall').doc(authUser.uid).delete(); }catch(e){}
+        await firebase.firestore().collection('wall').doc(authUser.uid).delete();
       }
     }catch(e){
       resetting = false;
@@ -3640,7 +3788,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
       flagToast('저장된 계정에 닿지 못했어요 — nothing was erased, try again');
       return;
     }
-    try{ localStorage.removeItem('koreanLab'); }catch(e){}
+    if(authUser && window.firebase && firebase.apps.length){
+      try{ await firebase.auth().currentUser.delete(); }
+      catch(e){ try{ await firebase.auth().signOut(); }catch(e2){} }
+    }
+    try{
+      localStorage.removeItem('koreanLab');
+      localStorage.removeItem('klRevSeen');
+      localStorage.removeItem('klTrack');
+      sessionStorage.removeItem('klAuthIntent');
+      sessionStorage.removeItem('klMusicHandoff');
+    }catch(e){}
     location.reload();
   });
 
@@ -3674,8 +3832,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(mem.wall) mem.wall.a = wjSel;
     $('wallJoin').classList.remove('show');
     Store.write();
-    paintIdChip();
-    paintWallMine();
+    paintIdentity();   // chip + dossier + settings + wall, whichever is showing
     if(!mem.wall){
       /* no wall entry yet — this was purely a rename, so stay where they are */
       flagToast('저장했어요 — saved, that is your name now');
@@ -4001,7 +4158,12 @@ function ensureName(){
   const g = authUser ? firstNameFrom(authUser.displayName) : null;
   const h = drawHandle();
   mem.name = g || h.name;
-  if(mem.avatar === undefined) mem.avatar = h.av;
+  /* NO avatar default (2026-08-14). A random animal here silently spent the
+     one reward the sign-in gate promises, and hid the picker's only entry
+     point the moment it ran — the first live tester signed in and was never
+     offered a choice. avatar === undefined now MEANS "still owed the picker";
+     authArrived() honours the debt. Names stay defaulted because a name is a
+     label; the character is a choice. */
   return true;
 }
 /* the name lives in one place; the wall record only mirrors it */
@@ -4629,9 +4791,48 @@ document.addEventListener('visibilitychange', ()=>{
    listeners bind on DOMContentLoaded. Binding them here threw on a null element
    and killed the rest of the script — which then showed up as an unrelated
    "cannot access histDetail before initialization" three functions later. */
+/* THE SIGN-UP FUNNEL (2026-08-14, rebuilt after Demi's first-run test).
+   Old shape: dashed slot → locked advert → Settings → auth sheet → Google —
+   four dialogs before the promise, then ensureName() spent the reward on a
+   RANDOM avatar and the only picker entry point hid itself forever.
+   New shape: ONE dialog. The grid is live immediately; the learner picks the
+   character FIRST (the fun part), and Google is only how they keep it. The
+   choice rides sessionStorage (klAuthIntent, same pattern as klMusicHandoff)
+   so it survives the popup round-trip — and the redirect fallback on iOS.
+   Signed-in learners with no character get the same dialog in choose mode:
+   tap, done, no Google button. */
+let avSel = null;   // the tapped-but-not-committed character
+const AUTH_INTENT = 'klAuthIntent';
+function setAuthIntent(av, from){
+  try{ sessionStorage.setItem(AUTH_INTENT, JSON.stringify({av, from, t: Date.now()})); }catch(e){}
+}
+function takeAuthIntent(){
+  try{
+    const raw = sessionStorage.getItem(AUTH_INTENT);
+    if(!raw) return null;
+    sessionStorage.removeItem(AUTH_INTENT);
+    const j = JSON.parse(raw);
+    return (Date.now() - j.t < 10 * 60000) ? j : null;   // ten-minute freshness
+  }catch(e){ return null; }
+}
 function openPicker(){
-  $('avGrid').innerHTML = AVATARS.map(a =>
-    `<img src="avatars/avatar-${a[0]}@128.png" alt="${a[1]}" loading="lazy">`).join('');
+  avSel = (authUser && mem.avatar !== undefined) ? mem.avatar : null;
+  $('avGrid').innerHTML = AVATARS.map((a, i) =>
+    `<button type="button" class="${i === avSel ? 'sel' : ''}" data-i="${i}" title="${a[1]}">`
+    + `<img src="avatars/avatar-${a[0]}@128.png" alt="${a[1]}" loading="lazy"></button>`).join('');
+  [...$('avGrid').children].forEach(b => b.addEventListener('click', ()=>{
+    avSel = +b.dataset.i;
+    [...$('avGrid').children].forEach(x => x.classList.toggle('sel', +x.dataset.i === avSel));
+    $('avSignIn').disabled = false;
+  }));
+  if(authUser){
+    $('avBody').textContent = 'Pick your character — it shows in the corner, and on the Hall of Names when you join.';
+    $('avSignIn').textContent = '이걸로 할래요 · That’s me';
+  }else{
+    $('avBody').textContent = 'Pick your character — then keep it with Google, so it and every word you’ve earned follow you to any device.';
+    $('avSignIn').textContent = 'Google로 저장하기 · Keep it with Google';
+  }
+  $('avSignIn').disabled = (avSel === null);
   $('avDlg').classList.add('show');
 }
 $('dossSlot').addEventListener('click', openPicker);
@@ -4704,7 +4905,9 @@ function paintSettings(){
     if(mem.wall && mem.wall.n) mem.wall.a = mem.avatar;
     Store.write();
     [...$('setAvatars').children].forEach(x => x.classList.toggle('sel', +x.dataset.i === mem.avatar));
-    paintIdChip();
+    /* the funnel, not just the chip — the profile box behind this sheet is
+       exactly what went stale on the first live test (2026-08-14) */
+    paintIdentity();
   }));
   /* show the name the button changes — a control with no visible subject is
      half a control (this row is what read as broken before 2026-08-10). */
@@ -5053,11 +5256,10 @@ if(mem.queue && mem.queue.length && mem.qi < mem.queue.length){
 <div class="avdlg" id="avDlg" role="dialog" aria-modal="true" aria-labelledby="avTitle">
   <div class="avcard">
     <h3 id="avTitle">캐릭터를 고르세요</h3>
-    <p>Choose your character. Sign in to pick one, keep your words on every device,
-      and put your name on the Hall of Names.</p>
+    <p id="avBody">Pick your character — then keep it with Google, so it and every word
+      you’ve earned follow you to any device.</p>
     <div class="avgrid" id="avGrid"></div>
-    <p class="lock">로그인하면 열립니다 · unlocked when you sign in</p>
-    <button class="btn commit" id="avSignIn">Google로 로그인 · Sign in to choose</button>
+    <button class="btn commit" id="avSignIn" disabled>Google로 저장하기 · Keep it with Google</button>
     <button class="later" id="avLater">나중에 · Maybe later</button>
   </div>
 </div>
