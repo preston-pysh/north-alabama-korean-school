@@ -57,28 +57,17 @@ assets/**/Screenshot *.png
 assets/Traditions and Celebration Pictures/
 
 # ─────────────────────────────────────────────────────────────
-# KOREAN LAB — only the player runtime is published (2026-08-09).
-# Research, prompts, pipelines, card sources, archives, and
-# backups stay on this computer. See korean-lab skill build log.
+# KOREAN LAB (2026-08-14): the app lives at repo-root learn-korean/
+# and is 100% public BY CONSTRUCTION — never place a private file
+# in that folder; there is no exception list to save you.
+# The korean-lab/ working tree (research, prompts, pipelines, card
+# sources, word-list data, backups) is 100% private. The only
+# published file inside it is the old-URL redirect stub.
 # ─────────────────────────────────────────────────────────────
 korean-lab/*
 !korean-lab/04-player/
 korean-lab/04-player/*
 !korean-lab/04-player/korean-lab.html
-!korean-lab/04-player/korean-lab-landing.html
-!korean-lab/04-player/landing-assets/
-!korean-lab/04-player/cards/
-!korean-lab/04-player/audio/
-korean-lab/04-player/audio/Music/
-korean-lab/04-player/audio/_test/
-!korean-lab/04-player/videos/
-korean-lab/04-player/videos/_raw/
-# audit staging — promoted into videos/ by swap-verb-marks.py
-korean-lab/04-player/videos/_new/
-!korean-lab/04-player/medals/
-!korean-lab/04-player/avatars/
-!korean-lab/04-player/sounds/
-!korean-lab/04-player/skyline.png
 
 # Working files at the site root that are not site content.
 _to_delete/
