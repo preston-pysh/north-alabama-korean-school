@@ -1783,6 +1783,7 @@ const $ = id => document.getElementById(id);
    number go down. Rule 3 - the number is honest, in both directions.
    NEVER delete an entry from LEGACY_W. Append to it. */
 const LEGACY_W = {"애":0.185,"당신":0.881,"그녀":0.1812,"자네":0.1884,"다른":0.2093};
+const IN_DECK = new Set(DECK.map(c => c.k));   // fast membership for the two counters below
 const legacyHeld = () => Object.keys(LEGACY_W).filter(k => mem.retired.has(k)).length;
 const legacyW    = () => Object.keys(LEGACY_W).reduce((s,k)=>s + (mem.retired.has(k) ? LEGACY_W[k] : 0), 0);
 const deckTotal  = () => DECK.length + legacyHeld();
@@ -2998,8 +2999,14 @@ const DRIP_MIN_POOL = 15;   // below this the check alone covers the pool
    ══════════════════════════════════════════════════════════════════════════ */
 const GATE_IN = 0.35, GATE_OUT = 0.25, GATE_CONF = 60;
 function poolDebt(){
+  /* ONLY WORDS THE DRIP CAN ACTUALLY SERVE (fixed 2026-08-14). reviewList() is
+     DECK.filter(retired), so a retired word that has since LEFT the deck can never
+     be re-tested — counting its stale confidence as debt creates a balance the
+     learner is structurally unable to pay down, and a low-confidence one would hold
+     the foundation gate shut forever. Screen against the deck, not against history. */
   let n = 0, of = 0;
   for(const k of mem.retired){
+    if(!IN_DECK.has(k)) continue;
     const c = confidence(k); if(c === null) continue;
     of++; if(c < GATE_CONF) n++;
   }
@@ -4518,8 +4525,14 @@ const CEILING = 47.0;                       // the picture-deck ceiling, 05-limi
    have passed at least one check item. Clicking retires the card; only the
    test makes it count. */
 function verifiedCount(){
+  /* Counts over DECK, so it FELL when the deck shrank — the same defect LEGACY_W was
+     added to fix in coverage(), missed here on the first pass (2026-08-14). A word
+     you proved stays proved even after its card leaves the deck. mem.hw is guarded by
+     Math.max() so a stored value never regressed, but a fresh device or a 처음부터-free
+     recompute would have quietly dropped those words and, with them, a medal. */
   let n = 0;
   for(const c of DECK){ if(((mem.stats[c.k] || {}).p || 0) > 0) n++; }
+  for(const k in LEGACY_W){ if(((mem.stats[k] || {}).p || 0) > 0) n++; }
   return n;
 }
 function recordGrowth(){
