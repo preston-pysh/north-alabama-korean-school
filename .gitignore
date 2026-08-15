@@ -74,3 +74,8 @@ _to_delete/
 Atlanta 2.pdf
 Atlanta Slides.pdf
 TalkMedia_i_c7736558ca32.jpg.jpeg
+
+# never publish: authoring leftovers that live in the deploy folder
+learn-korean/*.bak-*
+learn-korean/*.pptx
+learn-korean/.DS_Store
