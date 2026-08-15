@@ -1764,6 +1764,18 @@ function revealClipIn(cell, word, after){
    RENDER
    ============================================================ */
 const $ = id => document.getElementById(id);
+/* ============================ v51 — THE GATE 0 BUILD (2026-08-14) ============================
+   Demi's four voice memos, generalised into five word-tests and shipped. Deck 300 -> 295.
+   Build-unique symbols, for proving what is live: LEGACY_W, deckTotal, disp.
+     · five words retired on register/bound-form grounds (애 당신 그녀 자네 다른)
+     · LEGACY_W so a retirement can never lower a learner's published coverage
+     · the `d` display field + disp(): social formulas READ the utterance while `k` stays
+       the storage key and filename, so no progress migrates and no asset is renamed
+       (mirrors the audio pipeline's korean/spoken split)
+     · 안 redrawn as INSIDE (contrast partner 밖), 못 redrawn as NAIL, 속 regloss +
+       its wrong 밖 partner dropped — 속's antonym is 겉, which is not in the 1,500
+   Doctrine: korean-lab references/22-the-word-gate.md
+   ============================================================================================ */
 /* GATE 0 RETIREMENTS (2026-08-14, references/22-the-word-gate.md).
    Five words left the deck on register/bound-form grounds. A learner who ALREADY
    retired one keeps its coverage weight and its retired-count slot forever:
@@ -3633,13 +3645,39 @@ function paintNoteCount(){
     : '';
 }
 function sendFlag(word, on, note, rev){
-  /* backend hook — POST {word, on, note, rev, when} to the flag endpoint when one
-     exists. Deliberately a no-op until then; localStorage holds the history.
-     `rev` is the art revision the learner was actually looking at. Store it: a
-     review inbox can then auto-resolve every report whose rev is behind the
-     shipped art, instead of showing Preston complaints about cards he fixed
-     weeks ago. Without this field the server-side pile has the same rot the
-     client had. */
+  /* WIRED TO FIRESTORE (v51, 2026-08-14). Until tonight this was an empty body,
+     so every flag from anyone other than the device owner was discarded — the 41
+     flags ever analysed all came from Preston's own localStorage. The 1,000-char
+     note box made that worse, not better: it invites a real correction and then
+     throws it away.
+
+     SIGNED-IN ONLY, deliberately. This mirrors `confusions` exactly — it
+     piggybacks on an ALREADY-LOADED SDK, so the anonymous default path still
+     loads and still sends NOTHING, and the board's COPPA position is untouched.
+     Letting signed-out learners write free text to a public collection is a
+     board conversation, not a code change.
+
+     One doc per learner per word (`uid__word`), so re-flagging UPDATES rather
+     than piling votes onto one image — the same semantics doFlag() already
+     enforces locally. An un-flag writes {on:false} rather than deleting, because
+     a retraction is itself information.
+
+     Every optional key is built CONDITIONALLY: Firestore's set() THROWS on an
+     undefined value anywhere in the document, and one undefined field once took
+     down the private save AND the public wall write together. `note` and `rev`
+     are both optional at the call site — sendFlag(c.k, false) passes neither. */
+  try{
+    if(!(window.firebase && firebase.apps.length)) return;
+    const u = firebase.auth().currentUser;
+    if(!u) return;                                  // anonymous path sends nothing
+    const d = { word: String(word), on: !!on, uid: u.uid, when: Date.now() };
+    if(note != null && String(note).trim()) d.note = String(note).trim().slice(0, NOTE_MAX);
+    if(rev  != null && !isNaN(rev))         d.rev  = Number(rev);
+    firebase.firestore().collection('flags')
+      .doc(u.uid + '__' + word)
+      .set(d, { merge: true })
+      .catch(()=>{});                               // never let a flag failure surface to the learner
+  }catch(e){}
 }
 function paintFlag(c){
   const b = $('flagBtn'); if(!b) return;
