@@ -449,13 +449,6 @@ body.reviewing .subcontrols .dot{display:none}
 .wj-err{font-size:13px; color:var(--accent-dk); text-align:center; min-height:18px; margin-top:10px}
 
 .controls{display:flex; align-items:center; gap:8px; margin-top:30px; flex-wrap:wrap; justify-content:center}
-  /* FINISHED DECK. Scoped to IDs, never to a shared class. */
-  #doneNote{display:none}
-  body.deckdone #prev, body.deckdone #next, body.deckdone #card,
-  body.deckdone #dripWrap, body.deckdone #controls{display:none}
-  body.deckdone #doneNote{display:block; text-align:center; padding:64px 24px; max-width:460px; margin:0 auto}
-  #doneNote .dn-h{font-size:22px; font-weight:500; margin-bottom:10px}
-  #doneNote .dn-b{font-size:15px; color:var(--ink-soft); line-height:1.6}
 .btn{border:0; background:none; cursor:pointer; font:inherit; font-size:14px;
   color:var(--ink-soft); padding:9px 18px; border-radius:999px; transition:.2s var(--ease)}
 .btn:hover{background:var(--bg-alt); color:var(--ink)}
@@ -1001,17 +994,6 @@ body::after{
     <button class="arrow" id="next" aria-label="Next">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
     </button>
-    <!-- THE FINISHED-DECK NOTE (2026-08-15). It is a SIBLING of the card, not a
-         replacement for it. paint() used to write this text into #stage's
-         innerHTML, which destroyed #card, #art, #reveal, #flagBtn and #dripWrap —
-         four of which carry listeners bound once at boot. Entering 복습 afterwards
-         threw at $('art').src and paint() died mid-function, bricking review until
-         a reload, and the reload did not help because the branch simply ran again.
-         Nothing in here is ever given a listener, so its innerHTML is safe to set. -->
-    <div class="donenote" id="doneNote">
-      <div class="dn-h">학습 끝 · The learn list is empty</div>
-      <div class="dn-b" id="doneNoteBody"></div>
-    </div>
   </div>
 
   <!-- THE COMMIT (2026-08-09). "I know this" used to be one of four peers in a
@@ -1801,7 +1783,6 @@ const $ = id => document.getElementById(id);
    number go down. Rule 3 - the number is honest, in both directions.
    NEVER delete an entry from LEGACY_W. Append to it. */
 const LEGACY_W = {"애":0.185,"당신":0.881,"그녀":0.1812,"자네":0.1884,"다른":0.2093};
-const IN_DECK = new Set(DECK.map(c => c.k));   // fast membership for the two counters below
 const legacyHeld = () => Object.keys(LEGACY_W).filter(k => mem.retired.has(k)).length;
 const legacyW    = () => Object.keys(LEGACY_W).reduce((s,k)=>s + (mem.retired.has(k) ? LEGACY_W[k] : 0), 0);
 const deckTotal  = () => DECK.length + legacyHeld();
@@ -1826,23 +1807,13 @@ function paint(){
     $('subDot').style.display = showRev;    // no separator with nothing after it
   }
   const deck = active();
-  /* DERIVED on every paint, never asserted once — so the state clears itself the
-     moment the deck refills instead of needing a matching un-set somewhere else. */
-  document.body.classList.toggle('deckdone', deck.length === 0);
   if(deck.length === 0){
-    /* Finishing is a MODE, not an end state. Saying "you're finished" while the
-       drip still owes the learner review was the contradiction on the close-out
-       board; the note now reports the real number instead of congratulating over
-       the top of it. #doneNoteBody owns no listeners, so writing it is safe —
-       writing #stage was not. */
-    const d = (typeof poolDebt === 'function') ? poolDebt() : {n:0, of:0};
-    $('doneNoteBody').innerHTML = d.n
-      ? '<b>' + d.n + '</b> of your ' + d.of + ' tested words are still under the confidence bar. '
-        + '\ubcf5\uc2b5 \u00b7 Review known, below, is where they get sharp.'
-      : (d.of
-          ? 'All ' + d.of + ' of your tested words sit above the confidence bar. '
-            + 'Nicely held \u2014 \ubcf5\uc2b5 below keeps them there.'
-          : '\ubcf5\uc2b5 \u00b7 Review known, below, keeps these sharp.');
+    $('stage').innerHTML = '<div style="text-align:center;padding:64px 24px">'
+      + '<div style="font-size:22px;font-weight:500;margin-bottom:10px">These twenty are yours.</div>'
+      + '<div style="font-size:15px;color:var(--ink-soft);line-height:1.6;max-width:400px;margin:0 auto">'
+      + 'Cards 21–50 finish Stage 1. Sentences arrive at Stage 6, built only from words you already own.'
+      + '</div></div>';
+    $('controls').style.display='none';
     $('meta').textContent = deckTotal() + ' of ' + deckTotal() + ' retired';
     return;
   }
@@ -3027,14 +2998,8 @@ const DRIP_MIN_POOL = 15;   // below this the check alone covers the pool
    ══════════════════════════════════════════════════════════════════════════ */
 const GATE_IN = 0.35, GATE_OUT = 0.25, GATE_CONF = 60;
 function poolDebt(){
-  /* ONLY WORDS THE DRIP CAN ACTUALLY SERVE (fixed 2026-08-14). reviewList() is
-     DECK.filter(retired), so a retired word that has since LEFT the deck can never
-     be re-tested — counting its stale confidence as debt creates a balance the
-     learner is structurally unable to pay down, and a low-confidence one would hold
-     the foundation gate shut forever. Screen against the deck, not against history. */
   let n = 0, of = 0;
   for(const k of mem.retired){
-    if(!IN_DECK.has(k)) continue;
     const c = confidence(k); if(c === null) continue;
     of++; if(c < GATE_CONF) n++;
   }
@@ -4553,14 +4518,8 @@ const CEILING = 47.0;                       // the picture-deck ceiling, 05-limi
    have passed at least one check item. Clicking retires the card; only the
    test makes it count. */
 function verifiedCount(){
-  /* Counts over DECK, so it FELL when the deck shrank — the same defect LEGACY_W was
-     added to fix in coverage(), missed here on the first pass (2026-08-14). A word
-     you proved stays proved even after its card leaves the deck. mem.hw is guarded by
-     Math.max() so a stored value never regressed, but a fresh device or a 처음부터-free
-     recompute would have quietly dropped those words and, with them, a medal. */
   let n = 0;
   for(const c of DECK){ if(((mem.stats[c.k] || {}).p || 0) > 0) n++; }
-  for(const k in LEGACY_W){ if(((mem.stats[k] || {}).p || 0) > 0) n++; }
   return n;
 }
 function recordGrowth(){
