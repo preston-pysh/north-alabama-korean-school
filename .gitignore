@@ -79,3 +79,7 @@ TalkMedia_i_c7736558ca32.jpg.jpeg
 learn-korean/*.bak-*
 learn-korean/*.pptx
 learn-korean/.DS_Store
+
+# credentials never live in the repo tree
+*service-account*.json
+*adminsdk*.json
