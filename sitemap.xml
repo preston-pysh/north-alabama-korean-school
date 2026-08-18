@@ -12,6 +12,16 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://northalabamakoreanschool.org/spotlight/korean-lab/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://northalabamakoreanschool.org/spotlight/korean-lab/ko/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://northalabamakoreanschool.org/spotlight/teachers-prep-day-fall-2026/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
