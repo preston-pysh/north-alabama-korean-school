@@ -34,6 +34,103 @@
 window.SPOTLIGHT_POSTS = [
 
   /* ---------------------------------------------------------------
+     FALL 2026 TEACHER DEMONSTRATION DAY (시연회) — September 12, 2026
+     Five teachers presented, in order:
+       1. 이지숙 교감선생님 — AI·멀티미디어로 확장하는 한국어 수업
+       2. 조승연 선생님 — NKT반
+       3. 이선옥 선생님 — 고학년 지도 + 시장 놀이
+       4. 고현이 선생님 — 수업 자료 제작 실습   ← CONFIRM SPELLING
+       5. 문동미 학교장 — 성인 한국어반
+     Hero = the first presentation. Gallery = the faculty watching.
+     --------------------------------------------------------------- */
+  {
+    slug:     "teacher-demonstration-day-fall-2026",
+    date:     "2026-09-12",
+    category: { en: "School News", ko: "학교 소식" },
+
+    title: {
+      en: "What our teachers learned this summer, brought back to our classrooms",
+      ko: "배워 온 것을 모두와 나눈 하루 — 2026 가을학기 교사 시연회"
+    },
+
+    dek: {
+      en: "After Saturday classes ended, five of our teachers shared with the whole faculty what they brought home from the summer conference — and the lessons they have actually taught.",
+      ko: "토요일 수업을 마친 뒤, 다섯 분의 선생님이 여름 학술대회에서 배워 온 교수법과 실제 수업 사례를 전체 교사와 나누었습니다."
+    },
+
+    image:    "assets/spotlight/teacher-demo-day-fall-2026.jpg",
+    imageAlt: {
+      en: "A teacher of the North Alabama Korean School presenting \"Korean Lessons Extended with AI and Multimedia\" to the faculty after Saturday classes.",
+      ko: "토요일 수업을 마친 뒤 전체 교사 앞에서 「AI와 멀티미디어로 확장하는 한국어 수업」을 발표하고 있는 북알라바마 한국학교 선생님."
+    },
+
+    author: { en: "North Alabama Korean School", ko: "북알라바마 한국학교" },
+
+    body: [
+      { en: "On September 12, after Saturday classes had ended, the teachers of the North Alabama Korean School gathered for a teacher demonstration day. Five teachers presented in turn — those who attended the 44th National Association for Korean Schools conference this summer, and those teaching our classes right now.",
+        ko: "9월 12일, 가을학기 토요일 수업을 마친 뒤 북알라바마한국학교 선생님들이 한자리에 모여 교사 시연회를 열었습니다. 지난여름 제44회 재미한국학교협의회 학술대회에 다녀온 선생님들과 지금 교실을 이끌고 계신 선생님들, 모두 다섯 분이 차례로 발표를 맡았습니다." },
+
+      { en: "This was the gathering we promised when we reported on the conference in August — that what was learned there would be shared with every one of our teachers at the fall-term teachers' meeting. Before the presentations began, one point was emphasized: because every presentation was built out of a class the presenter is actually teaching, all of it can go straight into the classroom, and once the materials are shared, any teacher can reach for them when they are needed.",
+        ko: "이 자리는 지난 8월 학술대회 소식을 전하며 가을학기 교사회의를 통해 모든 선생님들과 나누겠다고 말씀드린 약속을 지키는 시간이었습니다. 발표에 앞서, 이번 발표가 모두 선생님들이 실제로 진행하고 계신 수업을 바탕으로 준비되어 곧바로 교실에 적용할 수 있으며, 자료를 함께 나누어 두면 어느 선생님이든 필요할 때 수업에 활용할 수 있다는 점이 강조되었습니다." },
+
+      { en: "The first presentation was given by Vice-Principal Lee Owen (이지숙), on the theme \"Korean Lessons Extended with AI and Multimedia: Beyond the Classroom, Into Experience.\" She drew it from the lectures of Assistant Professor Han Hye-min of the Department of Korean Language Education as a Foreign Language at the KFL Graduate School of Hankuk University of Foreign Studies, whose sessions she followed throughout the conference. Professor Han taught students learning Korean as a foreign language in Hong Kong and now continues that work in Korea — a researcher who, as Vice-Principal Lee noted, has taught under the same conditions we do.",
+        ko: "첫 발표는 이지숙 교감선생님이 맡아 「AI와 멀티미디어로 확장하는 한국어 수업: 교실을 넘어 경험으로」를 주제로 진행했습니다. 학술대회 기간 내내 이어서 들은 한국외국어대학교 KFL대학원 외국어로서의 한국어교육학과 한혜민 조교수의 강의를 바탕으로 정리한 내용입니다. 한 조교수는 홍콩에서 한국어를 외국어로 배우는 학생들을 가르친 경험을 바탕으로 현재 한국에서도 외국어로서의 한국어 교육을 이어 가고 있는 연구자로, 이 교감선생님은 우리와 같은 조건에서 가르쳐 온 분이라고 소개했습니다." },
+
+      { en: "Vice-Principal Lee began by naming our circumstances plainly. Class meets only once a week; the range of levels inside a single classroom is wide; and many of our students speak mainly English at home, so chances to use Korean are few. Into those three hours, language, culture, and history all have to fit. Within those limits she set out the role of AI as a bridge to experience — a way of carrying a once-a-week class beyond the classroom. She showed how she builds a sixteen-week lesson plan, and how she makes online word games and sends them to the parents' group chat so students can practise at home with a parent or a sibling. She had deliberately shaped the presentation for the teachers who joined us this term and are planning their first sixteen weeks.",
+        ko: "이 교감선생님은 우리가 놓인 조건을 있는 그대로 짚는 데서 발표를 시작했습니다. 수업은 일주일에 한 번뿐이고, 한 교실 안에서도 학생들의 수준 차이가 크며, 가정에서 영어를 주로 쓰는 학생이 많아 한국어를 사용할 기회가 부족합니다. 여기에 언어와 문화, 역사를 세 시간 안에 모두 담아야 합니다. 이 교감선생님은 이러한 조건 속에서 AI의 역할을 \"경험의 가교\"로 정리하며, 일주일에 한 번뿐인 수업을 교실 밖에서도 이어 가는 방법에 초점을 맞추었습니다. 16주 학습계획안을 세우는 과정과 함께, 학생들이 집에서 부모님이나 형제와 반복해 연습할 수 있도록 직접 만든 온라인 단어 게임을 학부모 단체 대화방으로 보내는 방법을 소개했습니다. 특히 이번 학기에 새로 합류하신 선생님들이 한 학기를 설계하는 데 도움이 되도록 발표의 방향을 잡았습니다." },
+
+      { en: "Cho Seung-yeon (조승연) followed with the NKT class, newly opened this term. The NKT measures a student's ability to use Korean in real life across four areas — listening, speaking, reading, and writing — and she explained that she teaches with each student's own growth in view rather than the examination itself. She then handed every teacher a colour-coded sheet, one for beginner classes and one for intermediate, setting out what can be done in those classrooms now so that students arrive ready later: filling a bag and finding information for listening; text messages and advertising posters for reading; thirty-second talks and introducing an object for speaking; newsletters, emails and reviews for writing. Every one of them a subject from ordinary life.",
+        ko: "이어 조승연 선생님이 이번 학기에 새로 개설된 NKT반의 수업을 소개했습니다. NKT는 듣기·말하기·읽기·쓰기 네 영역으로 실생활에서의 한국어 사용 능력을 평가하는 시험으로, 조 선생님은 시험 자체보다 학생 한 사람 한 사람의 성장에 중점을 두고 수업을 이끌고 있다고 전했습니다. 또한 초급반과 중급반 선생님들이 지금 교실에서 무엇을 해 두면 학생들에게 도움이 되는지를 영역별 활동 예시로 정리해 색깔로 구분한 자료를 전체 선생님들에게 나누어 드렸습니다. 가방 채우기와 정보 찾기 같은 듣기 활동, 문자 메시지와 광고 포스터를 읽는 읽기 활동, 30초 말하기와 물건 소개하기, 소식지와 이메일과 리뷰 쓰기까지 모두 실제 생활에서 쓰는 주제들입니다." },
+
+      { en: "The third presentation was given by Lee Sun-ok (이선옥). Drawing on a lecture on teaching older students in weekend Korean schools, which she heard at the 43rd conference, she first set out six reasons older students drift away from Korean school: the weight of schoolwork and the SAT, ACT and AP courses; the growth of other activities; friends who stop coming one by one; the limited role a student can take on inside the school; too few chances to use Korean day to day; and textbooks that are hard going.",
+        ko: "세 번째 발표는 이선옥 선생님이 맡았습니다. 이 선생님은 제43회 학술대회에서 들은 주말 한글학교 고학년 지도에 관한 강의를 바탕으로, 고학년 학생들이 한글학교에서 멀어지는 여섯 가지 이유를 먼저 짚었습니다. SAT와 ACT, AP 과목으로 늘어나는 학업 부담, 많아지는 교외 활동, 한 명씩 나오지 않기 시작하는 또래 친구들, 학교 안에서 맡을 수 있는 역할의 제한, 일상에서 한국어를 사용할 기회의 부족, 그리고 쉽지 않은 교재가 그것입니다." },
+
+      { en: "Her answer was to show her own market role-play class from last term, from beginning to end. Students brought things from home, priced them, and sold and bought from one another, haggling with \"That's expensive,\" \"Please take something off,\" \"I can't take anything off.\" The student assistant teachers each took a role and helped carry the lesson. She ran it several more times afterwards so that students who had missed that day could have the same experience. What stays with students, she said, is what they have done with their own hands in the classroom.",
+        ko: "그리고 그 답으로 지난 학기 자신의 반에서 진행한 시장 놀이 수업을 처음부터 끝까지 보여 주었습니다. 학생들은 집에서 가져온 물건에 값을 매겨 직접 팔고 사면서 \"비싸요\", \"깎아 주세요\", \"못 깎아 줘요\" 같은 표현을 주고받으며 흥정했습니다. 학생 보조 선생님들이 각자 역할을 맡아 수업을 함께 이끌었고, 그날 참여하지 못한 학생들도 같은 경험을 할 수 있도록 이후 여러 차례 더 진행했습니다. 교실에서 직접 몸으로 겪은 경험이 학생들의 기억에 오래 남는다는 것이 이 선생님이 전한 결론이었습니다." },
+
+      { en: "In the fourth presentation, Ko Hyun-i (고현이) walked the teachers through making class materials themselves, step by step, with laptops open around the room. Taking Chuseok and songpyeon as her subject, she pulled in sources she had found online, asked for five quiz questions a third-grader could understand, and then had the wording made simpler — all of it live, on screen. She set the method out in three steps: find the source material, state the grade level and the purpose specifically when you ask, and then edit what comes back yourself. Her slides were adapted for our school from the lecture materials of Professor Im Cheol-il of Seoul National University, who gave the keynote at this summer's conference.",
+        ko: "네 번째 발표에서는 고현이 선생님이 수업 자료를 직접 만드는 방법을 선생님들과 함께 실습했습니다. 선생님들이 각자 노트북을 열어 두고 따라 하는 동안, 고 선생님은 추석과 송편을 주제로 인터넷에서 찾은 자료를 불러온 뒤 초등학교 3학년이 이해할 수 있는 퀴즈 다섯 문제를 요청하고, 만들어진 문제를 다시 쉬운 단어로 고치는 과정을 화면으로 보여 주었습니다. 그리고 그 방법을 원자료를 찾아 넣고, 학년과 목적을 구체적으로 적어 요청하고, 만들어진 자료를 교사가 직접 수정하는 세 단계로 정리했습니다. 발표에 사용한 자료는 이번 여름 학술대회의 기조강연을 맡았던 서울대학교 임철일 교수의 강의 자료를 우리 학교 수업에 맞게 각색한 것입니다." },
+
+      { en: "She closed with a caution the whole room took note of. When we are teaching Korean history, Korean culture and Hangeul, spelling can come out wrong and mistaken information or images can slip in, so the teacher must check and correct everything at the end.",
+        ko: "고 선생님은 마지막으로 한 가지를 당부했습니다. 한국의 역사와 문화, 한글을 가르칠 때에는 맞춤법이 틀리거나 잘못된 정보와 이미지가 섞여 들어올 수 있으므로, 마지막에는 반드시 교사가 확인하고 고쳐야 한다는 것입니다." },
+
+      { en: "Finally, Principal Demi Pysh (문동미) showed how she prepares the adult Korean class. She set out, step by step, how she settles on the topic from the textbook and then gathers the proverbs and video clips that belong with it into a single lesson's worth of material, emphasizing that the more specific the request, the better the result suits the students in front of you. She also shared that this term she is concentrating on listening — playing the same passage three times, a little faster each time — because learners who cannot catch what was said will answer something else entirely, and that her students' listening is visibly improving.",
+        ko: "마지막으로 문동미 학교장이 성인 한국어반의 수업 준비 과정을 보여 주었습니다. 교재에서 다룰 주제를 정한 뒤 그에 어울리는 속담과 영상 자료를 찾아 한 차시 분량으로 정리하는 과정을 단계별로 소개하며, 요청을 구체적으로 적을수록 학생들에게 맞는 자료가 나온다는 점을 강조했습니다. 또한 이번 학기에는 듣기에 초점을 맞추어 같은 내용을 세 차례에 걸쳐 조금씩 빠르게 들려주는 연습을 이어 가고 있다고 전했습니다. 들은 말을 정확히 알아듣지 못하면 엉뚱한 대답을 하게 되기 때문이며, 학생들의 듣기 능력이 눈에 띄게 늘고 있다고 덧붙였습니다." },
+
+      { en: "The theme of this summer's conference, Principal Pysh told the teachers, was \"Korean Schools Growing Together in the Age of AI\" — and a new tool does not stand in for a teacher; it makes the lesson a teacher has prepared richer. A lesson students see, touch and hear stays with them longer, and a language becomes one's own only through repeated use. Across five very different presentations, that was the thread they held in common.",
+        ko: "문동미 학교장은 이번 학술대회의 주제가 「AI 시대, 함께 성장하는 한국학교」였음을 전하며, 새로운 도구가 교사를 대신하는 것이 아니라 교사가 준비한 수업을 더 풍성하게 만들어 준다는 점을 함께 짚었습니다. 눈으로 보고 손으로 만지고 귀로 듣는 수업이 학생들에게 더 오래 남는다는 것, 그리고 언어는 반복해서 사용할 때 비로소 자기 것이 된다는 것이 서로 다른 다섯 발표를 관통한 공통된 이야기였습니다." },
+
+      { en: "This learning will not end as one teacher's experience. The presentation materials are being shared with all of our teachers and go into this fall term's lessons right away, and when one teacher takes another's class, the lesson can carry on from the same materials.",
+        ko: "이날 나눈 자료와 교수법은 개인의 경험으로 끝나지 않습니다. 발표 자료는 전체 선생님들과 공유되어 이번 가을학기 수업에 바로 활용되며, 한 선생님이 다른 반을 맡게 되는 경우에도 같은 자료를 바탕으로 수업을 이어 갈 수 있습니다." },
+
+      { en: "Coming after a full Saturday of teaching, the demonstration day was more than a session on new teaching methods. It was a precious time for teachers walking the same path to look into one another's classrooms and share what they have learned there.",
+        ko: "토요일 수업을 마친 뒤에 이어진 시연회는 새로운 교수법을 배우는 시간을 넘어, 같은 길을 걷는 선생님들이 서로의 교실을 들여다보고 그 안에서 얻은 경험을 나누는 소중한 시간이었습니다." },
+
+      { en: "The fall term is already under way. We hope the teaching methods and materials shared at this demonstration day will settle naturally into our classrooms this term, becoming the ground in which our students learn with greater joy and grow with greater confidence.",
+        ko: "가을학기는 이미 시작되었습니다. 이번 시연회에서 나눈 교수법과 자료가 올 한 학기 교실 곳곳에 자연스럽게 스며들어, 우리 학생들이 더욱 즐겁게 배우고 자신 있게 성장하는 밑거름이 되기를 기대합니다." },
+
+      { en: "At the North Alabama Korean School, our teachers will go on learning first and sharing with one another, and we will keep building a school where that learning reaches the classroom.",
+        ko: "앞으로도 북알라바마한국학교는 선생님들이 먼저 배우고 함께 나누며, 그 배움이 교실에 닿는 학교를 만들어 가겠습니다." }
+    ],
+
+    /* In-article photos. "after" = the body paragraph each photo follows. */
+    gallery: [
+      {
+        src:   "assets/spotlight/teacher-demo-day-fall-2026-teachers.jpg",
+        after: 2,
+        alt: {
+          en: "Teachers of the North Alabama Korean School seated at tables, watching a presentation at the fall teacher demonstration day.",
+          ko: "가을학기 교사 시연회에서 발표를 지켜보고 있는 북알라바마 한국학교 선생님들."
+        },
+        caption: {
+          en: "Our teachers at the fall demonstration day, straight after a full Saturday of classes.",
+          ko: "토요일 수업을 모두 마친 뒤 이어진 가을학기 교사 시연회."
+        }
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------
      KOREAN LAB — FREE VOCABULARY TOOL (August 18, 2026)
      --------------------------------------------------------------- */
   {
