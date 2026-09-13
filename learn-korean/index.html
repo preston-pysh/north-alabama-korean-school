@@ -1794,6 +1794,13 @@ const $ = id => document.getElementById(id);
        its wrong 밖 partner dropped — 속's antonym is 겉, which is not in the 1,500
    Doctrine: korean-lab references/22-the-word-gate.md
    ============================================================================================ */
+/* ============================ v53 — THE PICKER IS NOT A GATE (2026-09-13) ========================
+   The character picker opened with its primary button disabled until a character was
+   chosen, and nothing on screen said so. Preston read his own screen as a dead site.
+   Build-unique symbol, for proving what is live: openPicker() contains Math.random().
+   A pre-selected character means the button is live on first paint; the avSel === null
+   guard in the avSignIn handler is now unreachable and left in place as a belt.
+   ================================================================================================ */
 /* ============================ v52 — CARDS 301-340 GO LIVE (2026-09-13) ============================
    39 cards appended to DECK. 295 -> 334; coverage ceiling 35.24% -> 36.05%.
    Build-unique symbol, for proving what is live: 가르치다 (card 309) appears in DECK.
@@ -4985,7 +4992,17 @@ function takeAuthIntent(){
   }catch(e){ return null; }
 }
 function openPicker(){
-  avSel = (authUser && mem.avatar !== undefined) ? mem.avatar : null;
+  /* v53 (2026-09-13) — NEVER open this dialog on a dead button. Preston hit his own
+     picker and read the greyed primary as a broken site: "you can't even click on the
+     button to log in." The gate was invisible: the grid carried no mark that choosing
+     was a REQUIRED step, and the button gave no reason for being grey. Worse, the
+     handler that reaches Google does not run until a character is picked — so a person
+     who never finds the grid concludes the sign-in is down when nothing was attempted.
+     A character is now pre-selected — the learner's own if they have one, otherwise one
+     at random — so the button is live on first paint and picking is a CHOICE rather
+     than a toll gate. Nothing is committed until the button itself is pressed. */
+  avSel = (mem.avatar !== undefined) ? mem.avatar
+                                     : Math.floor(Math.random() * AVATARS.length);
   $('avGrid').innerHTML = AVATARS.map((a, i) =>
     `<button type="button" class="${i === avSel ? 'sel' : ''}" data-i="${i}" title="${a[1]}">`
     + `<img src="avatars/avatar-${a[0]}@128.png" alt="${a[1]}" loading="lazy"></button>`).join('');
@@ -5001,7 +5018,7 @@ function openPicker(){
     $('avBody').textContent = 'Pick your character — then keep it with Google, so it and every word you’ve earned follow you to any device.';
     $('avSignIn').textContent = 'Google로 저장하기 · Keep it with Google';
   }
-  $('avSignIn').disabled = (avSel === null);
+  $('avSignIn').disabled = false;   /* pre-selected above — it is never dead now */
   $('avDlg').classList.add('show');
 }
 $('dossSlot').addEventListener('click', openPicker);
@@ -5421,7 +5438,7 @@ if(mem.queue && mem.queue.length && mem.qi < mem.queue.length){
     <p id="avBody">Pick your character — then keep it with Google, so it and every word
       you’ve earned follow you to any device.</p>
     <div class="avgrid" id="avGrid"></div>
-    <button class="btn commit" id="avSignIn" disabled>Google로 저장하기 · Keep it with Google</button>
+    <button class="btn commit" id="avSignIn">Google로 저장하기 · Keep it with Google</button>
     <button class="later" id="avLater">나중에 · Maybe later</button>
   </div>
 </div>
