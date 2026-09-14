@@ -147,7 +147,12 @@ function renderArticle(post, lang) {
       const figs = gallery
         .filter((g) => g && g.src && Number(g.after) === i + 1)
         .map(galleryFigure);
-      return [`<p>${mdLinks(esc(t(p, lang)))}</p>`, ...figs].join("\n        ");
+      /* A body item beginning with "## " is a section heading, not a paragraph. */
+      const text = t(p, lang);
+      const html = /^##\s+/.test(text)
+        ? `<h2>${esc(text.replace(/^##\s+/, ""))}</h2>`
+        : `<p>${mdLinks(esc(text))}</p>`;
+      return [html, ...figs].join("\n        ");
     })
     .concat(
       gallery
