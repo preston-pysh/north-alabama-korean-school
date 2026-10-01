@@ -34,6 +34,173 @@
 window.SPOTLIGHT_POSTS = [
 
   /* ---------------------------------------------------------------
+     CHUSEOK 2026 — '추석 귀성길' (September 26, 2026)
+     Five rest stops, Seoul to Busan, one stamp each.
+     1관 서울 비석치기 (고현이) · 2관 천안 제기차기 (이지나)
+     3관 대전 투호·사방치기 (최현주, 조아람) · 4관 대구 공기놀이·팥빙수 (이지숙, 유선하)
+     5관 부산 강강술래 (조승연, 이선옥)
+     "## " at the start of a body item = section heading.
+     --------------------------------------------------------------- */
+  {
+    slug:     "chuseok-celebration-2026",
+    date:     "2026-09-26",
+    category: { en: "Event Recap", ko: "행사 이야기" },
+
+    title: {
+      en: "North Alabama Korean School travels from Seoul to Busan on the Chuseok road home",
+      ko: "북알라바마한국학교, ‘추석 귀성길’ 따라 서울에서 부산까지 명절 문화를 체험하다"
+    },
+
+    dek: {
+      en: "From biseokchigi to jegichagi, tuho and sabangchigi, gonggi and ganggangsullae — a Chuseok journey completed one stamp at a time across five rest stops.",
+      ko: "비석치기부터 제기차기, 투호와 사방치기, 공기놀이, 강강술래까지… 다섯 개의 휴게소에서 도장을 모으며 완성한 특별한 추석 여행"
+    },
+
+    image:    "assets/spotlight/chuseok-2026.jpg",
+    imageAlt: {
+      en: "Students of the North Alabama Korean School in hanbok, holding hands in a circle for ganggangsullae at the Busan rest stop.",
+      ko: "부산 휴게소에서 한복을 입고 손을 맞잡아 둥글게 원을 만들어 강강술래를 하고 있는 북알라바마한국학교 학생들."
+    },
+
+    author: { en: "North Alabama Korean School", ko: "북알라바마 한국학교" },
+
+    body: [
+      { en: "On September 26, the North Alabama Korean School held a Chuseok celebration for the whole school. Built around the theme of the 'Chuseok road home,' the event had students set out from Seoul and travel in turn through Cheonan, Daejeon and Daegu to Busan, visiting five 'Chuseok rest stops' along the way.",
+        ko: "지난 9월 26일, 북알라바마한국학교에서는 전교생이 함께하는 추석 행사가 열렸습니다. 이번 행사는 ‘추석 귀성길’을 주제로, 학생들이 서울에서 출발해 천안과 대전, 대구를 거쳐 부산까지 이어지는 다섯 개의 ‘추석 휴게소’를 차례로 방문하는 방식으로 진행되었습니다." },
+
+      { en: "Each student carried a 'homecoming ticket' from one rest stop to the next. Every rest stop had prepared an activity drawn from Korean culture, history, tradition or food, and each time a student finished one, a stamp was added to the ticket. Collecting all five stamps completed the journey from Seoul to Busan.",
+        ko: "학생들은 각자 ‘귀성길 차표’를 들고 휴게소를 하나씩 찾아갔습니다. 휴게소마다 한국의 문화와 역사, 전통과 음식을 주제로 한 활동이 준비되어 있었고, 활동을 마칠 때마다 차표에 도장을 하나씩 받았습니다. 다섯 개의 도장을 모두 모으면 서울에서 부산까지 이어지는 특별한 추석 여행이 완성되었습니다." },
+
+      { en: "The event was arranged so that students could step away from the ordinary classroom lesson for a day and take in the culture of a Korean holiday naturally, by seeing, making and experiencing it for themselves. The students set out on the road home dressed in hanbok.",
+        ko: "이번 행사는 평소의 교실 수업에서 잠시 벗어나 학생들이 직접 보고, 만들고, 체험하면서 한국의 명절 문화를 자연스럽게 배울 수 있도록 마련되었습니다. 이날 학생들은 한복을 곱게 차려입고 귀성길에 올랐습니다." },
+
+      { en: "## First rest stop, Seoul — biseokchigi",
+        ko: "## 첫 번째 휴게소, 서울 — 비석치기" },
+
+      { en: "Seoul, the starting point of the journey, was led by Ko Hyun-i. Students set a small stone upright and threw their own stone to knock it down — biseokchigi, a game that asks you to judge both your strength and the distance, and one Koreans have long gathered in the yard to play at holiday time.",
+        ko: "귀성길의 출발점인 서울 휴게소는 고현이 교사가 맡았습니다. 학생들은 작은 돌을 세워 놓고 자신의 돌을 던져 맞혀 쓰러뜨리는 비석치기에 도전했습니다. 손의 힘과 거리를 함께 가늠해야 하는 놀이로, 명절이면 마당에 모여 즐기던 한국의 전통 놀이입니다." },
+
+      { en: "## Second rest stop, Cheonan — jegichagi",
+        ko: "## 두 번째 휴게소, 천안 — 제기차기" },
+
+      { en: "At the Cheonan rest stop, Lee Ji-na led jegichagi, the Korean shuttlecock game. Students took on the mission of kicking the jegi three times, and younger students, for whom kicking is difficult, took part by tossing the jegi up with a hand and catching it instead. It was a thoughtful arrangement that let every student, whatever their grade, carry the game through to the end at their own level.",
+        ko: "천안 휴게소에서는 이지나 교사의 지도로 제기차기가 진행되었습니다. 학생들은 제기를 세 번 차는 미션에 도전했고, 발로 차기가 어려운 저학년 학생들은 제기를 손으로 위로 던졌다가 받는 방식으로 참여했습니다. 학년과 상관없이 모든 학생이 자기 수준에서 놀이를 끝까지 해낼 수 있도록 한 배려였습니다." },
+
+      { en: "## Third rest stop, Daejeon — tuho and sabangchigi",
+        ko: "## 세 번째 휴게소, 대전 — 투호와 사방치기" },
+
+      { en: "The Daejeon rest stop, led by Choi Hyun-ju and Cho A-ram, prepared two games. In tuho, students threw sticks from a set distance to land them inside a cylinder; in sabangchigi, they hopped on one foot across squares marked on the floor, moving a stone as they went. In both, waiting one's turn and cheering for the others was part of the game, and students fell into playing together naturally.",
+        ko: "대전 휴게소는 최현주 교사와 조아람 교사가 맡아 두 가지 놀이를 준비했습니다. 투호에서는 일정한 거리에서 막대를 던져 통 안에 넣는 미션에 도전했고, 사방치기에서는 바닥에 그려진 칸을 한 발로 뛰어 건너며 돌을 옮겼습니다. 두 놀이 모두 차례를 기다리고 서로 응원하는 과정이 놀이의 일부여서, 학생들이 자연스럽게 어울릴 수 있는 활동이었습니다." },
+
+      { en: "## Fourth rest stop, Daegu — gonggi and patbingsu",
+        ko: "## 네 번째 휴게소, 대구 — 공기놀이와 팥빙수" },
+
+      { en: "The Daegu rest stop was led by Vice-Principal Lee Owen and Yu Seon-ha. Students took on gonggi, the Korean jacks game, working up a step at a time from catching one stone to catching two. True to its name, 'the cool rest stop' also served every student a bowl of freshly shaved patbingsu, with red bean, rice cake, pineapple and strawberry set out so each could choose the toppings they wanted.",
+        ko: "대구 휴게소는 이지숙 교감과 유선하 교사가 맡았습니다. 학생들은 공기 한 개 잡기에서 두 개 잡기로 단계를 올려 가며 공기놀이에 도전했습니다. 「시원한 휴게소」라는 이름에 맞게 이곳에서는 직접 갈아 만든 팥빙수도 한 그릇씩 제공되었으며, 팥과 떡, 파인애플과 딸기 가운데 원하는 재료를 골라 올려 먹을 수 있도록 준비되었습니다." },
+
+      { en: "## Fifth rest stop, Busan — ganggangsullae",
+        ko: "## 다섯 번째 휴게소, 부산 — 강강술래" },
+
+      { en: "At Busan, the end of the road, Cho Seung-yeon and Lee Sun-ok led ganggangsullae. Students joined hands in a circle and moved slowly to the song, calling out \"ganggangsullae, ganggangsullae.\" Ganggangsullae is a song and a dance performed hand in hand under the full moon of Chuseok, and it was inscribed on the UNESCO Representative List of the Intangible Cultural Heritage of Humanity in 2009.",
+        ko: "귀성길의 종착지인 부산 휴게소에서는 조승연 교사와 이선옥 교사의 지도로 강강술래가 펼쳐졌습니다. 학생들은 손을 맞잡고 둥글게 원을 만들어 “강강술래, 강강술래” 노랫소리에 맞춰 천천히 돌았습니다. 강강술래는 추석 보름달 아래에서 여럿이 손을 잡고 함께 부르고 추던 노래이자 춤으로, 2009년 유네스코 인류무형문화유산에 등재되었습니다." },
+
+      { en: "## Prepared together, shared together",
+        ko: "## 함께 준비하고, 함께 나눈 하루" },
+
+      { en: "Students who had gathered all five stamps completed the road home from Seoul to Busan and held up their tickets to show it. A holiday they had met in the classroom through words and pictures became, for one day, something they travelled through themselves.",
+        ko: "다섯 개의 도장을 모두 모은 학생들은 서울에서 부산까지 이어진 귀성길을 완성하고 차표를 손에 들어 보였습니다. 교실에서 글과 그림으로 배우던 명절이 이날은 학생들이 직접 걸어서 지나온 하루가 되었습니다." },
+
+      { en: "The school extends its deep thanks to the Parents' Association, whose help made this an occasion as full and as grateful as the meaning Chuseok itself carries. Particular thanks go to Jonny and Justine of the adult Korean class, who lent the shaved-ice machine and spent three hours making bingsu for every student in the school.",
+        ko: "이번 행사가 추석이 주는 의미처럼 풍성하고 감사가 넘치는 자리가 될 수 있도록 도와주신 학부모협회에 깊이 감사드립니다. 특히 팥빙수 기계를 대여해 주고 세 시간 동안 전교생을 위해 직접 빙수를 만들어 준 성인 한국어반의 Jonny 학생과 Justine 학생에게 감사의 마음을 전합니다." },
+
+      { en: "Teachers, parents and adult-class students prepared the day together, and it gave the students a Korean holiday they will remember for a long time.",
+        ko: "교사와 학부모, 그리고 성인반 학생들이 함께 준비한 이날 행사는 학생들에게 오래 기억에 남을 한국의 명절을 선물했습니다." },
+
+      { en: "We hope the enjoyment the students felt that day, and the generous spirit of the holiday, carry on naturally into the lessons and the classrooms ahead.",
+        ko: "이날 학생들이 느낀 즐거움과 명절의 넉넉한 마음이 앞으로의 수업과 교실에도 자연스럽게 이어지기를 기대합니다." },
+
+      { en: "The North Alabama Korean School will go on creating occasions where students can learn Korean language and Korean culture not only inside the classroom, but by seeing, making and enjoying it for themselves.",
+        ko: "앞으로도 북알라바마한국학교는 학생들이 한국어와 한국 문화를 교실 안에서뿐만 아니라 직접 보고, 만들고, 즐기며 배울 수 있는 자리를 꾸준히 만들어 가겠습니다." }
+    ],
+
+    /* In-article photos. "after" = the body item each photo follows (headings count). */
+    gallery: [
+      {
+        src:   "assets/spotlight/chuseok-2026-jegi.jpg",
+        after: 7,
+        alt: {
+          en: "A student in hanbok kicking a jegi into the air at the Cheonan rest stop.",
+          ko: "천안 휴게소에서 한복을 입고 제기를 차고 있는 학생."
+        },
+        caption: {
+          en: "Cheonan rest stop — three kicks of the jegi.",
+          ko: "천안 휴게소 — 제기 세 번 차기에 도전하는 학생."
+        }
+      },
+      {
+        src:   "assets/spotlight/chuseok-2026-tuho.jpg",
+        after: 9,
+        alt: {
+          en: "A teacher in hanbok handing throwing sticks to a student at the Daejeon rest stop, with the sabangchigi squares marked on the floor.",
+          ko: "바닥에 사방치기 칸이 그려진 대전 휴게소에서 한복을 입은 교사가 학생에게 투호 막대를 건네고 있다."
+        },
+        caption: {
+          en: "Daejeon rest stop — tuho sticks, and the sabangchigi squares behind.",
+          ko: "대전 휴게소 — 투호 막대와 그 뒤로 이어지는 사방치기 칸."
+        }
+      },
+      {
+        src:   "assets/spotlight/chuseok-2026-gonggi.jpg",
+        after: 11,
+        alt: {
+          en: "Students in hanbok kneeling around a striped mat playing gonggi at the Daegu rest stop.",
+          ko: "대구 휴게소에서 색동 돗자리에 둘러앉아 공기놀이를 하고 있는 한복 차림의 학생들."
+        },
+        caption: {
+          en: "Daegu rest stop — one stone, then two.",
+          ko: "대구 휴게소 — 공기 한 개에서 두 개로."
+        }
+      },
+      {
+        src:   "assets/spotlight/chuseok-2026-bingsu.jpg",
+        after: 11,
+        alt: {
+          en: "Two volunteers working shaved-ice machines beside bins of red bean, rice cake, pineapple and strawberry toppings.",
+          ko: "팥과 떡, 파인애플과 딸기 재료가 놓인 탁자 앞에서 빙수 기계를 돌리고 있는 두 명의 봉사자."
+        },
+        caption: {
+          en: "Three hours of shaved ice for the whole school.",
+          ko: "세 시간 동안 전교생을 위해 이어진 팥빙수 만들기."
+        }
+      },
+      {
+        src:   "assets/spotlight/chuseok-2026-tickets.jpg",
+        after: 15,
+        alt: {
+          en: "Students in hanbok holding up their completed homecoming tickets.",
+          ko: "완성한 귀성길 차표를 들어 보이고 있는 한복 차림의 학생들."
+        },
+        caption: {
+          en: "Five stamps, Seoul to Busan.",
+          ko: "도장 다섯 개, 서울에서 부산까지."
+        }
+      },
+      {
+        src:   "assets/spotlight/chuseok-2026-volunteers.jpg",
+        after: 16,
+        alt: {
+          en: "Volunteers and adult-class students in North Alabama Korean School shirts making finger hearts.",
+          ko: "북알라바마 한국학교 티셔츠를 입고 손가락 하트를 만들어 보이는 봉사자와 성인반 학생들."
+        },
+        caption: {
+          en: "The volunteers and adult-class students who ran the day's stations.",
+          ko: "이날 휴게소를 함께 운영한 봉사자와 성인반 학생들."
+        }
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------
      FALL 2026 TEACHER DEMONSTRATION DAY (시연회) — September 12, 2026
      Korean body is 문동미 학교장's reviewed text, published verbatim.
      English mirrors it. "## " at the start of a body item = section heading.
