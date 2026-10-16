@@ -1487,3 +1487,11 @@ html[lang="ko"] .article-body { line-height: 1.8; }
   .cc-explore .cc-xlbl { display: none; }
   .cc-cardbody { padding-left: 20px; }
 }
+
+/* ===== Board of Trustees page (board/index.html) ===== */
+.board-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 238px)); gap: 18px; }
+.roster-alt { font-size: 14px; color: var(--ink-faint); margin-top: 2px; }
+.page-hero .hero-logo { width: 88px; margin: 0 auto 22px; }
+html[lang="ko"] .section-title,
+html[lang="ko"] .page-hero h1,
+html[lang="ko"] .page-hero p { word-break: keep-all; }

@@ -722,6 +722,85 @@ window.SITE = {
   /* =================================================================
      FOOTER
      ================================================================= */
+  /* =================================================================
+     GOVERNANCE — the Board of Trustees page (board/index.html)
+     Names and roles come from the General Secretary's trustee list.
+     A member with no `bio` shows name and role only; a member with
+     no `photo` shows initials. Photos live in assets/board/.
+     ================================================================= */
+  governance: {
+    title:   { en: "Board of Trustees", ko: "이사회" },
+    lede:    { en: "The volunteers who govern the North Alabama Korean School and have kept a school founded in 1992 on firm ground.",
+               ko: "1992년에 세워진 북알라바마 한국학교를 지금까지 굳건히 지켜 온 봉사자들, 학교를 운영하는 이사진입니다." },
+    linkLabel: { en: "Meet the Board of Trustees", ko: "이사회 소개" },
+    about: {
+      eyebrow: { en: "Governance", ko: "거버넌스" },
+      title:   { en: "How the Board works.", ko: "이사회는 이렇게 일합니다." },
+      body: [
+        { en: "The Board of Trustees is the school’s governing body. It approves the annual budget, appoints the Principal, oversees the school’s finances and savings, elects an independent auditor, and keeps the school in good standing as a nonprofit. Trustees serve as volunteers and meet in regular session each spring and fall.",
+          ko: "이사회는 학교의 최고 의결 기구입니다. 연간 예산을 승인하고, 학교장을 임명하며, 학교 재정과 적립금을 감독하고, 독립 감사를 선출하여 학교가 비영리단체로서 바르게 운영되도록 합니다. 이사는 모두 자원봉사자이며 봄·가을 정기 이사회에 모입니다." },
+        { en: "The Principal and the PTA President sit on the Board ex officio, so that the classroom and the families always have a voice at the table.",
+          ko: "학교장과 학부모회장은 당연직 이사로 참여하여 교실과 가정의 목소리가 늘 이사회에 전해지도록 합니다." }
+      ],
+      stats: [
+        { num: "1992", label: { en: "the year the school was founded", ko: "개교한 해" } },
+        { num: "13",   label: { en: "board members, including three emeritus advisors", ko: "명의 이사진 — 명예고문 세 분 포함" } },
+        { num: "2",    label: { en: "regular meetings a year — spring and fall", ko: "회 정기 이사회 — 봄·가을" } },
+        { num: "100%", label: { en: "volunteer — no trustee is paid", ko: "자원봉사 — 보수를 받는 이사가 없습니다" } }
+      ]
+    },
+    groups: [
+      { eyebrow: { en: "Officers", ko: "임원" },
+        title:   { en: "The officers of the Board.", ko: "이사회 임원." },
+        members: [
+          { name: { en: "Howard Jung", ko: "정호진" },
+            role: { en: "Chairman of the Board", ko: "이사장" },
+            bio:  { en: "Senior Customer Service Manager at LG Electronics, where he has served since 1996. Howard brings nearly three decades of corporate leadership to the Board and helps connect the school with Korean companies across North Alabama.",
+                    ko: "1996년부터 LG전자에서 근무하고 있으며 현재 고객서비스 부문 시니어 매니저입니다. 30년 가까운 기업 경영 경험을 이사회에 더하고, 학교와 북알라바마 지역 한국 기업을 잇는 역할을 하고 있습니다." },
+            photo: "assets/chairman-jung-ho-jin.jpg" },
+          { name: { en: "Demi Pysh", ko: "문동미" },
+            role: { en: "Principal · ex officio", ko: "학교장 · 당연직" },
+            bio:  { en: "Principal since 2023. Demi leads the Teachers’ Council, sets the academic program, and reports to the Board on the school’s academics each term. She also serves as PR Director of the National Association for Korean Schools.",
+                    ko: "2023년부터 학교장으로 교사회를 이끌고 교육과정을 책임지며, 매 학기 이사회에 학사보고를 합니다. 재미한국학교협의회 홍보이사로도 봉사하고 있습니다." },
+            photo: "assets/principal-dongmi-moon-pysh.jpg" },
+          { name: { en: "Hongrok Chang", ko: "장홍록" },
+            role: { en: "General Secretary", ko: "총무이사" },
+            bio:  { en: "A research scientist with AEgis Technologies in Huntsville. Hongrok has served on the Board since 2018 and keeps its records as General Secretary.",
+                    ko: "헌츠빌 AEgis Technologies의 연구원입니다. 2018년부터 이사로 봉사하고 있으며, 총무이사로서 이사회의 기록을 맡고 있습니다." } },
+          { name: { en: "Preston Pysh", ko: "프레스턴 피시" },
+            role: { en: "Treasurer", ko: "재무이사" },
+            bio:  { en: "An entrepreneur, engineer, and investor, and an international bestselling author on investing. Preston co-founded The Investor’s Podcast Network and is a graduate of West Point and Johns Hopkins University. He also serves as the school’s webmaster.",
+                    ko: "기업가이자 엔지니어, 투자자이며, 투자에 관한 책으로 국제적 베스트셀러 작가가 되었습니다. The Investor’s Podcast Network를 공동 창업했으며 미 육군사관학교(West Point)와 존스홉킨스 대학교를 졸업했습니다. 학교 웹사이트 관리도 맡고 있습니다." },
+            photo: "assets/board/preston-pysh.jpg" }
+        ] },
+      { eyebrow: { en: "Trustees", ko: "이사진" },
+        title:   { en: "Trustees and ex-officio members.", ko: "이사와 당연직 이사." },
+        members: [
+          { name: { en: "Hans Kim", ko: "김 한스" },       role: { en: "Trustee · Scholarship", ko: "이사 · 장학" } },
+          { name: { en: "Hee Hwan Kang", ko: "강희환" },   role: { en: "Trustee", ko: "이사" } },
+          { name: { en: "Tony Park", ko: "박병호" },       role: { en: "Trustee", ko: "이사" } },
+          { name: { en: "David Kim", ko: "김지웅" },       role: { en: "Trustee", ko: "이사" } },
+          { name: { en: "Rev. Huh", ko: "허균행 목사" },   role: { en: "Trustee · President, Korean Church Association of Huntsville", ko: "이사 · 헌츠빌 교역자협의회장" } },
+          { name: { en: "Sooyeon Kim", ko: "김수연" },     role: { en: "PTA President · ex officio", ko: "학부모회장 · 당연직" } }
+        ] },
+      { eyebrow: { en: "Emeritus", ko: "명예고문" },
+        title:   { en: "Honorary advisors.", ko: "명예고문." },
+        lede:    { en: "Founding-era leaders who continue to advise the Board and carry the school’s institutional memory.",
+                   ko: "학교를 세우고 이끌어 오신 분들로, 지금도 이사회에 조언을 주시며 학교의 역사를 이어 주십니다." },
+        members: [
+          { name: { en: "H.R. Chung", ko: "정화란" },  role: { en: "Emeritus Advisor · former Chair", ko: "명예고문 · 전 이사장" } },
+          { name: { en: "Keum C. Yoo", ko: "유금춘" }, role: { en: "Emeritus Advisor · former Chair", ko: "명예고문 · 전 이사장" } },
+          { name: { en: "Jay Koh", ko: "고준식" },     role: { en: "Emeritus Advisor · former Chair", ko: "명예고문 · 전 이사장" } }
+        ] }
+    ],
+    giving: {
+      eyebrow: { en: "Trustee giving", ko: "이사 후원" },
+      title:   { en: "Every trustee gives, every year.", ko: "모든 이사가 해마다 함께합니다." },
+      body:    { en: "Every trustee makes an annual contribution to the school. It is a modest sum, but it says something important: the people who govern the school also stand behind it with their own support.",
+                 ko: "모든 이사는 해마다 학교에 후원금을 냅니다. 크지 않은 금액이지만 의미는 큽니다. 학교를 운영하는 사람들이 스스로의 후원으로 학교를 뒷받침하고 있다는 뜻이기 때문입니다." }
+    }
+  },
+
   footer: {
     tagline:   { en: "Korean language & culture for North Alabama families.",
                  ko: "북알라바마 가정을 위한 한국어·한국문화 학교." },

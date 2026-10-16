@@ -81,7 +81,8 @@
   /* path from the current page back to the site root, so images
      resolve whether we're on the homepage or the /spotlight/ page */
   var ROOT_PREFIX =
-    location.pathname.indexOf("/spotlight/") !== -1 ? "../" : "";
+    (location.pathname.indexOf("/spotlight/") !== -1 ||
+     location.pathname.indexOf("/board/") !== -1) ? "../" : "";
   function asset(p) { return p ? ROOT_PREFIX + p : p; }
 
   function articleUrl(slug) {
@@ -1057,6 +1058,9 @@
             esc(ORG.contactEmail) + "</a>" : "") +
       "</div>" +
       (social ? '<div class="footer-social">' + social + "</div>" : "") +
+      ((SITE.governance && !$("governanceInner"))
+        ? '<div class="footer-line"><a href="' + esc(asset("board/index.html")) + '">' +
+          esc(t(SITE.governance.linkLabel)) + "</a></div>" : "") +
       '<div class="footer-fine">&copy; ' + year + " " + esc(orgName()) + ". " +
         (f.fineprint ? esc(t(f.fineprint)) : "") + "</div>";
 
@@ -1111,6 +1115,84 @@
   }
 
   /* =================================================================
+     BOARD OF TRUSTEES PAGE (board/index.html)
+     ================================================================= */
+  function boardInitials(m) {
+    var en = String((m.name && m.name.en) || "?").replace(/^Rev\.\s*/, "");
+    return en.split(/\s+/).filter(Boolean).slice(0, 2)
+      .map(function (w) { return w[0].toUpperCase(); }).join("");
+  }
+
+  function boardCard(m) {
+    var nm = t(m.name);
+    var other = m.name ? (LANG === "ko" ? m.name.en : m.name.ko) : "";
+    var card = el("div", "roster-card");
+    card.innerHTML =
+      '<div class="roster-avatar">' + esc(boardInitials(m)) + "</div>" +
+      '<div class="roster-name">' + esc(nm) + "</div>" +
+      (other && other !== nm ? '<div class="roster-alt">' + esc(other) + "</div>" : "") +
+      (m.role ? '<div class="roster-role">' + esc(t(m.role)) + "</div>" : "") +
+      (m.bio ? '<div class="roster-detail">' + esc(t(m.bio)) + "</div>" : "");
+    if (m.photo) {
+      probeImage(asset(m.photo), function () {
+        card.querySelector(".roster-avatar").innerHTML =
+          '<img src="' + esc(asset(m.photo)) + '" alt="' + esc(nm) + '">';
+      });
+    }
+    return card;
+  }
+
+  function renderGovernance() {
+    var host = $("governanceInner");
+    if (!host) return;
+    var g = SITE.governance || {};
+    renderNav();
+    document.title = t(g.title) + " · " + orgName();
+
+    var hero = $("governanceHero");
+    if (hero) {
+      hero.innerHTML =
+        (ORG.logo ? '<img class="hero-logo" src="' + esc(asset(ORG.logo)) + '" alt="">' : "") +
+        "<h1>" + esc(t(g.title)) + "</h1>" +
+        "<p>" + esc(t(g.lede)) + "</p>";
+    }
+
+    host.innerHTML = "";
+    var alt = false;
+    function section(inner) {
+      var s = el("section", "section" + (alt ? " section-alt" : ""));
+      var w = el("div", "wrap"); w.innerHTML = inner;
+      s.appendChild(w); host.appendChild(s); alt = !alt;
+      return w;
+    }
+
+    var a = g.about || {};
+    var body = (a.body || []).map(function (p) {
+      return "<p>" + esc(t(p)) + "</p>";
+    }).join("");
+    var stats = (a.stats || []).map(function (s) {
+      return '<div class="stat"><div class="stat-num">' + esc(s.num) +
+        '</div><div class="stat-label">' + esc(t(s.label)) + "</div></div>";
+    }).join("");
+    section(sectionHead(a) + '<div class="about-body">' + body + "</div>" +
+      (stats ? '<div class="stat-row">' + stats + "</div>" : ""));
+
+    (g.groups || []).forEach(function (grp) {
+      var w = section(sectionHead(grp));
+      var grid = el("div", "roster-grid board-grid");
+      (grp.members || []).forEach(function (m) { grid.appendChild(boardCard(m)); });
+      w.appendChild(grid);
+    });
+
+    if (g.giving) {
+      section(sectionHead(g.giving) +
+        '<div class="about-body"><p>' + esc(t(g.giving.body)) + "</p></div>");
+    }
+
+    renderFooter();
+  }
+
+  /* =================================================================
      SCROLL REVEAL
      ================================================================= */
   var revealObs = null;
@@ -1161,6 +1243,8 @@
 
     if ($("spotlightIndexInner")) {
       renderSpotlightIndex();
+    } else if ($("governanceInner")) {
+      renderGovernance();
     } else {
       renderNav();
       renderHero();

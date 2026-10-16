@@ -344,7 +344,8 @@ function renderArticle(post, lang) {
 let written = 0;
 const sitemapUrls = [
   { loc: `${SITE_URL}/`, pri: "1.0" },
-  { loc: `${SITE_URL}/spotlight/`, pri: "0.9" }
+  { loc: `${SITE_URL}/spotlight/`, pri: "0.9" },
+  { loc: `${SITE_URL}/board/`, pri: "0.6" }
 ];
 
 for (const post of POSTS) {
