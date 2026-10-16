@@ -756,8 +756,8 @@ window.SITE = {
         members: [
           { name: { en: "Howard Jung", ko: "정호진" },
             role: { en: "Chairman of the Board", ko: "이사장" },
-            bio:  { en: "Senior Customer Service Manager at LG Electronics, where he has served since 1996. Howard brings nearly three decades of corporate leadership to the Board and helps connect the school with Korean companies across North Alabama.",
-                    ko: "1996년부터 LG전자에서 근무하고 있으며 현재 고객서비스 부문 시니어 매니저입니다. 30년 가까운 기업 경영 경험을 이사회에 더하고, 학교와 북알라바마 지역 한국 기업을 잇는 역할을 하고 있습니다." },
+            bio:  { en: "A trustee since 2004 and Chairman of the Board since 2016. Howard is a Senior Customer Service Manager at LG Electronics, where he has served since 1996, and helps connect the school with Korean companies across North Alabama.",
+                    ko: "2004년부터 이사로, 2016년부터 이사장으로 봉사하고 있습니다. 1996년부터 LG전자에서 근무하고 있으며 현재 고객서비스 부문 시니어 매니저로서, 학교와 북알라바마 지역 한국 기업을 잇는 역할을 하고 있습니다." },
             photo: "assets/chairman-jung-ho-jin.jpg" },
           { name: { en: "Demi Pysh", ko: "문동미" },
             role: { en: "Principal · ex officio", ko: "학교장 · 당연직" },
@@ -786,12 +786,12 @@ window.SITE = {
         ] },
       { eyebrow: { en: "Emeritus", ko: "명예고문" },
         title:   { en: "Honorary advisors.", ko: "명예고문." },
-        lede:    { en: "Founding-era leaders who continue to advise the Board and carry the school’s institutional memory.",
-                   ko: "학교를 세우고 이끌어 오신 분들로, 지금도 이사회에 조언을 주시며 학교의 역사를 이어 주십니다." },
+        lede:    { en: "Former Chairs of the Board who continue to advise the Board and carry the school’s institutional memory.",
+                   ko: "이사장을 역임하신 분들로, 지금도 이사회에 조언을 주시며 학교의 역사를 이어 주십니다." },
         members: [
-          { name: { en: "H.R. Chung", ko: "정화란" },  role: { en: "Emeritus Advisor · former Chair", ko: "명예고문 · 전 이사장" } },
-          { name: { en: "Keum C. Yoo", ko: "유금춘" }, role: { en: "Emeritus Advisor · former Chair", ko: "명예고문 · 전 이사장" } },
-          { name: { en: "Jay Koh", ko: "고준식" },     role: { en: "Emeritus Advisor · former Chair", ko: "명예고문 · 전 이사장" } }
+          { name: { en: "Keum C. Yoo", ko: "유금춘" }, role: { en: "Emeritus Advisor · Chair 1996–1999", ko: "명예고문 · 이사장 (1996–1999)" } },
+          { name: { en: "H.R. Chung", ko: "정화란" },  role: { en: "Emeritus Advisor · Chair 2008–2012", ko: "명예고문 · 이사장 (2008–2012)" } },
+          { name: { en: "Jay Koh", ko: "고준식" },     role: { en: "Emeritus Advisor · Chair 2012–2015", ko: "명예고문 · 이사장 (2012–2015)" } }
         ] }
     ],
     giving: {
