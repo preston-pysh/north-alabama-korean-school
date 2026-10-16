@@ -247,6 +247,7 @@ function renderArticle(post, lang) {
           <a href="${koHref}" class="${isKo ? "active" : ""}">한국어</a>
         </div>
         ${navLink("about", "about")}
+        <a href="${up}board/index.html">${esc(t(NAV.board, lang))}</a>
         ${navLink("spotlight", "spotlight")}
         ${navLink("programs", "programs")}
         ${navLink("join", "join")}

@@ -76,6 +76,7 @@ window.SITE = {
      ================================================================= */
   nav: {
     about:      { en: "About",      ko: "소개" },
+    board:      { en: "Board",      ko: "이사회" },
     spotlight:  { en: "Stories",    ko: "이야기" },
     programs:   { en: "Programs",   ko: "교육과정" },
     curriculum: { en: "Curriculum", ko: "교과과정" },

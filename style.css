@@ -1338,7 +1338,7 @@ html[lang="ko"] .article-body { line-height: 1.8; }
     max-height: 0; overflow: hidden;
     transition: max-height .35s var(--ease);
   }
-  .nav-links.open { max-height: 460px; }
+  .nav-links.open { max-height: 540px; }
   .nav-links > a {
     padding: 15px 28px; border-top: 1px solid var(--line); font-size: 16px;
   }
@@ -1495,3 +1495,12 @@ html[lang="ko"] .article-body { line-height: 1.8; }
 html[lang="ko"] .section-title,
 html[lang="ko"] .page-hero h1,
 html[lang="ko"] .page-hero p { word-break: keep-all; }
+
+/* Tablet widths: the menu has eight items, so between the phone menu
+   (760px) and full desktop, show the logo emblem without the school
+   name and keep every label on one line. */
+.nav-links > a, .lang-toggle button, .lang-toggle a { white-space: nowrap; }
+@media (min-width: 761px) and (max-width: 1180px) {
+  .nav-logo span { display: none; }
+  .nav-links { gap: 18px; }
+}
