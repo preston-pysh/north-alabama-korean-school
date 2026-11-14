@@ -17,6 +17,16 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://northalabamakoreanschool.org/spotlight/fall-field-day-2026/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://northalabamakoreanschool.org/spotlight/fall-field-day-2026/ko/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://northalabamakoreanschool.org/spotlight/chuseok-celebration-2026/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

@@ -32,6 +32,136 @@
    ================================================================= */
 
 window.SPOTLIGHT_POSTS = [
+  /* ---------------------------------------------------------------
+     FALL FIELD DAY 2026 — 가을 운동회 (October 24, 2026)
+     Brahan Spring Park, Pavilion #1. Blue Team 2000, White Team 1950.
+     Run by the Parents' Association; teachers ran the stations with
+     student helpers. Photos by Gabriel Lockwood.
+     "## " at the start of a body item = section heading.
+     --------------------------------------------------------------- */
+  {
+    slug:     "fall-field-day-2026",
+    date:     "2026-10-24",
+    category: { en: "Event Recap", ko: "행사 이야기" },
+
+    title: {
+      en: "North Alabama Korean School holds its 2026 fall field day at Brahan Spring Park",
+      ko: "북알라바마한국학교, 브레이핸 스프링 공원에서 2026년 가을 운동회 열다"
+    },
+
+    dek: {
+      en: "Classes split in half and mixed into a Blue Team and a White Team — and after the relays, the three-legged race and a tug of war, Blue took the day 2,000 to 1,950.",
+      ko: "반을 반씩 나누어 청팀과 백팀으로… 이어달리기와 2인 3각, 줄다리기까지 겨룬 끝에 청팀이 2000대 1950, 50점 차로 우승했습니다."
+    },
+
+    image:    "assets/spotlight/field-day-2026.jpg",
+    imageAlt: {
+      en: "Students, teachers and parents of the North Alabama Korean School gathered under Pavilion #1 at Brahan Spring Park for a group photo, many making finger hearts.",
+      ko: "브레이핸 스프링 공원 1번 파빌리온 앞에 모여 손가락 하트를 만들며 단체 사진을 찍고 있는 북알라바마한국학교 학생과 교사, 학부모."
+    },
+
+    author: { en: "North Alabama Korean School", ko: "북알라바마 한국학교" },
+
+    body: [
+      { en: "On Saturday, October 24, the North Alabama Korean School held its 2026 fall field day at Brahan Spring Park in Huntsville. The day began at 10 in the morning, as students, teachers and parents gathered on the grass in front of Pavilion #1.",
+        ko: "지난 10월 24일 토요일, 북알라바마한국학교가 헌츠빌 브레이핸 스프링 공원에서 2026년 가을 운동회를 열었습니다. 오전 10시, 1번 파빌리온 앞 잔디밭에 학생과 교사, 학부모가 모이면서 하루가 시작되었습니다." },
+
+      { en: "The fall field day is the annual occasion when Saturday lessons pause and the whole school gathers in one place. Students run together across grades and classes, and spend the day on the same side as classmates they rarely meet in the classroom.",
+        ko: "가을 운동회는 토요일마다 이어지던 교실 수업을 잠시 멈추고 학교 전체가 한곳에 모이는 연례 행사입니다. 학생들은 학년과 반을 넘어 함께 뛰고, 평소 교실에서는 만나기 어려운 친구들과 같은 편이 되어 하루를 보냅니다." },
+
+      { en: "## A Blue Team and a White Team, with the classes mixed",
+        ko: "## 청팀과 백팀, 반을 섞어 한 팀으로" },
+
+      { en: "Students were divided into a Blue Team and a White Team. Rather than setting class against class, every class was split in half and mixed, so that students of different grades met and competed on the same team. Siblings were kept together, and the score from every event was recorded on a single board set up at the edge of the field.",
+        ko: "이날 학생들은 청팀과 백팀으로 나뉘었습니다. 반별로 팀을 가르는 대신 각 반을 반씩 나누어 섞었기 때문에, 서로 다른 학년의 학생들이 한 팀 안에서 만나 함께 경기를 치렀습니다. 형제자매는 같은 팀으로 묶였고, 모든 경기의 점수는 운동장 한쪽에 세워 둔 점수판 하나에 기록되었습니다." },
+
+      { en: "## From passing the ball overhead to the tug of war",
+        ko: "## 공 전달하기부터 줄다리기까지" },
+
+      { en: "The morning opened with a welcome and a stretch everyone did together. Students warmed up by passing a ball overhead down the line, and the two teams met for the first time in the relay race.",
+        ko: "개회와 다 함께하는 체조로 하루를 연 뒤 본격적인 경기가 시작되었습니다. 학생들은 머리 위로 공 전달하기로 몸을 풀었고, 이어달리기에서 두 팀이 처음으로 맞붙었습니다." },
+
+      { en: "Students then moved through the events in turn. In the three-legged race, two students held on to each other and matched their steps toward the finish line; in the balloon-popping relay, each runner set off, popped a balloon and ran back. A student quick on their own had, running as a pair, to fit their stride to someone else's.",
+        ko: "이어서 학생들은 준비된 경기를 차례로 돌며 참여했습니다. 2인 3각에서는 두 학생이 서로를 붙잡고 발을 맞추어 결승선을 향했고, 풍선 터뜨리기 릴레이에서는 달려 나가 풍선을 터뜨리고 돌아오는 구간이 이어졌습니다. 혼자서는 빠른 학생도 둘이 함께 달릴 때에는 상대의 걸음에 자신의 걸음을 맞추어야 했습니다." },
+
+      { en: "The loudest cheering of the day came at the tug of war. After the students had taken their turns, parents picked up the rope as well, and with older students and parents pulling together the shouting from both ends of the line did not let up.",
+        ko: "이날 가장 큰 환호가 터져 나온 경기는 줄다리기였습니다. 학생들의 차례가 끝난 뒤에는 학부모들도 줄을 잡았고, 고학년 학생과 학부모가 함께 줄을 당기는 동안 줄 양쪽 끝에서 응원 소리가 끊이지 않았습니다." },
+
+      { en: "## A day the Parents' Association and the teachers built together",
+        ko: "## 학부모협회와 교사가 함께 만든 하루" },
+
+      { en: "This year's field day was organised and run by the Parents' Association. Every teacher was there, running the events alongside student helpers, while volunteers in safety vests worked the edge of the field, calling the order of play and looking after the students.",
+        ko: "이번 운동회는 학부모협회가 운영을 맡아 준비했습니다. 교사들은 전원 참석해 학생 도우미와 함께 각 경기를 진행했고, 안전 조끼를 입은 자원봉사자들이 경기장 둘레에서 순서를 안내하고 학생들을 챙겼습니다." },
+
+      { en: "## Fifty points between them",
+        ko: "## 50점 차로 갈린 승부" },
+
+      { en: "Around noon the final score stood on the board at 2,000 for the Blue Team and 1,950 for the White Team — fifty points between them, and the win to Blue. Medals and a trophy were presented at the awards ceremony, and the day closed with the whole school gathered in front of the pavilion for a group photograph.",
+        ko: "정오 무렵 점수판에 적힌 최종 점수는 청팀 2000점, 백팀 1950점이었습니다. 50점 차로 청팀이 우승했습니다. 시상식에서는 학생들에게 메달과 트로피가 전달되었고, 학생과 교사, 학부모가 파빌리온 앞에 모여 단체 사진을 찍는 것으로 하루를 마무리했습니다." },
+
+      { en: "The field day is the longest stretch of the year that the whole school spends together outside the classroom. Students who are not in the same class, and so rarely have occasion to talk, spent this morning tied to one team and running on the same side. We hope the enjoyment they shared on the field carries on naturally into the Saturdays ahead.",
+        ko: "운동회는 한 해 가운데 학교 전체가 교실 밖에서 가장 오래 함께 보내는 시간입니다. 같은 반이 아니어서 평소 이야기를 나눌 일이 드물던 학생들이 이날은 한 팀으로 묶여 같은 편에서 뛰었습니다. 이날 운동장에서 나눈 즐거움이 앞으로의 토요일 교실에도 자연스럽게 이어지기를 기대합니다." },
+
+      { en: "The North Alabama Korean School will go on creating occasions where students learn Korean language and Korean culture not only inside the classroom, but running and laughing together.",
+        ko: "앞으로도 북알라바마한국학교는 학생들이 한국어와 한국 문화를 교실 안에서뿐만 아니라 함께 뛰고 웃으며 배울 수 있는 자리를 꾸준히 만들어 가겠습니다." },
+
+      { en: "Photographs by Gabriel Lockwood.",
+        ko: "사진 · Gabriel Lockwood" }
+    ],
+
+    /* In-article photos. "after" = the body item each photo follows (headings count). */
+    gallery: [
+      {
+        src:   "assets/spotlight/field-day-2026-tug-students.jpg",
+        after: 8,
+        alt: {
+          en: "Older students and fathers leaning back in a line, straining on the tug-of-war rope.",
+          ko: "줄다리기 줄을 잡고 몸을 뒤로 젖힌 채 힘껏 당기고 있는 고학년 학생들과 아버지들."
+        },
+        caption: {
+          en: "The tug of war — older students and parents on the same rope.",
+          ko: "줄다리기 — 고학년 학생과 학부모가 같은 줄을 잡았다."
+        }
+      },
+      {
+        src:   "assets/spotlight/field-day-2026-tug-parents.jpg",
+        after: 8,
+        alt: {
+          en: "Two mothers in gloves pulling hard on the tug-of-war rope and laughing, with volunteers watching behind them.",
+          ko: "장갑을 끼고 줄다리기 줄을 힘껏 당기며 웃고 있는 두 어머니와 그 뒤에서 지켜보는 자원봉사자들."
+        },
+        caption: {
+          en: "Parents took their turn once the students had finished.",
+          ko: "학생들의 차례가 끝난 뒤 줄을 잡은 학부모들."
+        }
+      },
+      {
+        src:   "assets/spotlight/field-day-2026-volunteers.jpg",
+        after: 10,
+        alt: {
+          en: "Three volunteers in high-visibility safety vests watching an event from the edge of the field, one filming on a phone.",
+          ko: "경기장 가장자리에서 안전 조끼를 입고 경기를 지켜보는 세 명의 자원봉사자. 한 명은 휴대전화로 촬영하고 있다."
+        },
+        caption: {
+          en: "Volunteers in safety vests worked the edge of the field all morning.",
+          ko: "오전 내내 경기장 둘레를 지킨 안전 조끼 차림의 자원봉사자들."
+        }
+      },
+      {
+        src:   "assets/spotlight/field-day-2026-awards.jpg",
+        after: 12,
+        alt: {
+          en: "Children in school T-shirts wearing medals, one holding a trophy, standing in front of the scoreboard whiteboard.",
+          ko: "점수판으로 쓰인 화이트보드 앞에서 메달을 걸고 트로피를 든 채 서 있는 학교 티셔츠 차림의 학생들."
+        },
+        caption: {
+          en: "Medals, a trophy, and the scoreboard behind: 2,000 to 1,950.",
+          ko: "메달과 트로피, 그리고 그 뒤의 점수판 — 2000대 1950."
+        }
+      }
+    ]
+  },
+
 
   /* ---------------------------------------------------------------
      CHUSEOK 2026 — '추석 귀성길' (September 26, 2026)
