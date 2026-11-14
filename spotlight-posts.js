@@ -33,6 +33,127 @@
 
 window.SPOTLIGHT_POSTS = [
   /* ---------------------------------------------------------------
+     TTEOKBOKKI DAY — 떡볶이 특별 수업 (November 7, 2026)
+     Led by Vice-Principal Lee Owen (이지숙 교감); all the teachers took
+     part. Royal (soy sauce, beef, mushrooms) vs modern (gochujang,
+     fish cakes), then cooked and tasted on site. All classes invited.
+     "## " at the start of a body item = section heading.
+     --------------------------------------------------------------- */
+  {
+    slug:     "tteokbokki-day-2026",
+    date:     "2026-11-07",
+    category: { en: "Event Recap", ko: "행사 이야기" },
+
+    title: {
+      en: "North Alabama Korean School traces the history of tteokbokki — then makes a pan of it",
+      ko: "북알라바마한국학교, 떡볶이의 역사를 배우고 직접 만들어 맛보다"
+    },
+
+    dek: {
+      en: "From the royal court's soy-sauce tteokbokki with beef and mushrooms to the gochujang and fish cakes everyone eats today — a lesson in where the dish came from, and a pan of it shared by every class.",
+      ko: "간장에 소고기와 버섯을 넣던 궁중 떡볶이에서 고추장과 어묵의 오늘날 떡볶이까지… 떡볶이의 유래를 배운 뒤 모든 반이 함께 만들어 맛본 하루"
+    },
+
+    image:    "assets/spotlight/tteokbokki-2026.jpg",
+    imageAlt: {
+      en: "Children of the North Alabama Korean School seated in rows of chairs, watching the tteokbokki lesson.",
+      ko: "의자에 줄지어 앉아 떡볶이 수업을 지켜보고 있는 북알라바마한국학교 학생들."
+    },
+
+    author: { en: "North Alabama Korean School", ko: "북알라바마 한국학교" },
+
+    body: [
+      { en: "On Saturday, November 7, the North Alabama Korean School devoted a special class to one of the best-loved foods in Korea: tteokbokki. Led by Vice-Principal Lee Owen, students learned where the dish came from and how it came by its flavour — and then ate a bowl of it, cooked on the spot.",
+        ko: "지난 11월 7일 토요일, 북알라바마한국학교가 한국에서 가장 사랑받는 음식 가운데 하나인 떡볶이를 주제로 특별 수업을 열었습니다. 이지숙 교감이 이끈 이날 수업에서 학생들은 떡볶이의 유래와 그 맛이 만들어진 과정을 배운 뒤, 바로 그 자리에서 만든 떡볶이를 맛보았습니다." },
+
+      { en: "Tteokbokki is the dish students are most likely to meet in a Korean snack shop or at a street stall, but the story of how it arrived at the taste they know is far less familiar. The class was arranged to look at how Korean food culture has changed, through one dish everybody already recognises.",
+        ko: "떡볶이는 한국의 분식집과 길거리 포장마차에서 가장 흔히 만날 수 있는 음식이지만, 지금의 맛이 자리 잡기까지의 과정은 잘 알려져 있지 않습니다. 이번 수업은 누구나 아는 음식 하나를 통해 한국의 음식 문화가 어떻게 변해 왔는지를 살펴보는 자리로 마련되었습니다." },
+
+      { en: "## From the court's soy sauce to the street's gochujang",
+        ko: "## 궁중의 간장에서 길거리의 고추장으로" },
+
+      { en: "The lesson set two pictures side by side. On one side was royal tteokbokki — a dish made with soy sauce, beef and mushrooms, and served to the elite. On the other was the tteokbokki of today, with the heat of gochujang and the inexpensive fish cakes anyone can buy. Students compared the two and saw how far a single name had travelled: the ingredients, the colour, and who got to eat it.",
+        ko: "수업은 두 장의 그림을 나란히 놓는 것으로 시작되었습니다. 한쪽은 궁중 떡볶이로, 간장에 소고기와 버섯을 넣어 만들어 귀한 사람들의 상에 오르던 음식이었습니다. 다른 한쪽은 오늘날의 떡볶이로, 고추장의 매운맛과 누구나 살 수 있는 값싼 어묵이 들어갑니다. 학생들은 같은 이름을 가진 두 음식의 재료와 색, 그리고 먹는 사람까지 어떻게 달라졌는지를 비교하며 살펴보았습니다." },
+
+      { en: "The red, gochujang-based version spread from Seoul's street stalls in the middle of the twentieth century and settled into the form eaten today. A dish once set on a royal table had become something anyone could buy for pocket change — a change held, as it turns out, in a single bowl.",
+        ko: "고추장을 쓴 붉은 떡볶이는 20세기 중반 서울의 길거리에서 퍼져 나가며 지금의 모습을 갖추었습니다. 궁중의 상에 오르던 음식이 누구나 사 먹을 수 있는 간식이 되기까지의 변화가 떡볶이 한 그릇에 담겨 있는 셈입니다." },
+
+      { en: "## Made on the spot, tasted on the spot",
+        ko: "## 그 자리에서 만들고, 그 자리에서 맛보다" },
+
+      { en: "Once the lesson ended, the cooking began in the next room. Teachers worked an electric pan, adding rice cakes, fish cakes and spring onions and stirring the gochujang sauce through, while slow cookers along the table kept what had been prepared earlier hot. The smell carried back into the room where the students were sitting.",
+        ko: "수업이 끝난 뒤에는 바로 옆 공간에서 조리가 이어졌습니다. 교사들이 전기 팬에 떡과 어묵, 대파를 넣고 고추장 양념을 풀어 떡볶이를 끓였고, 탁자 위의 보온 조리기에는 미리 준비해 둔 음식을 따뜻하게 두었습니다. 끓는 팬에서 올라온 냄새가 학생들이 앉아 있는 자리까지 번졌습니다." },
+
+      { en: "The finished tteokbokki was portioned out and carried to the students. Younger students meeting the heat of gochujang for the first time took a bite at a time and compared notes, and a food they had met in words and pictures became one they had actually tasted.",
+        ko: "완성된 떡볶이는 한 그릇씩 나뉘어 학생들에게 전달되었습니다. 고추장의 매운맛을 처음 접하는 저학년 학생들은 한 입씩 맛을 보며 서로 반응을 나누었고, 글과 그림으로만 만나던 음식이 직접 맛본 음식이 되었습니다." },
+
+      { en: "## Open to every class",
+        ko: "## 모든 반에게 열린 자리" },
+
+      { en: "The day was not limited to one grade. Every class was invited, and all of the teachers took part in running it. Students and families filled the room together, sharing the same dish and confirming by taste what they had just learned in the lesson.",
+        ko: "이날 행사는 특정 학년에 한정하지 않고 모든 반이 참여할 수 있도록 열렸으며, 교사 전원이 진행에 함께했습니다. 학생과 가족들이 한 공간을 가득 채워 같은 음식을 나누었고, 수업에서 배운 내용을 그 자리에서 맛으로 확인했습니다." },
+
+      { en: "Food is often the easiest way for a country's history to reach someone. We hope that learning the change held in a bowl of tteokbokki — and tasting it the same morning — brings the students that much closer to Korean culture.",
+        ko: "음식은 한 나라의 역사가 가장 쉽게 전해지는 통로입니다. 떡볶이 한 그릇에 담긴 변화를 배우고 같은 날 직접 맛본 이날의 경험이 학생들에게 한국 문화를 한층 가깝게 느끼게 하는 계기가 되기를 기대합니다." },
+
+      { en: "The North Alabama Korean School will go on creating occasions where students learn Korean language and Korean culture not only inside the classroom, but by seeing, making and tasting it for themselves.",
+        ko: "앞으로도 북알라바마한국학교는 학생들이 한국어와 한국 문화를 교실 안에서뿐만 아니라 직접 보고, 만들고, 맛보며 배울 수 있는 자리를 꾸준히 만들어 가겠습니다." }
+    ],
+
+    /* In-article photos. "after" = the body item each photo follows (headings count). */
+    gallery: [
+      {
+        src:   "assets/spotlight/tteokbokki-2026-lesson.jpg",
+        after: 4,
+        alt: {
+          en: "A teacher at a lectern beside a projected slide comparing royal tteokbokki with soy sauce, beef and mushrooms to modern tteokbokki with gochujang and fish cakes.",
+          ko: "간장과 소고기, 버섯을 쓴 궁중 떡볶이와 고추장과 어묵을 쓴 오늘날의 떡볶이를 비교한 화면 옆에서 수업을 진행하고 있는 교사."
+        },
+        caption: {
+          en: "Two tteokbokki, side by side: the court's and the street's.",
+          ko: "나란히 놓인 두 떡볶이 — 궁중의 것과 길거리의 것."
+        }
+      },
+      {
+        src:   "assets/spotlight/tteokbokki-2026-cooking.jpg",
+        after: 7,
+        alt: {
+          en: "Two teachers in aprons and gloves cooking tteokbokki in an electric pan, with rice cakes, fish cakes and spring onions in red sauce and a tub of gochujang on the table.",
+          ko: "앞치마와 장갑을 끼고 전기 팬에 떡볶이를 조리하고 있는 두 교사. 탁자에는 붉은 양념의 떡과 어묵, 대파와 고추장 통이 놓여 있다."
+        },
+        caption: {
+          en: "Rice cakes, fish cakes, spring onions, gochujang.",
+          ko: "떡과 어묵, 대파 그리고 고추장."
+        }
+      },
+      {
+        src:   "assets/spotlight/tteokbokki-2026-table.jpg",
+        after: 8,
+        alt: {
+          en: "Teachers working along a folding table lined with slow cookers, containers and stacks of cups, preparing to serve.",
+          ko: "보온 조리기와 용기, 쌓아 둔 컵이 늘어선 접이식 탁자 앞에서 음식을 나눌 준비를 하고 있는 교사들."
+        },
+        caption: {
+          en: "The serving table, ready for every class.",
+          ko: "모든 반을 맞을 준비를 마친 배식대."
+        }
+      },
+      {
+        src:   "assets/spotlight/tteokbokki-2026-classes.jpg",
+        after: 10,
+        alt: {
+          en: "Students and parents filling rows of chairs, with the serving table set up at the back of the room.",
+          ko: "의자를 가득 채운 학생과 학부모들, 그리고 공간 뒤쪽에 마련된 배식대."
+        },
+        caption: {
+          en: "Every class in one room.",
+          ko: "한 공간에 모인 모든 반."
+        }
+      }
+    ]
+  },
+
+  /* ---------------------------------------------------------------
      FALL FIELD DAY 2026 — 가을 운동회 (October 24, 2026)
      Brahan Spring Park, Pavilion #1. Blue Team 2000, White Team 1950.
      Run by the Parents' Association; teachers ran the stations with
